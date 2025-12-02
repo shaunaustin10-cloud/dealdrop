@@ -1,0 +1,31 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider, ProtectedRoute } from './context/AuthContext';
+import MainApp from './MainApp';
+import LoginPage from './components/LoginPage';
+import RegisterPage from './components/RegisterPage';
+import LandingPage from './components/LandingPage';
+import TermsPage from './components/TermsPage'; // Import TermsPage
+import PrivacyPage from './components/PrivacyPage'; // Import PrivacyPage
+
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <MainApp />
+            </ProtectedRoute>
+          } />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/terms" element={<TermsPage />} /> {/* New route */}
+          <Route path="/privacy" element={<PrivacyPage />} /> {/* New route */}
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
