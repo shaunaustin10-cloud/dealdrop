@@ -5,7 +5,7 @@ import { storage } from '../firebaseConfig'; // Import storage
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import imageCompression from 'browser-image-compression';
 
-const ImageUploader = ({ imageUrls, onImageUrlsChange, onFilesUploaded, defaultImageUrl }) => {
+const ImageUploader = ({ imageUrls, onImageUrlsChange, onFilesUploaded, fallbackImage }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState('');
@@ -74,7 +74,8 @@ const ImageUploader = ({ imageUrls, onImageUrlsChange, onFilesUploaded, defaultI
     onImageUrlsChange(imageUrls.filter(url => url !== urlToRemove));
   };
 
-  const imagesToDisplay = imageUrls.length > 0 ? imageUrls : (defaultImageUrl ? [defaultImageUrl] : []);
+  const imagesToDisplay = imageUrls.length > 0 ? imageUrls : (fallbackImage ? [fallbackImage] : []);
+  const isFallback = imageUrls.length === 0 && !!fallbackImage;
 
   return (
     <div>
@@ -127,15 +128,20 @@ const ImageUploader = ({ imageUrls, onImageUrlsChange, onFilesUploaded, defaultI
                  <ImageIcon size={16} />
                </div>
             </div>
-            <span className="text-slate-300 truncate flex-1 text-xs font-mono">{url}</span>
-            <button
-              type="button"
-              onClick={() => handleRemoveImageUrl(url)}
-              className="text-slate-500 hover:text-red-400 transition-colors p-1"
-              title="Remove Image"
-            >
-              <X size={16} />
-            </button>
+            <div className="flex-1 min-w-0">
+               <span className="text-slate-300 truncate block text-xs font-mono">{url.substring(0, 40)}...</span>
+               {isFallback && <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Satellite Preview</span>}
+            </div>
+            {!isFallback && (
+              <button
+                type="button"
+                onClick={() => handleRemoveImageUrl(url)}
+                className="text-slate-500 hover:text-red-400 transition-colors p-1"
+                title="Remove Image"
+              >
+                <X size={16} />
+              </button>
+            )}
           </div>
         ))}
         {imagesToDisplay.length === 0 && (
@@ -152,7 +158,7 @@ ImageUploader.propTypes = {
   imageUrls: PropTypes.arrayOf(PropTypes.string).isRequired,
   onImageUrlsChange: PropTypes.func.isRequired,
   onFilesUploaded: PropTypes.func,
-  defaultImageUrl: PropTypes.string, // New prop type
+  fallbackImage: PropTypes.string,
 };
 
 export default ImageUploader;

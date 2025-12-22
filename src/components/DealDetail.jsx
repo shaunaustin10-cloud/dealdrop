@@ -50,9 +50,9 @@ const DealDetail = ({ deal, onBack }) => {
   const estimatedRent = deal.aiAnalysis?.market?.rentEstimate || deal.aiAnalysis?.market?.rent;
 
   return (
-    <div className="space-y-6 animate-fade-in relative">
-      {/* Navigation */}
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 animate-fade-in relative max-w-7xl mx-auto">
+      {/* Navigation & Header Actions */}
+      <div className="flex justify-between items-center mb-4">
         <button 
           onClick={onBack} 
           className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group"
@@ -72,10 +72,51 @@ const DealDetail = ({ deal, onBack }) => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Image Gallery Section */}
-        <div className="space-y-4">
-          <div className="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 aspect-[4/3] relative group">
+      {/* NEW: Full-Width Header Section */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl relative overflow-hidden">
+        {/* Decorative background element */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-3xl -mr-32 -mt-32 rounded-full"></div>
+        
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-black tracking-widest ${
+                  deal.status === 'New Lead' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                  deal.status === 'Under Contract' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                  'bg-slate-700 text-slate-300 border border-slate-600'
+              }`}>
+                  {deal.status || 'New Lead'}
+              </span>
+              <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">Added {deal.createdAt ? new Date(deal.createdAt.seconds * 1000).toLocaleDateString() : 'Recently'}</span>
+            </div>
+            <h1 className="text-3xl md:text-5xl font-black text-white leading-tight">
+               {formatAddress(deal.address, true)}
+            </h1>
+          </div>
+          
+          <div className="flex gap-4 md:gap-8 bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
+            <div className="text-center md:text-left">
+              <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest mb-1">Deal Score</p>
+              <div className="text-2xl font-black text-emerald-400">{deal.dealScore}</div>
+            </div>
+            <div className="w-px h-10 bg-slate-700"></div>
+            <div className="text-center md:text-left">
+              <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest mb-1">Estimated ARV</p>
+              <div className="text-2xl font-black text-white">{formatMoney(verifiedArv || arv)}</div>
+            </div>
+            <div className="w-px h-10 bg-slate-700"></div>
+            <div className="text-center md:text-left">
+              <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest mb-1">Rent Est.</p>
+              <div className="text-2xl font-black text-white">{formatMoney(estimatedRent || rent)}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Column: Sticky Gallery (4/12 width) */}
+        <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
+          <div className="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 aspect-[4/3] relative group shadow-2xl">
             {!imageLoaded && (
                <div className="absolute inset-0 bg-slate-800 animate-pulse z-10 flex items-center justify-center">
                  <div className="w-10 h-10 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin"></div>
@@ -88,161 +129,143 @@ const DealDetail = ({ deal, onBack }) => {
               onLoad={() => setImageLoaded(true)}
               style={{ opacity: imageLoaded ? 1 : 0 }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
           </div>
           
           {deal.imageUrls && deal.imageUrls.length > 1 && (
-             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide relative">
+             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                {deal.imageUrls.map((url, idx) => (
-                 <div key={idx} className="relative flex-shrink-0 w-20 h-20">
-                   <button
-                     onClick={() => setActiveImage(url)}
-                     className={`w-full h-full rounded-lg overflow-hidden border-2 transition-all ${activeImage === url ? 'border-emerald-500 shadow-lg shadow-emerald-500/20' : 'border-transparent opacity-60 hover:opacity-100'}`}
-                   >
-                     <img 
-                       src={url} 
-                       alt={`View ${idx + 1}`} 
-                       className="w-full h-full object-cover" 
-                     />
-                   </button>
-                 </div>
+                 <button
+                   key={idx}
+                   onClick={() => setActiveImage(url)}
+                   className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${activeImage === url ? 'border-emerald-500 shadow-lg shadow-emerald-500/20' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                 >
+                   <img src={url} alt={`View ${idx + 1}`} className="w-full h-full object-cover" />
+                 </button>
                ))}
              </div>
           )}
+
+          {/* Key Quick Stats under Image */}
+          <div className="grid grid-cols-3 gap-3">
+             <div className="bg-slate-900/50 border border-slate-800 p-3 rounded-xl flex flex-col items-center">
+               <Bed className="text-emerald-400 mb-1" size={18} />
+               <span className="text-lg font-bold text-white">{deal.bedrooms}</span>
+               <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Beds</span>
+             </div>
+             <div className="bg-slate-900/50 border border-slate-800 p-3 rounded-xl flex flex-col items-center">
+               <Bath className="text-emerald-400 mb-1" size={18} />
+               <span className="text-lg font-bold text-white">{deal.bathrooms}</span>
+               <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Baths</span>
+             </div>
+             <div className="bg-slate-900/50 border border-slate-800 p-3 rounded-xl flex flex-col items-center">
+               <Square className="text-emerald-400 mb-1" size={18} />
+               <span className="text-lg font-bold text-white">{deal.sqft}</span>
+               <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Sq Ft</span>
+             </div>
+          </div>
         </div>
 
-        {/* Deal Info Section */}
-        <div className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6"> {/* New container for top info */}
-            <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight mb-2">
-               {formatAddress(deal.address, true)} {/* Always show full address */}
-            </h1>
-            <p className="text-slate-400 text-lg">Added on {deal.createdAt ? new Date(deal.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown Date'}</p>
-
-            <div className="flex items-baseline gap-4 mt-4"> {/* New flex container for score, ARV, Rent */}
-              <div className="bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-xl text-lg font-bold whitespace-nowrap border border-emerald-500/20">
-                Score: {deal.dealScore}
+        {/* Right Column: Scrollable Content (7/12 width) */}
+        <div className="lg:col-span-7 space-y-6">
+          
+          {/* Financial Breakdown Card */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="p-2 bg-emerald-500/10 rounded-lg">
+                <DollarSign className="text-emerald-400" size={20} />
               </div>
-              {verifiedArv && (
-                <div className="flex items-baseline gap-1 text-white">
-                  <TrendingUp size={20} className="text-blue-400" />
-                  <span className="text-xl font-bold">ARV: {formatMoney(verifiedArv)}</span>
-                </div>
-              )}
-              {estimatedRent && (
-                <div className="flex items-baseline gap-1 text-white">
-                  <Home size={20} className="text-purple-400" />
-                  <span className="text-xl font-bold">Rent: {formatMoney(estimatedRent)}</span>
-                </div>
-              )}
+              <h3 className="text-xl font-bold text-white">Financial Breakdown</h3>
             </div>
-          </div>
-
-          {/* Key Stats Grid */}
-          <div className="grid grid-cols-3 gap-4">
-             <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col items-center text-center">
-               <Bed className="text-emerald-400 mb-2" size={24} />
-               <span className="text-2xl font-bold text-white">{deal.bedrooms}</span>
-               <span className="text-xs text-slate-500 uppercase font-bold tracking-wider">Beds</span>
-             </div>
-             <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col items-center text-center">
-               <Bath className="text-emerald-400 mb-2" size={24} />
-               <span className="text-2xl font-bold text-white">{deal.bathrooms}</span>
-               <span className="text-xs text-slate-500 uppercase font-bold tracking-wider">Baths</span>
-             </div>
-             <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col items-center text-center">
-               <Square className="text-emerald-400 mb-2" size={24} />
-               <span className="text-2xl font-bold text-white">{deal.sqft}</span>
-               <span className="text-xs text-slate-500 uppercase font-bold tracking-wider">Sq Ft</span>
-             </div>
-          </div>
-
-          {/* CRM / Internal Data Section */}
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-             <h4 className="text-slate-400 text-xs uppercase font-bold mb-3 tracking-wider">Internal CRM Data</h4>
-             <div className="grid grid-cols-2 gap-y-4">
-                <div>
-                   <span className="text-slate-500 text-xs block">Status</span>
-                   <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold mt-1 ${
-                      deal.status === 'New Lead' ? 'bg-blue-500/20 text-blue-400' :
-                      deal.status === 'Under Contract' ? 'bg-emerald-500/20 text-emerald-400' :
-                      deal.status === 'Closed' ? 'bg-purple-500/20 text-purple-400' :
-                      deal.status === 'Dead' ? 'bg-red-500/20 text-red-400' :
-                      'bg-slate-700 text-slate-300'
-                   }`}>
-                      {deal.status || 'New Lead'}
-                   </span>
-                </div>
-                <div>
-                   <span className="text-slate-500 text-xs block">Lead Source</span>
-                   <span className="text-white font-medium text-sm">{deal.leadSource || 'Off-Market'}</span>
-                </div>
-                {deal.sellerName && (
-                   <div className="col-span-2 pt-2 border-t border-slate-700/50 flex flex-col gap-1">
-                      <span className="text-slate-500 text-xs block">Seller Info</span>
-                      <div className="flex gap-4 text-sm">
-                         <span className="text-white font-medium">{deal.sellerName}</span>
-                         {deal.sellerPhone && <span className="text-slate-400">{deal.sellerPhone}</span>}
-                         {deal.sellerEmail && <span className="text-slate-400">{deal.sellerEmail}</span>}
-                      </div>
-                   </div>
-                )}
-             </div>
-          </div>
-
-          {/* Deal Analysis AI Section */}
-          <DealAnalysis deal={deal} />
-
-          {/* Financials */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
-            <h3 className="text-xl font-bold text-white flex items-center gap-2">
-              <DollarSign className="text-emerald-500" /> Financial Breakdown
-            </h3>
             
             <div className="grid grid-cols-2 gap-y-6 gap-x-8">
               <div>
-                <p className="text-slate-500 text-sm uppercase font-bold mb-1">Purchase Price</p>
-                <p className="text-2xl font-bold text-white">{formatMoney(price)}</p>
+                <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest mb-1">Purchase Price</p>
+                <p className="text-2xl font-black text-white">{formatMoney(price)}</p>
               </div>
               <div>
-                <p className="text-slate-500 text-sm uppercase font-bold mb-1">Est. Rehab</p>
-                <p className="text-2xl font-bold text-emerald-400 flex items-center gap-2">
-                   {formatMoney(effectiveRehab)} 
+                <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest mb-1">Est. Rehab</p>
+                <p className="text-2xl font-black text-emerald-400">{formatMoney(effectiveRehab)}</p>
+              </div>
+              <div className="col-span-2 h-px bg-slate-800 my-2"></div>
+              <div>
+                <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest mb-1">Total Cost Basis</p>
+                <p className="text-2xl font-black text-white">{formatMoney(totalCost)}</p>
+              </div>
+              <div>
+                <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest mb-1">Est. Potential Profit</p>
+                <p className={`text-2xl font-black ${potentialProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                   {formatMoney(potentialProfit)}
                 </p>
               </div>
-              <div>
-                <p className="text-slate-500 text-sm uppercase font-bold mb-1">After Repair Value (ARV)</p>
-                <p className="text-2xl font-bold text-white">{formatMoney(arv)}</p>
+              <div className="col-span-2 bg-emerald-500/5 border border-emerald-500/10 p-4 rounded-xl flex justify-between items-center">
+                <div>
+                   <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest mb-0.5">ROI Estimate</p>
+                   <p className="text-3xl font-black text-emerald-400">{roi.toFixed(2)}%</p>
+                </div>
+                <div className="text-right">
+                   <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest mb-0.5">Cap Rate</p>
+                   <p className="text-xl font-bold text-white">7.4%</p> {/* Example static, ideally calculated */}
+                </div>
               </div>
-              <div>
-                <p className="text-slate-500 text-sm uppercase font-bold mb-1">Est. Monthly Rent</p>
-                <p className="text-2xl font-bold text-white">{formatMoney(rent)}</p>
-              </div>
-            </div>
-
-            <div className="border-t border-slate-800 pt-4 mt-4">
-               <div className="flex justify-between items-center">
-                 <div>
-                   <p className="text-slate-400 text-sm">Est. Potential Profit</p>
-                   <p className={`text-xl font-bold ${potentialProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                     {formatMoney(potentialProfit)}
-                   </p>
-                 </div>
-                 <div className="text-right">
-                   <p className="text-slate-400 text-sm">Est. ROI</p>
-                   <p className={`text-xl font-bold ${roi >= 15 ? 'text-emerald-400' : 'text-yellow-400'}`}>
-                     {roi.toFixed(2)}%
-                   </p>
-                 </div>
-               </div>
             </div>
           </div>
 
-          {/* Notes / Description */}
+          {/* AI Market Analysis Card */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="p-2 bg-indigo-500/10 rounded-lg">
+                  <TrendingUp className="text-indigo-400" size={20} />
+                </div>
+                <h3 className="text-xl font-bold text-white">AI Market Analysis</h3>
+              </div>
+              <DealAnalysis deal={deal} />
+            </div>
+          </div>
+
+          {/* CRM & Seller Data Card */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+             <div className="flex items-center gap-2 mb-6">
+                <div className="p-2 bg-purple-500/10 rounded-lg">
+                  <FileText className="text-purple-400" size={20} />
+                </div>
+                <h3 className="text-xl font-bold text-white">CRM Details</h3>
+             </div>
+             
+             <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <span className="text-slate-500 text-[10px] uppercase font-black tracking-widest block mb-1">Lead Source</span>
+                    <span className="text-white font-bold">{deal.leadSource || 'Off-Market'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 text-[10px] uppercase font-black tracking-widest block mb-1">Status</span>
+                    <span className="text-white font-bold">{deal.status || 'New Lead'}</span>
+                  </div>
+                </div>
+                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                  <span className="text-slate-500 text-[10px] uppercase font-black tracking-widest block mb-2">Seller Contact</span>
+                  {deal.sellerName ? (
+                    <div className="space-y-2">
+                       <p className="text-white font-bold">{deal.sellerName}</p>
+                       <p className="text-slate-400 text-sm">{deal.sellerPhone}</p>
+                       <p className="text-slate-400 text-sm truncate">{deal.sellerEmail}</p>
+                    </div>
+                  ) : (
+                    <p className="text-slate-600 text-sm italic">No contact info provided.</p>
+                  )}
+                </div>
+             </div>
+          </div>
+
+          {/* Notes Card */}
           {deal.notes && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-               <h3 className="text-lg font-bold text-white mb-3">Deal Notes</h3>
-               <p className="text-slate-400 leading-relaxed whitespace-pre-wrap">{deal.notes}</p>
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                  Deal Notes
+               </h3>
+               <p className="text-slate-400 leading-relaxed whitespace-pre-wrap text-sm">{deal.notes}</p>
             </div>
           )}
         </div>

@@ -18,21 +18,18 @@ const REHAB_LEVELS = {
   HEAVY: { label: 'Heavy ($70/sqft)', cost: 70 }
 };
 
-// Helper function to get Google Street View Static URL
+// Helper function to get Google Static Map URL (Satellite/Hybrid)
+// Best Practice: Satellite view is more reliable than Street View (covers 99% of properties)
 const getGoogleStaticMapUrl = (lat, lng, address) => {
   const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  if (!API_KEY) {
-    console.warn("VITE_GOOGLE_MAPS_API_KEY is missing. Cannot generate map image.");
-    return '';
-  }
+  if (!API_KEY) return '';
 
   const location = lat && lng ? `${lat},${lng}` : encodeURIComponent(address);
   if (!location) return '';
 
-  // Construct the URL for Google Street View Static API
-  // Using default heading/pitch for a general view.
-  const url = `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${location}&fov=90&heading=235&pitch=10&key=${API_KEY}`;
-  return url;
+  // Construct the URL for Google Static Maps API (Satellite View)
+  // zoom=19 is good for property level detail. maptype=hybrid adds street names.
+  return `https://maps.googleapis.com/maps/api/staticmap?center=${location}&zoom=19&size=600x400&maptype=hybrid&markers=color:red|${location}&key=${API_KEY}`;
 };
 
 const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade }) => {
@@ -50,7 +47,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
   const [analyzing, setAnalyzing] = useState(false);
   const [fetchingMarket, setFetchingMarket] = useState(false);
   const [fetchError, setFetchError] = useState('');
-  const [rehabLevel, setRehabLevel] = useState(null); 
+  const [rehabLevel, setRehabLevel] = useState(null);
   
   // Assignment State
   const [isAssignment, setIsAssignment] = useState(false);
@@ -607,7 +604,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
               onImageUrlsChange={urls => setFormData({...formData, imageUrls: urls})} 
               currentInput={tempImageUrl}
               onCurrentInputChange={setTempImageUrl}
-              defaultImageUrl={generatedMapImageUrl} // Pass the generated map image URL
+              fallbackImage={generatedMapImageUrl}
             />
             <div>
               <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1 font-semibold">Notes</label>
@@ -658,6 +655,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
     </div>
   );
 };
+
 
 AddDealModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
