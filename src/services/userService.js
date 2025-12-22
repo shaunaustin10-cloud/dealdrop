@@ -1,7 +1,37 @@
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 
 const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
+
+/**
+ * Decrements the user's credit count by 1.
+ * Returns true if successful (credits were > 0), false if insufficient credits.
+ */
+export const decrementUserCredits = async (uid) => {
+  if (!uid) return false;
+  
+  const userRef = doc(db, 'artifacts', appId, 'profiles', uid);
+  
+  try {
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) return false;
+    
+    const data = snap.data();
+    // Allow if Pro (unlimited) or if credits > 0
+    if ((data.subscriptionTier === 'pro' || data.subscriptionTier === 'agency') || (data.credits && data.credits > 0)) {
+        // Only decrement if NOT pro
+        if (data.subscriptionTier !== 'pro' && data.subscriptionTier !== 'agency') {
+            await updateDoc(userRef, { credits: increment(-1) });
+        }
+        return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error("Error decrementing credits:", error);
+    return false;
+  }
+};
 
 /**
  * Creates or updates a public user profile in Firestore.
@@ -20,6 +50,8 @@ export const createUserProfile = async (uid, userData) => {
     bio: userData.bio || 'Active real estate investor looking for deals.',
     role: userData.role || 'investor', // investor, wholesaler, agent
     joinedAt: serverTimestamp(),
+    subscriptionTier: 'free',
+    credits: 3, // Initial free credits
   };
 
   try {

@@ -5,9 +5,9 @@ import MainApp from './MainApp';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import LandingPage from './components/LandingPage';
-import TermsPage from './components/TermsPage'; // Import TermsPage
-import PrivacyPage from './components/PrivacyPage'; // Import PrivacyPage
-
+import TermsPage from './components/TermsPage'; 
+import PrivacyPage from './components/PrivacyPage'; 
+import MarketplacePage from './components/MarketplacePage';
 
 export default function App() {
   return (
@@ -20,10 +20,11 @@ export default function App() {
               <MainApp />
             </ProtectedRoute>
           } />
+          <Route path="/marketplace" element={<MarketplacePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/terms" element={<TermsPage />} /> {/* New route */}
-          <Route path="/privacy" element={<PrivacyPage />} /> {/* New route */}
+          <Route path="/terms" element={<TermsPage />} /> 
+          <Route path="/privacy" element={<PrivacyPage />} /> 
         </Routes>
       </AuthProvider>
     </BrowserRouter>

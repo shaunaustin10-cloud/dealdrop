@@ -78,47 +78,78 @@ export const fetchPropertyData = async (addressString) => {
     // 2. Fetch Rent Estimate
     const rentRes = await fetch(`${BASE_URL}/avm/rent?${queryParams.toString()}`, { headers });
     
-    // Rent might be missing even if Value exists, so we don't hard fail
-    let rentData = { rent: 0 };
+    let rentData = null;
     if (rentRes.ok) {
       rentData = await rentRes.json();
+    } else {
+        console.warn("Rent API Warning:", rentRes.status, await rentRes.text());
     }
 
-    // Process and normalize data
-    const arv = valueData.price || 0;
-    const rent = rentData.rent || 0;
-    const confidence = 85; 
-    
-    const comps = (valueData.comparables || []).slice(0, 3).map(comp => {
-      let displayAddress = 'Unknown Address';
-      
-      if (comp.formattedAddress) {
-        displayAddress = comp.formattedAddress;
-      } else if (comp.addressLine1 && comp.city) {
-        displayAddress = `${comp.addressLine1}, ${comp.city}`;
-      } else if (comp.address) {
-        displayAddress = comp.address; 
-      }
+    // --- Process Data ---
 
-      return {
-        address: displayAddress,
-        price: comp.price || comp.lastSalePrice || 0,
-        distance: comp.distance ? `${comp.distance.toFixed(1)}mi` : 'N/A'
-      };
-    });
+    // Helper to format comps
+    const formatComps = (compsList) => {
+        if (!compsList || !Array.isArray(compsList)) return [];
+        return compsList.slice(0, 5).map(comp => { // increased to 5
+            let displayAddress = 'Unknown Address';
+            if (comp.formattedAddress) {
+                displayAddress = comp.formattedAddress;
+            } else if (comp.addressLine1 && comp.city) {
+                displayAddress = `${comp.addressLine1}, ${comp.city}`;
+            } else if (comp.address) {
+                displayAddress = comp.address; 
+            }
+
+            return {
+                address: displayAddress,
+                price: comp.price || comp.lastSalePrice || 0, // For sales
+                rent: comp.rent || comp.price || 0,           // For rentals
+                distance: comp.distance ? `${comp.distance.toFixed(1)}mi` : 'N/A',
+                date: comp.lastSaleDate || comp.listedDate || 'N/A',
+                daysOld: comp.daysOnMarket || null
+            };
+        });
+    };
+
+    const arv = valueData.price || 0;
+    const arvLow = valueData.priceRangeLow || arv * 0.9;
+    const arvHigh = valueData.priceRangeHigh || arv * 1.1;
+    
+    const rent = rentData?.rent || 0;
+    const rentLow = rentData?.rentRangeLow || rent * 0.9;
+    const rentHigh = rentData?.rentRangeHigh || rent * 1.1;
+
+    // Calculate a dynamic confidence score based on the spread of the range
+    // Narrower range = Higher confidence.
+    // E.g. Spread of 10% might be 90/100 confidence. Spread of 30% might be 70/100.
+    let confidence = 85; // Default
+    if (arv > 0 && arvHigh > arvLow) {
+        const spreadPercent = (arvHigh - arvLow) / arv;
+        // Simple linear mapping: 0% spread -> 100 conf, 40% spread -> 60 conf
+        confidence = Math.max(60, Math.min(99, Math.round(100 - (spreadPercent * 100))));
+    }
 
     return {
       success: true,
       data: {
         arv,
+        arvRange: { low: arvLow, high: arvHigh },
         rentEstimate: rent,
+        rentRange: { low: rentLow, high: rentHigh },
         confidenceScore: confidence,
-        comps: comps.length > 0 ? comps : [],
+        
+        comps: formatComps(valueData.comparables), // Sales Comps
+        rentComps: formatComps(rentData?.comparables), // Rent Comps
+        
+        // Property Details (prefer Value endpoint, fallback to Rent endpoint)
+        latitude: valueData.latitude || rentData?.latitude || null,
+        longitude: valueData.longitude || rentData?.longitude || null,
         lastSoldDate: valueData.lastSaleDate || 'N/A',
-        yearBuilt: valueData.yearBuilt || 'N/A',
-        sqft: valueData.squareFootage || null,
-        bedrooms: valueData.bedrooms || null,
-        bathrooms: valueData.bathrooms || null
+        yearBuilt: valueData.yearBuilt || rentData?.yearBuilt || 'N/A',
+        sqft: valueData.squareFootage || rentData?.squareFootage || null,
+        bedrooms: valueData.bedrooms || rentData?.bedrooms || null,
+        bathrooms: valueData.bathrooms || rentData?.bathrooms || null,
+        propertyType: valueData.propertyType || rentData?.propertyType || 'Single Family'
       }
     };
 

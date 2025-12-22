@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { collection, onSnapshot, query, orderBy, where } from 'firebase/firestore';
 import { LayoutGrid, Search, SlidersHorizontal, Map as MapIcon } from 'lucide-react'; 
 import NewDealCard from './NewDealCard'; 
 import DealMap from './DealMap';
+import { useFetchDeals } from '../hooks/useDeals';
 
 const SkeletonCard = () => (
   <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden h-full flex flex-col">
@@ -21,12 +21,12 @@ const SkeletonCard = () => (
   </div>
 );
 
-const DealList = ({ db, userId, __app_id, onDeleteDeal, onSelectDeal, onEditDeal, isPublic, buyBox }) => {
-  const [deals, setDeals] = useState([]);
-  const [loading, setLoading] = useState(true);
+const DealList = ({ onDeleteDeal, onSelectDeal, onEditDeal, isPublic, buyBox }) => {
   const [sortBy, setSortBy] = useState('createdAt');
   const [filterAddress, setFilterAddress] = useState('');
   const [viewMode, setViewMode] = useState('grid');
+
+  const { deals: allDeals, loading, error } = useFetchDeals(isPublic, sortBy);
 
   // Initialize filter from Buy Box if available
   useEffect(() => {
@@ -36,56 +36,30 @@ const DealList = ({ db, userId, __app_id, onDeleteDeal, onSelectDeal, onEditDeal
     }
   }, [buyBox]);
 
-  useEffect(() => {
-    if (!db || !__app_id) {
-      setLoading(false);
-      return;
+  const filteredDeals = useMemo(() => {
+    let result = allDeals;
+
+    // Client-side Search Filtering (City, State, Zip, Street)
+    if (filterAddress) {
+        const searchLower = filterAddress.toLowerCase();
+        result = result.filter(deal => 
+            deal.address && deal.address.toLowerCase().includes(searchLower)
+        );
     }
     
-    if (!isPublic && !userId) {
-         setLoading(false);
-         return;
+    // Client-side filtering for Buy Box (if active and not just searching by address)
+    if (isPublic && buyBox) {
+        result = result.filter(deal => {
+            if (buyBox.minPrice && deal.price < buyBox.minPrice) return false;
+            if (buyBox.maxPrice && deal.price > buyBox.maxPrice) return false;
+            if (buyBox.minBedrooms && deal.bedrooms < buyBox.minBedrooms) return false;
+            // ROI/CapRate filtering would require those to be top-level fields or calculated here
+            return true;
+        });
     }
 
-    // Determine Collection Path
-    const collectionPath = isPublic 
-        ? `artifacts/${__app_id}/public/deals`
-        : `artifacts/${__app_id}/users/${userId}/deals`;
-
-    let q = collection(db, collectionPath);
-
-    // Basic Firestore Filtering
-    if (filterAddress) {
-      q = query(q, where('address', '>=', filterAddress), where('address', '<=', filterAddress + '\uf8ff'));
-    }
-
-    // Apply ordering
-    // Note: Firestore requires indexes for complex queries. If this fails, console will show link to create index.
-    q = query(q, orderBy(sortBy, 'desc'));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      let dealsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      // Client-side filtering for Buy Box (if active and not just searching by address)
-      if (isPublic && buyBox) {
-          dealsData = dealsData.filter(deal => {
-              if (buyBox.minPrice && deal.price < buyBox.minPrice) return false;
-              if (buyBox.maxPrice && deal.price > buyBox.maxPrice) return false;
-              if (buyBox.minBedrooms && deal.bedrooms < buyBox.minBedrooms) return false;
-              // ROI/CapRate filtering would require those to be top-level fields or calculated here
-              return true;
-          });
-      }
-
-      setDeals(dealsData);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching deals:", error);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [db, userId, __app_id, sortBy, filterAddress, isPublic, buyBox]);
+    return result;
+  }, [allDeals, filterAddress, isPublic, buyBox]);
 
   if (loading) {
     return (
@@ -94,6 +68,15 @@ const DealList = ({ db, userId, __app_id, onDeleteDeal, onSelectDeal, onEditDeal
           <SkeletonCard key={i} />
         ))}
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+        <div className="text-center py-24 bg-red-900/10 rounded-3xl border border-red-800/50 flex flex-col items-center justify-center space-y-4">
+            <div className="text-red-400 font-bold text-lg">Unable to load deals</div>
+            <p className="text-red-300/70 max-w-md">{error.message || "An unexpected error occurred."}</p>
+        </div>
     );
   }
 
@@ -150,8 +133,8 @@ const DealList = ({ db, userId, __app_id, onDeleteDeal, onSelectDeal, onEditDeal
 
       {viewMode === 'map' ? (
          <div className="animate-fade-in">
-            {deals.length > 0 ? (
-               <DealMap deals={deals} onSelectDeal={onSelectDeal} />
+            {filteredDeals.length > 0 ? (
+               <DealMap deals={filteredDeals} onSelectDeal={onSelectDeal} />
             ) : (
                <div className="text-center py-24 bg-slate-900/30 rounded-3xl border border-slate-800 border-dashed text-slate-400">
                   No deals to display on the map.
@@ -159,9 +142,9 @@ const DealList = ({ db, userId, __app_id, onDeleteDeal, onSelectDeal, onEditDeal
             )}
          </div>
       ) : (
-        deals.length > 0 ? (
+        filteredDeals.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
-            {deals.map(deal => (
+            {filteredDeals.map(deal => (
               <NewDealCard 
                 key={deal.id} 
                 deal={deal} 
@@ -190,9 +173,6 @@ const DealList = ({ db, userId, __app_id, onDeleteDeal, onSelectDeal, onEditDeal
 };
 
 DealList.propTypes = {
-  db: PropTypes.object.isRequired,
-  userId: PropTypes.string,
-  __app_id: PropTypes.string.isRequired,
   onDeleteDeal: PropTypes.func.isRequired,
   onSelectDeal: PropTypes.func.isRequired,
   onEditDeal: PropTypes.func.isRequired,

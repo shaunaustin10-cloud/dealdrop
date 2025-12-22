@@ -17,6 +17,8 @@ firestore-debug.log
 ui-debug.log
 emulator.log
 emulator_debug.log
+firebase-export-*/
+firebase-data/
 
 # System
 .DS_Store

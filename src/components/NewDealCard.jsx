@@ -1,12 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { DollarSign, Trash2, Edit, Bed, Bath, Square, Clock } from 'lucide-react';
-import { useSubscription } from '../hooks/useSubscription';
 import { formatAddress } from '../utils/formatAddress';
 
 const NewDealCard = ({ deal, onDeleteDeal, onSelectDeal, onEditDeal }) => {
-  const { isPro } = useSubscription();
-
+  
   const getBadgeColor = (score) => {
     if (score > 75) return 'bg-emerald-500/20 text-emerald-300';
     if (score >= 50) return 'bg-yellow-500/20 text-yellow-300';
@@ -21,7 +19,7 @@ const NewDealCard = ({ deal, onDeleteDeal, onSelectDeal, onEditDeal }) => {
     }).format(amount);
   };
 
-  const isJustListed = () => {
+  const isRecent = () => {
     if (!deal.createdAt) return false;
     const created = deal.createdAt.seconds ? new Date(deal.createdAt.seconds * 1000) : new Date(deal.createdAt);
     const now = new Date();
@@ -39,7 +37,7 @@ const NewDealCard = ({ deal, onDeleteDeal, onSelectDeal, onEditDeal }) => {
             <button
               onClick={(e) => { e.stopPropagation(); onEditDeal(deal); }}
               className="bg-blue-500/80 hover:bg-blue-500 p-2 rounded-full text-white"
-              title="Edit Deal"
+              title="Edit Analysis"
             >
               <Edit size={16} />
             </button>
@@ -52,10 +50,10 @@ const NewDealCard = ({ deal, onDeleteDeal, onSelectDeal, onEditDeal }) => {
             </button>
         </div>
         
-        {/* Just Listed Badge */}
-        {isJustListed() && (
+        {/* Recent Badge */}
+        {isRecent() && (
            <div className="absolute top-2 left-2 z-10 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-md flex items-center gap-1 shadow-lg">
-             <Clock size={12} /> Just Listed
+             <Clock size={12} /> Recent
            </div>
         )}
 
@@ -67,7 +65,7 @@ const NewDealCard = ({ deal, onDeleteDeal, onSelectDeal, onEditDeal }) => {
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
         <div className="absolute bottom-4 left-4 right-4">
           <h3 className="font-bold text-xl text-white truncate mb-1 shadow-black/50 drop-shadow-md">
-            {formatAddress(deal.address, isPro)}
+            {formatAddress(deal.address, true)}
           </h3>
           <div className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold backdrop-blur-md border border-white/10 ${getBadgeColor(deal.dealScore)}`}>
             Deal Score: {deal.dealScore}

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { X, Search, Loader2, Calculator, FileText, UploadCloud, CheckCircle } from 'lucide-react';
+import { X, Search, Loader2, Calculator, FileText, UploadCloud, CheckCircle, Lock } from 'lucide-react';
 import ImageUploader from './ImageUploader';
 import InputField from './InputField';
 import DealAnalysis from './DealAnalysis';
 import { fetchPropertyData } from '../services/rencastService';
 import { analyzeDeal } from '../services/geminiService';
+import { decrementUserCredits } from '../services/userService';
 import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../hooks/useSubscription';
 import { storage } from '../firebaseConfig';
 import { ref, uploadBytes } from 'firebase/storage';
 
@@ -16,11 +18,13 @@ const REHAB_LEVELS = {
   HEAVY: { label: 'Heavy ($70/sqft)', cost: 70 }
 };
 
-const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate }) => {
+const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade }) => {
   const { user } = useAuth();
+  const { isPro, credits } = useSubscription();
   const [formData, setFormData] = useState({
     address: '', price: '', arv: '', rehab: '', rent: '', sqft: '', bedrooms: '', bathrooms: '', imageUrls: [], notes: '', aiAnalysis: null,
     sellerName: '', sellerPhone: '', sellerEmail: '', leadSource: 'Off-Market', status: 'New Lead',
+    lat: null, lng: null,
     // Assignment Specific
     contractPrice: '', assignmentFee: '', emd: '', inspectionWindow: '', closingDate: '', proofOfContractPath: '', hasValidContract: false
   });
@@ -34,6 +38,9 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate }) => {
   const [isAssignment, setIsAssignment] = useState(false);
   const [contractFile, setContractFile] = useState(null);
   const [uploadingContract, setUploadingContract] = useState(false);
+
+  // Marketplace Publish State
+  const [postToMarketplace, setPostToMarketplace] = useState(false);
 
   // Comps State
   const [comps, setComps] = useState([]);
@@ -58,6 +65,8 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate }) => {
         sellerEmail: initialData.sellerEmail || '',
         leadSource: initialData.leadSource || 'Off-Market',
         status: initialData.status || 'New Lead',
+        lat: initialData.lat || null,
+        lng: initialData.lng || null,
         contractPrice: initialData.contractPrice || '',
         assignmentFee: initialData.assignmentFee || '',
         emd: initialData.emd || '',
@@ -72,6 +81,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate }) => {
       setFormData({
         address: '', price: '', arv: '', rehab: '', rent: '', sqft: '', bedrooms: '', bathrooms: '', imageUrls: [], notes: '', aiAnalysis: null,
         sellerName: '', sellerPhone: '', sellerEmail: '', leadSource: 'Off-Market', status: 'New Lead',
+        lat: null, lng: null,
         contractPrice: '', assignmentFee: '', emd: '', inspectionWindow: '', closingDate: '', proofOfContractPath: '', hasValidContract: false
       });
       setIsAssignment(false);
@@ -82,6 +92,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate }) => {
     setRehabLevel(null);
     setContractFile(null);
     setUploadingContract(false);
+    setPostToMarketplace(false);
     setNewComp({ address: '', soldPrice: '', link: '' });
   }, [initialData]);
 
@@ -129,6 +140,21 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate }) => {
       return;
     }
 
+    // Gating Logic
+    if (!isPro) {
+        if (credits <= 0) {
+            setFetchError("You have 0 free credits left. Upgrade to Pro for unlimited access.");
+            if (onUpgrade) setTimeout(onUpgrade, 1500); // Give user time to read error
+            return;
+        }
+        // Decrement Credit
+        const success = await decrementUserCredits(user.uid);
+        if (!success) {
+             setFetchError("Error processing credit. Please try again.");
+             return;
+        }
+    }
+
     setFetchingMarket(true);
     try {
       const rencastData = await fetchPropertyData(formData.address);
@@ -143,6 +169,8 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate }) => {
         updates.sqft = rencastData.data.sqft || formData.sqft;
         updates.bedrooms = rencastData.data.bedrooms || formData.bedrooms;
         updates.bathrooms = rencastData.data.bathrooms || formData.bathrooms;
+        updates.lat = rencastData.data.latitude;
+        updates.lng = rencastData.data.longitude;
         
         newAiAnalysis.market = rencastData.data;
         
@@ -229,24 +257,28 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate }) => {
     if (initialData) {
       onUpdate(initialData.id, finalFormData);
     } else {
-      onAdd(finalFormData);
+      onAdd(finalFormData, postToMarketplace);
     }
     setTempImageUrl('');
     setUploadingContract(false);
     setNewComp({ address: '', soldPrice: '', link: '' });
     setComps([]);
+    setPostToMarketplace(false);
     onClose();
   };
 
-  const modalTitle = initialData ? "Edit Listing" : "Add New Listing";
-  const buttonText = uploadingContract ? "Uploading..." : (initialData ? "Update Deal" : "Post Deal");
+  const modalTitle = initialData ? "Edit Analysis" : "Analyze New Deal";
+  const buttonText = uploadingContract ? "Uploading..." : (initialData ? "Update Analysis" : "Save Analysis");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
       <div className="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="p-4 md:p-6 border-b border-slate-800 flex justify-between items-center flex-shrink-0">
-          <h3 className="text-xl font-bold text-white">{modalTitle}</h3>
+          <div>
+             <h3 className="text-xl font-bold text-white">{modalTitle}</h3>
+             <p className="text-slate-400 text-xs mt-1">Enter property details to generate a validation report.</p>
+          </div>
           <button onClick={onClose} className="text-slate-400 hover:text-white p-1"><X size={20} /></button>
         </div>
         
@@ -551,6 +583,28 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate }) => {
                 placeholder="Key selling points..."
               />
             </div>
+
+            {/* Wholesaler Marketplace Option */}
+            {user?.role === 'wholesaler' && !initialData && (
+              <div className="bg-emerald-900/20 border border-emerald-500/30 p-3 rounded-xl flex items-start gap-3 mt-4">
+                <input 
+                  type="checkbox" 
+                  id="postMarketplace" 
+                  checked={postToMarketplace}
+                  onChange={(e) => setPostToMarketplace(e.target.checked)}
+                  className="mt-1 w-4 h-4 text-emerald-500 rounded focus:ring-emerald-500 bg-slate-800 border-slate-600 cursor-pointer"
+                />
+                <div>
+                  <label htmlFor="postMarketplace" className="text-white font-bold text-sm block cursor-pointer">
+                    Post to Public Marketplace
+                  </label>
+                  <p className="text-slate-400 text-xs">
+                    Make this deal visible to all investors on DealDrop. 
+                    {isAssignment && <span className="text-emerald-400"> (Verified badge added with contract)</span>}
+                  </p>
+                </div>
+              </div>
+            )}
           </form>
         </div>
 
@@ -576,6 +630,7 @@ AddDealModal.propTypes = {
   onAdd: PropTypes.func.isRequired,
   initialData: PropTypes.object,
   onUpdate: PropTypes.func,
+  onUpgrade: PropTypes.func,
 };
 
 export default AddDealModal;

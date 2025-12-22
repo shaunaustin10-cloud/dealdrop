@@ -1,8 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from '../firebaseConfig';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { auth, db } from '../firebaseConfig';
 import { Navigate } from 'react-router-dom';
 
+const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
 const AuthContext = createContext(null);
 
 export const useAuth = () => useContext(AuthContext);
@@ -12,11 +14,40 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
+    let profileUnsubscribe = null;
+
+    const authUnsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        // User is signed in, listen to their profile
+        const profileRef = doc(db, 'artifacts', appId, 'profiles', currentUser.uid);
+        
+        profileUnsubscribe = onSnapshot(profileRef, (docSnap) => {
+          if (docSnap.exists()) {
+            // Merge Auth User + Firestore Profile
+            setUser({ ...currentUser, ...docSnap.data() });
+          } else {
+            // Fallback if profile doesn't exist yet
+            setUser(currentUser);
+          }
+          setLoading(false);
+        }, (err) => {
+          console.error("Profile sync error:", err);
+          setUser(currentUser); // Still allow login even if profile fails
+          setLoading(false);
+        });
+
+      } else {
+        // User is signed out
+        if (profileUnsubscribe) profileUnsubscribe();
+        setUser(null);
+        setLoading(false);
+      }
     });
-    return () => unsubscribe();
+
+    return () => {
+      authUnsubscribe();
+      if (profileUnsubscribe) profileUnsubscribe();
+    };
   }, []);
 
   const handleLogout = async () => {

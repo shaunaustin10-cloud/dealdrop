@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutGrid, CheckCircle, TrendingUp, ShieldCheck, ArrowRight, Users, Search, Brain } from 'lucide-react';
+import { LayoutGrid, CheckCircle, TrendingUp, ShieldCheck, ArrowRight, Calculator, FileText, Activity, Target } from 'lucide-react';
 
 const LandingPage = () => {
   return (
@@ -13,7 +13,7 @@ const LandingPage = () => {
             <div className="bg-emerald-500 p-2 rounded-lg shadow-lg shadow-emerald-500/20">
               <LayoutGrid size={24} className="text-white" />
             </div>
-            <span className="font-bold text-2xl tracking-tight text-white">REI <span className="text-emerald-400">Deal Drop</span></span>
+            <span className="font-bold text-2xl tracking-tight text-white">REI <span className="text-emerald-400">Deal Validator</span></span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
@@ -42,7 +42,7 @@ const LandingPage = () => {
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">Start Verifying Deals.</span>
           </h1>
           <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            The first real estate marketplace that combines <strong>Real-Time Comps</strong>, <strong>Rental Data</strong>, and <strong>AI Condition Grades</strong> to tell you exactly what a property is worth.
+            The ultimate deal underwriting tool. Combine <strong>Real-Time Comps</strong>, <strong>Rental Data</strong>, and <strong>Smart Buy Box</strong> to validate any property in seconds.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link to="/register" className="bg-emerald-500 hover:bg-emerald-400 text-white px-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-xl shadow-emerald-900/30 hover:shadow-emerald-900/50 transform hover:-translate-y-1">
@@ -72,7 +72,7 @@ const LandingPage = () => {
                    </div>
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">Verified ARV: $450,000</h3>
-                <p className="text-slate-400 mb-6">"Based on 5 recent comps and AI Condition Grade B+. Confidence Score: 94%."</p>
+                <p className="text-slate-400 mb-6">"Based on 5 recent comps and Cash on Cash Return: 12%. Confidence Score: 94%."</p>
                 <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
                    <div className="h-full bg-emerald-500 w-[94%]"></div>
                 </div>
@@ -85,12 +85,12 @@ const LandingPage = () => {
       <div id="features" className="py-24 bg-slate-900/50 border-y border-slate-900">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Why Investors Trust Dealdrop</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Why Investors Trust Our Validator</h2>
             <p className="text-slate-400 max-w-2xl mx-auto">Data-driven valuation. Automated diligence.</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
-             {/* Feature 1: Verification (Swapped) */}
+             {/* Feature 1: Verification */}
             <div className="bg-slate-950 border border-slate-800 p-8 rounded-2xl hover:border-blue-500/50 transition-colors group">
               <div className="bg-blue-900/20 w-12 h-12 flex items-center justify-center rounded-xl text-blue-400 mb-6 group-hover:scale-110 transition-transform">
                 <TrendingUp size={24} />
@@ -99,21 +99,22 @@ const LandingPage = () => {
               <p className="text-slate-400 leading-relaxed">We aggregate real-time comps, rental rates, and market trends to generate a confidence-weighted ARV for every single property.</p>
             </div>
 
-            {/* Feature 2: Visual Audit (Swapped) */}
+            {/* Feature 2: Custom Buy Box */}
             <div className="bg-slate-950 border border-slate-800 p-8 rounded-2xl hover:border-emerald-500/50 transition-colors group">
               <div className="bg-emerald-900/20 w-12 h-12 flex items-center justify-center rounded-xl text-emerald-400 mb-6 group-hover:scale-110 transition-transform">
-                <ShieldCheck size={24} />
+                <Target size={24} />
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">Visual Condition Audit</h3>
-              <p className="text-slate-400 leading-relaxed">Our Gemini AI scans listing photos to detect hidden damage and assign an unbiased Condition Score, ensuring the property matches the description.</p>
+              <h3 className="text-xl font-bold text-white mb-3">Custom Buy Box</h3>
+              <p className="text-slate-400 leading-relaxed">Define your specific investment criteria—ROI, yield, and location—to instantly filter and validate deals that fit your strategy.</p>
             </div>
 
+            {/* Feature 3: Pipeline Management */}
             <div className="bg-slate-950 border border-slate-800 p-8 rounded-2xl hover:border-purple-500/50 transition-colors group">
               <div className="bg-purple-900/20 w-12 h-12 flex items-center justify-center rounded-xl text-purple-400 mb-6 group-hover:scale-110 transition-transform">
-                <Search size={24} />
+                <Calculator size={24} />
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">Map-Based Discovery</h3>
-              <p className="text-slate-400 leading-relaxed">Visualise opportunities in your target zip codes. Filter by ROI score, price, or renovation tier to find your needle in the haystack.</p>
+              <h3 className="text-xl font-bold text-white mb-3">Pipeline Management</h3>
+              <p className="text-slate-400 leading-relaxed">Keep track of all your potential deals in one place. Calculate MAO (Max Allowable Offer), ROI, and Cash Flow instantly.</p>
             </div>
           </div>
         </div>
@@ -123,7 +124,7 @@ const LandingPage = () => {
       <div id="audiences" className="py-24 max-w-7xl mx-auto px-6">
          <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-               <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Built for the Modern Ecosystem</h2>
+               <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Built for the Modern Investor</h2>
                <div className="space-y-6">
                   <div className="flex gap-4">
                      <div className="flex-shrink-0 mt-1">
@@ -140,7 +141,7 @@ const LandingPage = () => {
                      </div>
                      <div>
                         <h4 className="text-lg font-bold text-white">For Agents</h4>
-                        <p className="text-slate-400 text-sm">Become the expert your clients trust. Use our AI reports to win listings and justify prices.</p>
+                        <p className="text-slate-400 text-sm">Become the expert your clients trust. Use our AI reports to justify prices and win offers.</p>
                      </div>
                   </div>
                   <div className="flex gap-4">
@@ -149,7 +150,7 @@ const LandingPage = () => {
                      </div>
                      <div>
                         <h4 className="text-lg font-bold text-white">For Wholesalers</h4>
-                        <p className="text-slate-400 text-sm">Prove your deal is solid. High-scoring deals on our platform sell 4x faster.</p>
+                        <p className="text-slate-400 text-sm">Build credibility. Share professional "Verified Deal" reports to sell your contracts faster.</p>
                      </div>
                   </div>
                </div>
@@ -157,23 +158,27 @@ const LandingPage = () => {
             <div className="bg-gradient-to-br from-emerald-900/20 to-slate-900 border border-slate-800 p-8 rounded-3xl relative overflow-hidden">
                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
                <div className="relative z-10">
-                  <h3 className="text-2xl font-bold text-white mb-6">Join the Network</h3>
+                  <h3 className="text-2xl font-bold text-white mb-6">Start Analyzing Today</h3>
                   <div className="space-y-4">
                      <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center gap-4">
-                        <div className="bg-slate-800 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold">JD</div>
-                        <div>
-                           <p className="text-white font-bold text-sm">John Doe (Investor)</p>
-                           <p className="text-emerald-400 text-xs">Purchased a deal in Austin, TX</p>
+                        <div className="bg-emerald-500/20 p-2 rounded-full text-emerald-400">
+                            <Activity size={20} />
                         </div>
-                        <span className="ml-auto text-xs text-slate-500">2m ago</span>
+                        <div>
+                           <p className="text-white font-bold text-sm">Analysis Complete</p>
+                           <p className="text-emerald-400 text-xs">123 Main St • Score: 92/100</p>
+                        </div>
+                        <span className="ml-auto text-xs text-slate-500">Just now</span>
                      </div>
                      <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center gap-4">
-                        <div className="bg-slate-800 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold">SA</div>
-                        <div>
-                           <p className="text-white font-bold text-sm">Sarah Agent</p>
-                           <p className="text-blue-400 text-xs">Added a listing in Miami, FL</p>
+                        <div className="bg-blue-500/20 p-2 rounded-full text-blue-400">
+                            <FileText size={20} />
                         </div>
-                        <span className="ml-auto text-xs text-slate-500">5m ago</span>
+                        <div>
+                           <p className="text-white font-bold text-sm">Report Generated</p>
+                           <p className="text-blue-400 text-xs">PDF Download Ready</p>
+                        </div>
+                        <span className="ml-auto text-xs text-slate-500">2m ago</span>
                      </div>
                   </div>
                   <Link to="/register" className="mt-8 w-full block bg-white text-slate-900 text-center font-bold py-3 rounded-xl hover:bg-slate-200 transition-colors">
@@ -195,21 +200,21 @@ const LandingPage = () => {
            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               {/* Scout Tier */}
               <div className="bg-slate-950 border border-slate-800 rounded-2xl p-8 flex flex-col hover:border-slate-700 transition-colors">
-                 <h3 className="text-xl font-bold text-white mb-2">Scout</h3>
-                 <p className="text-slate-500 text-sm mb-6">For casual browsing</p>
+                 <h3 className="text-xl font-bold text-white mb-2">Starter</h3>
+                 <p className="text-slate-500 text-sm mb-6">For new investors</p>
                  <div className="text-4xl font-bold text-white mb-6">$0<span className="text-lg text-slate-500 font-normal">/mo</span></div>
                  <ul className="space-y-4 mb-8 flex-1">
                     <li className="flex items-center gap-3 text-slate-300 text-sm">
                        <CheckCircle size={16} className="text-emerald-500 flex-shrink-0" />
-                       Browse Map & Listings
-                    </li>
-                    <li className="flex items-center gap-3 text-slate-300 text-sm">
-                       <CheckCircle size={16} className="text-emerald-500 flex-shrink-0" />
-                       Post 1 Deal / Month
+                       Analyze 3 Deals / Month
                     </li>
                     <li className="flex items-center gap-3 text-slate-300 text-sm">
                        <CheckCircle size={16} className="text-emerald-500 flex-shrink-0" />
                        Basic Property Data
+                    </li>
+                    <li className="flex items-center gap-3 text-slate-300 text-sm">
+                       <CheckCircle size={16} className="text-emerald-500 flex-shrink-0" />
+                       Standard Calculator
                     </li>
                  </ul>
                  <Link to="/register" className="block w-full bg-slate-800 text-white text-center font-bold py-3 rounded-xl hover:bg-slate-700 transition-colors">
@@ -228,7 +233,7 @@ const LandingPage = () => {
                  <ul className="space-y-4 mb-8 flex-1">
                     <li className="flex items-center gap-3 text-white text-sm font-medium">
                        <CheckCircle size={16} className="text-emerald-400 flex-shrink-0" />
-                       Unlimited AI Verification Scores
+                       Unlimited AI Analyses
                     </li>
                     <li className="flex items-center gap-3 text-white text-sm font-medium">
                        <CheckCircle size={16} className="text-emerald-400 flex-shrink-0" />
@@ -236,7 +241,7 @@ const LandingPage = () => {
                     </li>
                     <li className="flex items-center gap-3 text-white text-sm font-medium">
                        <CheckCircle size={16} className="text-emerald-400 flex-shrink-0" />
-                       24hr Early Access to Deals
+                       Export to PDF
                     </li>
                     <li className="flex items-center gap-3 text-white text-sm font-medium">
                        <CheckCircle size={16} className="text-emerald-400 flex-shrink-0" />
@@ -248,23 +253,23 @@ const LandingPage = () => {
                  </Link>
               </div>
 
-              {/* Power Agent Tier */}
+              {/* Team Tier */}
               <div className="bg-slate-950 border border-slate-800 rounded-2xl p-8 flex flex-col hover:border-blue-500/50 transition-colors">
-                 <h3 className="text-xl font-bold text-white mb-2">Power Agent</h3>
-                 <p className="text-blue-400 text-sm mb-6">For volume sellers</p>
+                 <h3 className="text-xl font-bold text-white mb-2">Business</h3>
+                 <p className="text-blue-400 text-sm mb-6">For scaling teams</p>
                  <div className="text-4xl font-bold text-white mb-6">$99<span className="text-lg text-slate-500 font-normal">/mo</span></div>
                  <ul className="space-y-4 mb-8 flex-1">
                     <li className="flex items-center gap-3 text-slate-300 text-sm">
                        <CheckCircle size={16} className="text-blue-500 flex-shrink-0" />
-                       Unlimited Deal Posting
+                       Unlimited Team Analysis
                     </li>
                     <li className="flex items-center gap-3 text-slate-300 text-sm">
                        <CheckCircle size={16} className="text-blue-500 flex-shrink-0" />
-                       'AI Verified' Trust Badge
+                       White-label Reports
                     </li>
                     <li className="flex items-center gap-3 text-slate-300 text-sm">
                        <CheckCircle size={16} className="text-blue-500 flex-shrink-0" />
-                       Buyer Lead Generation
+                       Priority Support
                     </li>
                     <li className="flex items-center gap-3 text-slate-300 text-sm">
                        <CheckCircle size={16} className="text-blue-500 flex-shrink-0" />
@@ -286,10 +291,10 @@ const LandingPage = () => {
             <div className="bg-slate-900 p-1.5 rounded-lg">
               <LayoutGrid size={20} className="text-slate-500" />
             </div>
-            <span className="font-bold text-lg text-slate-500">REI Deal Drop</span>
+            <span className="font-bold text-lg text-slate-500">REI Deal Validator</span>
           </div>
           <div className="text-slate-600 text-sm">
-            &copy; {new Date().getFullYear()} REI Deal Drop. All rights reserved.
+            &copy; {new Date().getFullYear()} REI Deal Validator. All rights reserved.
           </div>
         </div>
       </footer>

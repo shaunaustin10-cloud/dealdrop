@@ -22,14 +22,16 @@ const DealMap = ({ deals, onSelectDeal }) => {
   // Default center (US center approx)
   const position = [39.8283, -98.5795];
 
-  // Helper to generate a deterministic "fake" coordinate from an address string
-  // strictly for demo purposes until real geocoding is added.
-  // Real app should store { lat: x, lng: y } in Firestore.
+  // Helper to get coordinates
   const getCoordinates = (deal) => {
-    if (deal.lat && deal.lng) return [deal.lat, deal.lng];
+    // 1. Use real coordinates if available (from RentCast/Google)
+    if (deal.lat && deal.lng) {
+        return [parseFloat(deal.lat), parseFloat(deal.lng)];
+    }
     
-    // Fallback: Generate random spread around US center based on address hash
-    // so they don't all stack on top of each other
+    // 2. Fallback: Generate random spread around US center based on address hash
+    // so they don't all stack on top of each other. 
+    // TODO: In production, ensure all deals are geocoded on save.
     let hash = 0;
     for (let i = 0; i < deal.address.length; i++) {
       hash = deal.address.charCodeAt(i) + ((hash << 5) - hash);

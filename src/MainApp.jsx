@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
 import { LayoutGrid, Plus, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { 
-  collection, 
-  addDoc, 
-} from 'firebase/firestore';
-import { db } from './firebaseConfig';
 import DealList from './components/DealList';
 import DealDetail from './components/DealDetail';
 import AddDealModal from './components/AddDealModal';
@@ -15,14 +10,11 @@ import { useAuth } from './context/AuthContext';
 import { useDeals } from './hooks/useDeals';
 import { useSubscription } from './hooks/useSubscription';
 
-const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
-
 export default function MainApp() {
   const { user, logout } = useAuth();
   const { addDeal, updateDeal, deleteDeal } = useDeals();
   const { isPro, loading: subLoading } = useSubscription();
 
-  const [view, setView] = useState('marketplace'); 
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
@@ -30,14 +22,14 @@ export default function MainApp() {
 
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
 
-  const handleAddDeal = async (dealData) => {
+  const handleAddDeal = async (dealData, shouldPublish) => {
     try {
-      await addDeal(dealData);
+      await addDeal(dealData, shouldPublish);
       setShowAddModal(false);
-      setToast({ show: true, message: 'Deal added successfully!', type: 'success' });
+      setToast({ show: true, message: 'Deal analysis saved!', type: 'success' });
     } catch (e) {
       console.error("Error adding deal: ", e);
-      setToast({ show: true, message: 'Failed to add deal: ' + e.message, type: 'error' });
+      setToast({ show: true, message: 'Failed to save analysis: ' + e.message, type: 'error' });
     }
   };
 
@@ -57,7 +49,7 @@ export default function MainApp() {
     if (!confirm("Are you sure you want to delete this deal?")) return;
     try {
       await deleteDeal(id);
-      if (selectedDeal && selectedDeal.id === id) setView('gallery');
+      if (selectedDeal && selectedDeal.id === id) setSelectedDeal(null);
       setToast({ show: true, message: 'Deal deleted.', type: 'success' });
     } catch (e) {
       console.error("Error deleting deal: ", e);
@@ -65,29 +57,12 @@ export default function MainApp() {
     }
   };
 
-  const handleContact = async (address) => {
-    if (!user) return;
-    try {
-      await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'inquiries'), {
-        address: address,
-        date: new Date().toISOString(),
-        message: "User clicked 'I Want This Deal'"
-      });
-      setToast({ show: true, message: 'Interest sent successfully!', type: 'success' });
-    } catch (e) {
-      console.error("Error sending inquiry", e);
-      setToast({ show: true, message: 'Failed to send inquiry.', type: 'error' });
-    }
-  };
-
   const handleSelectDeal = (deal) => {
     setSelectedDeal(deal);
-    setView('detail');
   };
 
   const handleBack = () => {
     setSelectedDeal(null);
-    setView('gallery');
   };
 
   const handleLogout = async () => {
@@ -105,37 +80,27 @@ export default function MainApp() {
       
       <nav className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('gallery')}>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setSelectedDeal(null)}>
             <div className="bg-emerald-500 p-1.5 rounded-lg">
               <LayoutGrid size={20} className="text-white" />
             </div>
-            <span className="font-bold text-xl tracking-tight text-white">REI <span className="text-emerald-400">Deal Drop</span></span>
+            <span className="font-bold text-xl tracking-tight text-white">REI <span className="text-emerald-400">Deal Validator</span></span>
           </div>
           
           <div className="flex items-center gap-4">
-             {user && (
-               <div className="hidden md:flex bg-slate-800 rounded-lg p-1 border border-slate-700 mr-4">
-                  <button 
-                    onClick={() => setView('marketplace')}
-                    className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${view === 'marketplace' ? 'bg-slate-700 text-emerald-400 shadow-sm' : 'text-slate-400 hover:text-white'}`}
-                  >
-                    Marketplace
-                  </button>
-                  <button 
-                    onClick={() => setView('gallery')}
-                    className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${view === 'gallery' ? 'bg-slate-700 text-emerald-400 shadow-sm' : 'text-slate-400 hover:text-white'}`}
-                  >
-                    My Pipeline
-                  </button>
-               </div>
-             )}
+            <Link 
+               to="/marketplace"
+               className="hidden md:flex items-center gap-1 text-sm font-bold text-slate-300 hover:text-white transition-colors"
+            >
+               Marketplace
+            </Link>
 
             {!subLoading && !isPro && (
                <button 
                  onClick={() => setShowPricingModal(true)}
                  className="flex items-center gap-1 text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400 transition-all shadow-lg shadow-amber-900/20"
                >
-                 <Zap size={12} fill="currentColor" /> Upgrade
+                 <Zap size={12} fill="currentColor" /> Upgrade to Pro
                </button>
             )}
 
@@ -159,32 +124,33 @@ export default function MainApp() {
         </div>
       </nav>
       <main className="max-w-7xl mx-auto px-4 py-8 flex-grow">
-        {view === 'gallery' || view === 'marketplace' ? (
+        {!selectedDeal ? (
           <div className="space-y-8">
             <div className="relative overflow-hidden rounded-3xl bg-slate-900 border border-slate-800 p-8 md:p-12">
               <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl"></div>
               <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
               <div className="relative z-10 max-w-2xl">
                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                   {view === 'marketplace' ? (
-                      <>Explore the <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Marketplace</span></>
-                   ) : (
-                      <>Manage Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Deal Pipeline</span></>
-                   )}
+                    Manage Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Deal Pipeline</span>
                  </h1>
                  <p className="text-slate-400 text-lg mb-8">
-                   {view === 'marketplace' 
-                     ? "Find exclusive off-market deals from vetted wholesalers." 
-                     : "Track leads, analyze numbers, and generate professional reports for lenders and partners."
-                   }
+                   Track leads, analyze numbers, and generate professional reports for lenders and partners.
                  </p>
                  {user && (
-                  <button 
-                    onClick={() => setShowAddModal(true)} 
-                    className="bg-emerald-500 hover:bg-emerald-400 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-emerald-900/20 hover:shadow-emerald-900/40 transform hover:-translate-y-1"
-                  >
-                    <Plus size={20}/> Post New Deal
-                  </button>
+                  <div className="flex gap-4">
+                    <button 
+                      onClick={() => setShowAddModal(true)} 
+                      className="bg-emerald-500 hover:bg-emerald-400 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-emerald-900/20 hover:shadow-emerald-900/40 transform hover:-translate-y-1"
+                    >
+                      <Plus size={20}/> Analyze New Deal
+                    </button>
+                    <Link
+                      to="/marketplace"
+                      className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all border border-slate-700 transform hover:-translate-y-1"
+                    >
+                      Browse Marketplace
+                    </Link>
+                  </div>
                 )}
                 {!user && (
                   <div className="flex gap-4">
@@ -196,17 +162,14 @@ export default function MainApp() {
             </div>
 
             <DealList 
-              db={db} 
-              userId={user?.uid} 
-              __app_id={appId}
               onDeleteDeal={handleDeleteDeal}
               onSelectDeal={handleSelectDeal}
               onEditDeal={handleEditClick}
-              isPublic={view === 'marketplace'}
+              isPublic={false}
             />
           </div>
         ) : (
-          selectedDeal && <DealDetail deal={selectedDeal} onBack={handleBack} onContact={handleContact} />
+          <DealDetail deal={selectedDeal} onBack={handleBack} />
         )}
       </main>
       
@@ -216,10 +179,10 @@ export default function MainApp() {
                <div className="bg-slate-900 p-1.5 rounded-lg">
                   <LayoutGrid size={20} className="text-slate-500" />
                </div>
-               <span className="font-bold text-lg text-slate-500">REI Deal Drop</span>
+               <span className="font-bold text-lg text-slate-500">REI Deal Validator</span>
             </div>
             <p className="text-slate-600 text-sm">
-              &copy; {new Date().getFullYear()} REI Deal Drop. All rights reserved.
+              &copy; {new Date().getFullYear()} REI Deal Validator. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm text-slate-600">
                <Link to="/terms" className="hover:text-slate-400 transition-colors">Terms</Link>
@@ -238,6 +201,10 @@ export default function MainApp() {
         onAdd={handleAddDeal} 
         initialData={editingDeal}
         onUpdate={handleUpdateDeal}
+        onUpgrade={() => {
+            setShowAddModal(false);
+            setShowPricingModal(true);
+        }}
       />
 
       <PricingModal 

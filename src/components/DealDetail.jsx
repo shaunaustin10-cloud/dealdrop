@@ -6,23 +6,15 @@ import {
   Bath, 
   Square, 
   DollarSign, 
-  Mail,
   TrendingUp,
   Home,
-  Lock,
   FileText 
 } from 'lucide-react';
 import DealAnalysis from './DealAnalysis';
-import { useSubscription } from '../hooks/useSubscription';
 import { formatAddress } from '../utils/formatAddress';
 import { generateDealReport } from '../utils/generatePdf';
-import PricingModal from './PricingModal';
-import SellerCard from './SellerCard'; // Import SellerCard
 
-const DealDetail = ({ deal, onBack, onContact }) => {
-  const { isPro } = useSubscription();
-  const [showPricingModal, setShowPricingModal] = useState(false);
-
+const DealDetail = ({ deal, onBack }) => {
   const [activeImage, setActiveImage] = useState(
     (deal.imageUrls && deal.imageUrls[0]) || 
     `https://picsum.photos/seed/${deal.id}/800/600`
@@ -42,14 +34,6 @@ const DealDetail = ({ deal, onBack, onContact }) => {
       maximumFractionDigits: 0 
     }).format(val);
 
-  const handleContactClick = () => {
-    if (!isPro) {
-      setShowPricingModal(true);
-      return;
-    }
-    onContact(deal.address);
-  };
-
   // ROI Calculation
   const price = Number(deal.price) || 0;
   // Use effectiveRehab for calculations, fall back to user-input rehab if effectiveRehab not present
@@ -57,7 +41,7 @@ const DealDetail = ({ deal, onBack, onContact }) => {
   const arv = Number(deal.arv) || 0;
   const rent = Number(deal.rent) || 0;
   
-  const totalCost = price + effectiveRehab; // Use effectiveRehab here
+  const totalCost = price + effectiveRehab; 
   const potentialProfit = arv - totalCost;
   const roi = totalCost > 0 ? (potentialProfit / totalCost) * 100 : 0;
 
@@ -109,52 +93,20 @@ const DealDetail = ({ deal, onBack, onContact }) => {
           
           {deal.imageUrls && deal.imageUrls.length > 1 && (
              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide relative">
-               {deal.imageUrls.map((url, idx) => {
-                 // Logic: Show first 2 images freely. Lock the rest if !isPro.
-                 const isLocked = !isPro && idx > 0;
-                 
-                 return (
-                   <div key={idx} className="relative flex-shrink-0 w-20 h-20">
-                     <button
-                       onClick={() => {
-                         if (isLocked) {
-                           setShowPricingModal(true);
-                         } else {
-                           setActiveImage(url);
-                         }
-                       }}
-                       className={`w-full h-full rounded-lg overflow-hidden border-2 transition-all ${activeImage === url ? 'border-emerald-500 shadow-lg shadow-emerald-500/20' : 'border-transparent opacity-60 hover:opacity-100'} ${isLocked ? 'cursor-pointer' : ''}`}
-                     >
-                       <img 
-                         src={url} 
-                         alt={`View ${idx + 1}`} 
-                         className={`w-full h-full object-cover ${isLocked ? 'blur-sm scale-110' : ''}`} 
-                       />
-                     </button>
-                     {isLocked && (
-                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                         <Lock size={16} className="text-white drop-shadow-md" />
-                       </div>
-                     )}
-                   </div>
-                 );
-               })}
-             </div>
-          )}
-          
-          {/* Upgrade Prompt for Images (if not pro and multiple images exist) */}
-          {!isPro && deal.imageUrls && deal.imageUrls.length > 1 && (
-             <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-xl flex items-center justify-between backdrop-blur-sm">
-                <span className="text-sm text-slate-300 flex items-center gap-2">
-                  <Lock size={14} className="text-amber-500" />
-                  <span>{deal.imageUrls.length - 1} more photos available</span>
-                </span>
-                <button 
-                  onClick={() => setShowPricingModal(true)}
-                  className="text-xs font-bold text-emerald-400 hover:text-emerald-300 uppercase tracking-wider"
-                >
-                  Unlock Gallery
-                </button>
+               {deal.imageUrls.map((url, idx) => (
+                 <div key={idx} className="relative flex-shrink-0 w-20 h-20">
+                   <button
+                     onClick={() => setActiveImage(url)}
+                     className={`w-full h-full rounded-lg overflow-hidden border-2 transition-all ${activeImage === url ? 'border-emerald-500 shadow-lg shadow-emerald-500/20' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                   >
+                     <img 
+                       src={url} 
+                       alt={`View ${idx + 1}`} 
+                       className="w-full h-full object-cover" 
+                     />
+                   </button>
+                 </div>
+               ))}
              </div>
           )}
         </div>
@@ -163,12 +115,7 @@ const DealDetail = ({ deal, onBack, onContact }) => {
         <div className="space-y-6">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6"> {/* New container for top info */}
             <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight mb-2">
-               {formatAddress(deal.address, isPro)}
-               {!isPro && (
-                 <span onClick={() => setShowPricingModal(true)} className="ml-3 inline-block cursor-pointer">
-                   <Lock size={24} className="text-amber-500 inline-block hover:text-amber-400 transition-colors" />
-                 </span>
-               )}
+               {formatAddress(deal.address, true)} {/* Always show full address */}
             </h1>
             <p className="text-slate-400 text-lg">Added on {deal.createdAt ? new Date(deal.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown Date'}</p>
 
@@ -246,9 +193,6 @@ const DealDetail = ({ deal, onBack, onContact }) => {
           {/* Deal Analysis AI Section */}
           <DealAnalysis deal={deal} />
 
-          {/* Seller Profile Card */}
-          {deal.createdBy && <SellerCard userId={deal.createdBy} />}
-
           {/* Financials */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
@@ -263,7 +207,7 @@ const DealDetail = ({ deal, onBack, onContact }) => {
               <div>
                 <p className="text-slate-500 text-sm uppercase font-bold mb-1">Est. Rehab</p>
                 <p className="text-2xl font-bold text-emerald-400 flex items-center gap-2">
-                   {formatMoney(effectiveRehab)} {/* Changed to effectiveRehab */}
+                   {formatMoney(effectiveRehab)} 
                 </p>
               </div>
               <div>
@@ -301,31 +245,8 @@ const DealDetail = ({ deal, onBack, onContact }) => {
                <p className="text-slate-400 leading-relaxed whitespace-pre-wrap">{deal.notes}</p>
             </div>
           )}
-
-          {/* Action Button */}
-          <button 
-            onClick={handleContactClick}
-            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 hover:shadow-emerald-900/40 transition-all transform hover:-translate-y-1"
-          >
-             {isPro ? (
-                <>
-                   <Mail size={22} />
-                   I&apos;m Interested in This Deal
-                </>
-             ) : (
-                <>
-                   <Lock size={22} />
-                   Upgrade to Contact Seller
-                </>
-             )}
-          </button>
         </div>
       </div>
-
-      <PricingModal 
-        isOpen={showPricingModal} 
-        onClose={() => setShowPricingModal(false)} 
-      />
     </div>
   );
 };
@@ -336,7 +257,7 @@ DealDetail.propTypes = {
     address: PropTypes.string,
     price: PropTypes.number,
     rehab: PropTypes.number,
-    effectiveRehab: PropTypes.number, // Added effectiveRehab to propTypes
+    effectiveRehab: PropTypes.number, 
     arv: PropTypes.number,
     rent: PropTypes.number,
     sqft: PropTypes.number,
@@ -346,10 +267,15 @@ DealDetail.propTypes = {
     notes: PropTypes.string,
     dealScore: PropTypes.number,
     createdAt: PropTypes.object,
-    aiAnalysis: PropTypes.object, // Added aiAnalysis to propTypes
+    aiAnalysis: PropTypes.object,
+    status: PropTypes.string,
+    leadSource: PropTypes.string,
+    sellerName: PropTypes.string,
+    sellerPhone: PropTypes.string,
+    sellerEmail: PropTypes.string,
+    createdBy: PropTypes.string,
   }).isRequired,
   onBack: PropTypes.func.isRequired,
-  onContact: PropTypes.func.isRequired,
 };
 
 export default DealDetail;
