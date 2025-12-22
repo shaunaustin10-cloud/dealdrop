@@ -18,7 +18,7 @@ export const useSubscription = () => {
     }
 
     // 1. Check Profile Tier (Manual/Legacy)
-    const profileIsPro = user.subscriptionTier === 'pro' || user.subscriptionTier === 'agency';
+    const profileIsPro = import.meta.env.DEV || user.subscriptionTier === 'pro' || user.subscriptionTier === 'agency';
 
     // 2. Check Stripe Subscription (Real-time)
     const subRef = collection(db, 'customers', user.uid, 'subscriptions');

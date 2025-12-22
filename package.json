@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "emulators": "firebase emulators:start --import=./firebase-data --export-on-exit=./firebase-data > emulator.log 2>&1 &",
-    "dev": "npm run emulators && vite",
+    "emulators": "bash -c '. \"$HOME/.sdkman/bin/sdkman-init.sh\" && firebase emulators:start --import=./firebase-data --export-on-exit=./firebase-data'",
+    "vite:dev": "vite --host --debug proxy",
+    "dev": "concurrently /* \"npm run emulators\" */ \"npm run vite:dev\"",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint ."
@@ -15,6 +16,7 @@
     "browser-image-compression": "^2.0.2",
     "firebase": "^10.7.1",
     "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.303.0",
     "prop-types": "^15.8.1",
@@ -29,6 +31,7 @@
     "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.16",
+    "concurrently": "^9.2.1",
     "eslint": "^9.39.1",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",

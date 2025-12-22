@@ -5,7 +5,7 @@ import { storage } from '../firebaseConfig'; // Import storage
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import imageCompression from 'browser-image-compression';
 
-const ImageUploader = ({ imageUrls, onImageUrlsChange, onFilesUploaded }) => {
+const ImageUploader = ({ imageUrls, onImageUrlsChange, onFilesUploaded, defaultImageUrl }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState('');
@@ -74,6 +74,8 @@ const ImageUploader = ({ imageUrls, onImageUrlsChange, onFilesUploaded }) => {
     onImageUrlsChange(imageUrls.filter(url => url !== urlToRemove));
   };
 
+  const imagesToDisplay = imageUrls.length > 0 ? imageUrls : (defaultImageUrl ? [defaultImageUrl] : []);
+
   return (
     <div>
       <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1 font-semibold">Property Images</label>
@@ -109,7 +111,7 @@ const ImageUploader = ({ imageUrls, onImageUrlsChange, onFilesUploaded }) => {
       </div>
       
       <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-        {imageUrls.map((url, index) => (
+        {imagesToDisplay.map((url, index) => (
           <div key={index} className="flex items-center gap-3 bg-slate-800 p-2 rounded-lg border border-slate-700 group hover:border-emerald-500/30 transition-colors">
             <div className="w-10 h-10 bg-slate-900 rounded overflow-hidden flex-shrink-0 border border-slate-700 relative">
                <img 
@@ -136,6 +138,11 @@ const ImageUploader = ({ imageUrls, onImageUrlsChange, onFilesUploaded }) => {
             </button>
           </div>
         ))}
+        {imagesToDisplay.length === 0 && (
+            <div className="flex items-center justify-center h-24 text-slate-500 bg-slate-800 rounded-lg border border-slate-700 text-sm">
+                No images yet.
+            </div>
+        )}
       </div>
     </div>
   );
@@ -145,6 +152,7 @@ ImageUploader.propTypes = {
   imageUrls: PropTypes.arrayOf(PropTypes.string).isRequired,
   onImageUrlsChange: PropTypes.func.isRequired,
   onFilesUploaded: PropTypes.func,
+  defaultImageUrl: PropTypes.string, // New prop type
 };
 
 export default ImageUploader;

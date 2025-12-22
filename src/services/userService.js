@@ -38,7 +38,12 @@ export const decrementUserCredits = async (uid) => {
  * This should be called after successful registration.
  */
 export const createUserProfile = async (uid, userData) => {
-  if (!uid) return;
+  if (!uid) {
+    console.error("❌ createUserProfile: No UID provided");
+    return;
+  }
+
+  console.log(`🔧 DEBUG: Creating user profile for UID: ${uid} in App: ${appId}`);
 
   const userRef = doc(db, 'artifacts', appId, 'profiles', uid);
   
@@ -56,8 +61,9 @@ export const createUserProfile = async (uid, userData) => {
 
   try {
     await setDoc(userRef, profileData, { merge: true });
+    console.log("✅ DEBUG: User profile created successfully");
   } catch (error) {
-    console.error("Error creating user profile:", error);
+    console.error("❌ DEBUG: Error creating user profile:", error);
     throw error;
   }
 };

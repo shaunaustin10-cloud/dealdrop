@@ -43,6 +43,36 @@ export const fetchPropertyData = async (addressString) => {
   }
 
   if (!API_KEY) {
+    if (import.meta.env.DEV) {
+      console.warn("🔧 DEBUG: VITE_RENTCAST_API_KEY is missing. Returning MOCK data for development.");
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
+      
+      const mockPrice = 250000 + (Math.random() * 100000);
+      return {
+        success: true,
+        data: {
+          arv: Math.round(mockPrice),
+          arvRange: { low: Math.round(mockPrice * 0.9), high: Math.round(mockPrice * 1.1) },
+          rentEstimate: Math.round(mockPrice * 0.008),
+          rentRange: { low: Math.round(mockPrice * 0.007), high: Math.round(mockPrice * 0.009) },
+          confidenceScore: 92,
+          comps: [
+            { address: "123 Mock St", price: Math.round(mockPrice * 0.95), distance: "0.2mi", date: "2025-10-15" },
+            { address: "456 Fake Ave", price: Math.round(mockPrice * 1.05), distance: "0.5mi", date: "2025-11-02" }
+          ],
+          rentComps: [
+            { address: "789 Rental Rd", rent: Math.round(mockPrice * 0.008), distance: "0.3mi", date: "2025-09-20" }
+          ],
+          latitude: 37.7749,
+          longitude: -122.4194,
+          yearBuilt: "1995",
+          sqft: 1850,
+          bedrooms: 3,
+          bathrooms: 2,
+          propertyType: "Single Family"
+        }
+      };
+    }
     console.error("VITE_RENTCAST_API_KEY is missing.");
     return { success: false, error: "System Error: API Key missing." };
   }
@@ -76,7 +106,7 @@ export const fetchPropertyData = async (addressString) => {
     const valueData = await valueRes.json();
 
     // 2. Fetch Rent Estimate
-    const rentRes = await fetch(`${BASE_URL}/avm/rent?${queryParams.toString()}`, { headers });
+    const rentRes = await fetch(`${BASE_URL}/avm/rent/long-term?${queryParams.toString()}`, { headers });
     
     let rentData = null;
     if (rentRes.ok) {

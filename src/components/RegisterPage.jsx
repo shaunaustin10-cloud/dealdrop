@@ -12,27 +12,37 @@ export default function RegisterPage() {
   const [role, setRole] = useState('investor'); // Default role
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState('');
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+    setStatus('Creating your account...');
 
     try {
+      console.log("🚀 DEBUG: Starting registration for:", email);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      console.log("✅ DEBUG: Auth account created. UID:", user.uid);
 
+      setStatus('Setting up your profile and credits...');
+      
       // Create the public profile
       await createUserProfile(user.uid, {
         email: user.email,
         displayName: name || email.split('@')[0],
         role: role, // Pass the selected role
       });
+      console.log("✅ DEBUG: Profile saved successfully.");
 
+      setStatus('Redirecting to dashboard...');
       navigate('/dashboard');
     } catch (err) {
+      console.error("❌ DEBUG: Registration failed:", err);
       setError(err.message);
+      setStatus('');
     } finally {
       setLoading(false);
     }
@@ -129,7 +139,7 @@ export default function RegisterPage() {
             disabled={loading}
             className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-3 rounded-lg shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating Account...' : (
+            {loading ? status : (
               <>
                 Get Started <ArrowRight size={18} />
               </>

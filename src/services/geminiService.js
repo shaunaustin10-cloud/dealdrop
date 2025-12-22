@@ -19,6 +19,27 @@ if (API_KEY) {
  */
 export const analyzeDeal = async (dealData) => {
   if (!model) {
+    if (import.meta.env.DEV) {
+      console.warn("🔧 DEBUG: VITE_GEMINI_API_KEY is missing. Returning MOCK analysis for development.");
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate AI processing time
+      
+      const price = parseFloat(dealData.price) || 0;
+      const arv = parseFloat(dealData.arv) || 0;
+      const profit = arv - price - (parseFloat(dealData.rehab) || 0);
+      
+      return {
+        success: true,
+        data: {
+          score: profit > 50000 ? 85 : 45,
+          verdict: profit > 50000 ? "GOOD BUY" : "PASS",
+          summary: "This is a mock analysis generated because no Gemini API key was found. The numbers suggest a " + (profit > 50000 ? "solid" : "thin") + " spread.",
+          risks: ["Mock Risk: Market volatility", "Mock Risk: Unexpected rehab costs"],
+          strengths: ["Mock Strength: High demand area", "Mock Strength: Good initial equity"],
+          calculated_mao: Math.round(arv * 0.7),
+          projected_profit: Math.round(profit)
+        }
+      };
+    }
     console.error("Gemini API Key missing");
     return { 
       success: false, 

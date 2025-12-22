@@ -18,6 +18,23 @@ const REHAB_LEVELS = {
   HEAVY: { label: 'Heavy ($70/sqft)', cost: 70 }
 };
 
+// Helper function to get Google Street View Static URL
+const getGoogleStaticMapUrl = (lat, lng, address) => {
+  const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  if (!API_KEY) {
+    console.warn("VITE_GOOGLE_MAPS_API_KEY is missing. Cannot generate map image.");
+    return '';
+  }
+
+  const location = lat && lng ? `${lat},${lng}` : encodeURIComponent(address);
+  if (!location) return '';
+
+  // Construct the URL for Google Street View Static API
+  // Using default heading/pitch for a general view.
+  const url = `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${location}&fov=90&heading=235&pitch=10&key=${API_KEY}`;
+  return url;
+};
+
 const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade }) => {
   const { user } = useAuth();
   const { isPro, credits } = useSubscription();
@@ -29,6 +46,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
     contractPrice: '', assignmentFee: '', emd: '', inspectionWindow: '', closingDate: '', proofOfContractPath: '', hasValidContract: false
   });
   const [tempImageUrl, setTempImageUrl] = useState('');
+  const [generatedMapImageUrl, setGeneratedMapImageUrl] = useState(''); // New state for map image
   const [analyzing, setAnalyzing] = useState(false);
   const [fetchingMarket, setFetchingMarket] = useState(false);
   const [fetchError, setFetchError] = useState('');
@@ -117,6 +135,17 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
         }
     }
   }, [isAssignment, formData.contractPrice, formData.assignmentFee]);
+
+  // Effect to generate map image URL
+  useEffect(() => {
+    // Only generate if modal is open and address is available
+    if (isOpen && (formData.address || (formData.lat && formData.lng))) {
+      const url = getGoogleStaticMapUrl(formData.lat, formData.lng, formData.address);
+      setGeneratedMapImageUrl(url);
+    } else if (!isOpen) {
+      setGeneratedMapImageUrl(''); // Clear when modal closes
+    }
+  }, [isOpen, formData.address, formData.lat, formData.lng]);
 
   if (!isOpen) return null;
 
@@ -225,6 +254,11 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
     
     let finalFormData = { ...formData, comps }; // Include comps in final data
     finalFormData.hasValidContract = isAssignment;
+
+    // Auto-add generated map image URL if available and no other images are present
+    if (generatedMapImageUrl && finalFormData.imageUrls.length === 0) {
+        finalFormData.imageUrls = [generatedMapImageUrl];
+    }
 
     // Validate Assignment Requirements
     if (isAssignment) {
@@ -573,6 +607,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
               onImageUrlsChange={urls => setFormData({...formData, imageUrls: urls})} 
               currentInput={tempImageUrl}
               onCurrentInputChange={setTempImageUrl}
+              defaultImageUrl={generatedMapImageUrl} // Pass the generated map image URL
             />
             <div>
               <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1 font-semibold">Notes</label>
