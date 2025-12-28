@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getUserProfile } from '../services/userService';
-import { User, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 
 export default function SellerCard({ userId }) {
   const [profile, setProfile] = useState(null);

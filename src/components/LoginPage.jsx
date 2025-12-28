@@ -1,20 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      // Navigation handled by useEffect when user state updates
+    } catch (err) {
+      console.error("Google Sign-In Error Full Object:", err);
+      console.error("Google Sign-In Error Code:", err.code);
+      console.error("Google Sign-In Error Message:", err.message);
+      setError(`Google Sign-In failed: ${err.message}`);
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/dashboard');
+      // Navigation handled by useEffect
     } catch (error) {
+      console.error("Login Error:", error);
       setError(error.message);
     }
   };
@@ -45,12 +67,29 @@ const LoginPage = () => {
             />
           </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
-          <button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-lg mt-4">
+          
+          <button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-lg mt-4 shadow-lg shadow-emerald-900/20 transition-all">
             Login
           </button>
+
+          <div className="relative flex py-2 items-center">
+            <div className="flex-grow border-t border-slate-800"></div>
+            <span className="flex-shrink-0 mx-4 text-slate-500 text-xs">OR</span>
+            <div className="flex-grow border-t border-slate-800"></div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            className="w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all"
+          >
+            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+            Sign in with Google
+          </button>
+
           <div className="text-center mt-4">
             <p className="text-slate-400 text-sm">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link to="/register" className="text-emerald-400 hover:text-emerald-300 font-semibold">
                 Register
               </Link>

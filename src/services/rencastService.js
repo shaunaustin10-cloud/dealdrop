@@ -1,11 +1,11 @@
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
+import { db, functions } from '../firebaseConfig';
+
 /**
  * Service for RentCast Real Estate Data API.
- * CLIENT-SIDE VERSION (For Development/Internal Use)
+ * Uses Firebase Cloud Functions to securely access API.
  */
-
-// Use local proxy to avoid CORS issues
-const BASE_URL = '/api/rentcast/v1';
-const API_KEY = import.meta.env.VITE_RENTCAST_API_KEY;
 
 /**
  * Helper to parse a single address string into components.
@@ -34,85 +34,41 @@ const parseAddress = (addressString) => {
   return null;
 };
 
+/**
+ * Generates a consistent ID for the cache based on the address.
+ * Removes non-alphanumeric characters and converts to lowercase.
+ */
+const generateCacheId = (addressString) => {
+    return addressString.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+};
+
 export const fetchPropertyData = async (addressString) => {
   console.log("Fetching data for:", addressString); // Debug
+
+  // Define cache variables for saving later
+  const cacheId = generateCacheId(addressString);
+  const cacheRef = doc(db, 'property_cache', cacheId);
 
   const parsed = parseAddress(addressString);
   if (!parsed) {
     return { success: false, error: "Format Error: Please use 'Street, City, State' (e.g., 123 Main St, Dallas, TX)" };
   }
 
-  if (!API_KEY) {
-    if (import.meta.env.DEV) {
-      console.warn("🔧 DEBUG: VITE_RENTCAST_API_KEY is missing. Returning MOCK data for development.");
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
-      
-      const mockPrice = 250000 + (Math.random() * 100000);
-      return {
-        success: true,
-        data: {
-          arv: Math.round(mockPrice),
-          arvRange: { low: Math.round(mockPrice * 0.9), high: Math.round(mockPrice * 1.1) },
-          rentEstimate: Math.round(mockPrice * 0.008),
-          rentRange: { low: Math.round(mockPrice * 0.007), high: Math.round(mockPrice * 0.009) },
-          confidenceScore: 92,
-          comps: [
-            { address: "123 Mock St", price: Math.round(mockPrice * 0.95), distance: "0.2mi", date: "2025-10-15" },
-            { address: "456 Fake Ave", price: Math.round(mockPrice * 1.05), distance: "0.5mi", date: "2025-11-02" }
-          ],
-          rentComps: [
-            { address: "789 Rental Rd", rent: Math.round(mockPrice * 0.008), distance: "0.3mi", date: "2025-09-20" }
-          ],
-          latitude: 37.7749,
-          longitude: -122.4194,
-          yearBuilt: "1995",
-          sqft: 1850,
-          bedrooms: 3,
-          bathrooms: 2,
-          propertyType: "Single Family"
-        }
-      };
-    }
-    console.error("VITE_RENTCAST_API_KEY is missing.");
-    return { success: false, error: "System Error: API Key missing." };
-  }
-
   try {
-    const headers = { 
-      'X-Api-Key': API_KEY, 
-      'accept': 'application/json' 
-    };
-
-    // Construct Query Params
-    const queryParams = new URLSearchParams({
+    console.log("Calling Cloud Function 'getPropertyData'...");
+    const getPropertyData = httpsCallable(functions, 'getPropertyData');
+    
+    const result = await getPropertyData({
       address: parsed.address,
       city: parsed.city,
       state: parsed.state,
+      zip: parsed.zip
     });
-    if (parsed.zip) queryParams.append('zip', parsed.zip);
 
-    console.log("Calling API proxy...", queryParams.toString());
+    const { arv: valueData, rent: rentData } = result.data;
 
-    // 1. Fetch Value Estimate (ARV)
-    const valueRes = await fetch(`${BASE_URL}/avm/value?${queryParams.toString()}`, { headers });
-    
-    if (!valueRes.ok) {
-      const errText = await valueRes.text();
-      console.error("Value API Error:", valueRes.status, errText);
-      if (valueRes.status === 404) return { success: false, error: "Property not found in database." };
-      return { success: false, error: `Data Provider Error: ${valueRes.statusText}` };
-    }
-    
-    const valueData = await valueRes.json();
-
-    // 2. Fetch Rent Estimate
-    const rentRes = await fetch(`${BASE_URL}/avm/rent/long-term?${queryParams.toString()}`, { headers });
-    
-    let rentData = null;
-    if (rentRes.ok) {
-      rentData = await rentRes.json();
-    } else {
-        console.warn("Rent API Warning:", rentRes.status, await rentRes.text());
+    if (!valueData) {
+        return { success: false, error: "Property not found in database." };
     }
 
     // --- Process Data ---
@@ -159,9 +115,7 @@ export const fetchPropertyData = async (addressString) => {
         confidence = Math.max(60, Math.min(99, Math.round(100 - (spreadPercent * 100))));
     }
 
-    return {
-      success: true,
-      data: {
+    const finalData = {
         arv,
         arvRange: { low: arvLow, high: arvHigh },
         rentEstimate: rent,
@@ -180,11 +134,31 @@ export const fetchPropertyData = async (addressString) => {
         bedrooms: valueData.bedrooms || rentData?.bedrooms || null,
         bathrooms: valueData.bathrooms || rentData?.bathrooms || null,
         propertyType: valueData.propertyType || rentData?.propertyType || 'Single Family'
+    };
+
+    // Save to Cache (Only valid data)
+    if (finalData.arv > 0) {
+      try {
+          await setDoc(cacheRef, {
+              address: addressString,
+              rentCastData: finalData,
+              lastUpdated: serverTimestamp()
+          }, { merge: true });
+      } catch (e) {
+          console.warn("Failed to update cache:", e);
       }
+    }
+
+    return {
+      success: true,
+      data: finalData
     };
 
   } catch (error) {
     console.error("RentCast Service Error:", error);
+    if (error.code === 'permission-denied' || error.message.includes('unauthenticated')) {
+        return { success: false, error: "Please sign in to access property data." };
+    }
     return { success: false, error: "Network Error: Could not reach data provider." };
   }
 };

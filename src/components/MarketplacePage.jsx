@@ -4,8 +4,6 @@ import DealList from './DealList';
 import { Link } from 'react-router-dom';
 import { LayoutGrid, ArrowLeft } from 'lucide-react';
 
-const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
-
 export default function MarketplacePage() {
   const { user } = useAuth();
 

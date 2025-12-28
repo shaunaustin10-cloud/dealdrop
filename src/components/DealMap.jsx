@@ -1,83 +1,223 @@
-import React from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { Link } from 'react-router-dom';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
+import { Loader2 } from 'lucide-react';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebaseConfig';
 
-// Fix for default marker icon missing in Leaflet/React-Leaflet
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+const containerStyle = {
+  width: '100%',
+  height: '100%', // Fill the parent container (Split view)
+  borderRadius: '1rem',
+};
 
-let DefaultIcon = L.icon({
-    iconUrl: icon,
-    shadowUrl: iconShadow,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41]
-});
+const defaultCenter = {
+  lat: 39.8283,
+  lng: -98.5795
+};
 
-L.Marker.prototype.options.icon = DefaultIcon;
+// Standard Light Mode Style
+const mapOptions = {
+  disableDefaultUI: true,
+  zoomControl: true,
+  streetViewControl: true,
+  mapTypeControl: false,
+  fullscreenControl: false,
+};
 
-const DealMap = ({ deals, onSelectDeal }) => {
-  // Default center (US center approx)
-  const position = [39.8283, -98.5795];
+const libraries = ['places'];
 
-  // Helper to get coordinates
-  const getCoordinates = (deal) => {
-    // 1. Use real coordinates if available (from RentCast/Google)
-    if (deal.lat && deal.lng) {
-        return [parseFloat(deal.lat), parseFloat(deal.lng)];
+// Helper to geocode address (Cloud Function -> Client Fallback)
+const geocodeAddress = async (address) => {
+  // 1. Try Cloud Function (Secure)
+  try {
+    const getGeocode = httpsCallable(functions, 'getGeocode');
+    const result = await getGeocode({ address });
+    if (result.data && result.data.lat && result.data.lng) {
+        return result.data;
     }
-    
-    // 2. Fallback: Generate random spread around US center based on address hash
-    // so they don't all stack on top of each other. 
-    // TODO: In production, ensure all deals are geocoded on save.
-    let hash = 0;
-    for (let i = 0; i < deal.address.length; i++) {
-      hash = deal.address.charCodeAt(i) + ((hash << 5) - hash);
+  } catch (error) {
+    console.warn("Cloud geocode failed, trying client-side fallback...", error);
+  }
+
+  // 2. Try Client-Side Geocoder (Fallback)
+  if (window.google && window.google.maps) {
+      try {
+          const geocoder = new window.google.maps.Geocoder();
+          const result = await new Promise((resolve, reject) => {
+              geocoder.geocode({ address: address }, (results, status) => {
+                  if (status === 'OK' && results[0]) {
+                      resolve({
+                          lat: results[0].geometry.location.lat(),
+                          lng: results[0].geometry.location.lng()
+                      });
+                  } else {
+                      reject(status);
+                  }
+              });
+          });
+          return result;
+      } catch (err) {
+          console.error("Client geocode also failed:", err);
+      }
+  }
+  
+  return null;
+};
+
+const DealMap = ({ deals, onSelectDeal, hoveredDealId }) => {
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: "AIzaSyAMAwO4mk88sulghs-7BkHfX2-Z6996BGQ",
+    libraries: ['places']
+  });
+
+  const [map, setMap] = useState(null);
+  const [activeMarker, setActiveMarker] = useState(null);
+  const [geocodedDeals, setGeocodedDeals] = useState([]);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const mapRef = useRef(null);
+
+  const onLoad = useCallback((map) => {
+    mapRef.current = map;
+    setMap(map);
+  }, []);
+
+  const onUnmount = useCallback(() => {
+    mapRef.current = null;
+    setMap(null);
+  }, []);
+
+  // Auto-Geocode deals missing coordinates on load
+  useEffect(() => {
+    const processDeals = async () => {
+        setIsGeocoding(true);
+        console.log("📍 Processing deals for map:", deals.length);
+        
+        const processed = await Promise.all(deals.map(async (deal) => {
+            if (deal.lat && deal.lng) return deal;
+            
+            // Fix missing coords
+            console.log("🔍 Geocoding missing coords for:", deal.address);
+            const coords = await geocodeAddress(deal.address);
+            if (coords) {
+                console.log("✅ Found coords:", coords);
+                return { ...deal, lat: coords.lat, lng: coords.lng };
+            }
+            return deal;
+        }));
+        setGeocodedDeals(processed);
+        setIsGeocoding(false);
+    };
+    if (deals.length > 0) {
+        processDeals();
     }
-    const latOffset = (hash % 1000) / 100; // +/- 10 deg
-    const lngOffset = ((hash >> 2) % 2000) / 100; // +/- 20 deg
-    
-    return [39.82 + latOffset, -98.57 + lngOffset];
-  };
+  }, [deals]);
+
+  // Sync Map with List Hover (Pan & Zoom)
+  useEffect(() => {
+    if (hoveredDealId && geocodedDeals.length > 0 && map) {
+      const deal = geocodedDeals.find(d => d.id === hoveredDealId);
+      if (deal && deal.lat && deal.lng) {
+        setActiveMarker(deal.id);
+        
+        // Pan to the deal
+        const position = { lat: parseFloat(deal.lat), lng: parseFloat(deal.lng) };
+        map.panTo(position);
+        
+        // Optional: Zoom in if too far out, but don't force it if user is exploring
+        if (map.getZoom() < 12) {
+            map.setZoom(14);
+        }
+      }
+    } else {
+        setActiveMarker(null);
+    }
+  }, [hoveredDealId, geocodedDeals, map]);
+
+  // Auto-fit bounds on load (Only after geocoding is done)
+  useEffect(() => {
+    if (map && geocodedDeals.length > 0 && !isGeocoding) {
+      const bounds = new window.google.maps.LatLngBounds();
+      let validCount = 0;
+      
+      geocodedDeals.forEach(deal => {
+        if (deal.lat && deal.lng) {
+          bounds.extend({ lat: parseFloat(deal.lat), lng: parseFloat(deal.lng) });
+          validCount++;
+        }
+      });
+
+      if (validCount > 0) {
+        console.log("🗺️ Fitting bounds for", validCount, "deals");
+        map.fitBounds(bounds);
+        
+        // Prevent zooming in too close if only 1 deal
+        if (validCount === 1) {
+             const listener = window.google.maps.event.addListener(map, "idle", () => { 
+                if (map.getZoom() > 15) map.setZoom(15); 
+                window.google.maps.event.removeListener(listener); 
+            });
+        }
+      }
+    }
+  }, [map, geocodedDeals, isGeocoding]);
+
+  if (!isLoaded) {
+    return (
+      <div className="h-full w-full bg-white flex items-center justify-center rounded-2xl border border-slate-200">
+        <Loader2 className="animate-spin text-emerald-500" size={32} />
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden h-[600px] relative z-0">
-      <MapContainer center={position} zoom={4} scrollWheelZoom={true} style={{ height: "100%", width: "100%" }}>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {deals.map((deal) => (
-          <Marker key={deal.id} position={getCoordinates(deal)}>
-            <Popup>
-              <div className="min-w-[200px]">
-                <div className="h-24 w-full mb-2 rounded overflow-hidden">
-                    <img 
-                      src={(deal.imageUrls && deal.imageUrls[0]) || `https://picsum.photos/seed/${deal.id}/200/100`} 
-                      alt={deal.address} 
-                      className="w-full h-full object-cover"
-                    />
-                </div>
-                <h3 className="font-bold text-slate-900 text-sm mb-1">{deal.address}</h3>
-                <div className="flex justify-between items-center text-xs">
-                    <span className="font-bold text-emerald-600">${deal.price?.toLocaleString()}</span>
-                    <span className="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">
-                        Score: {deal.dealScore}
-                    </span>
-                </div>
-                <button 
+    <div className="h-full w-full relative">
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        center={defaultCenter}
+        zoom={4}
+        onLoad={onLoad}
+        onUnmount={onUnmount}
+        options={mapOptions}
+        mapTypeId="satellite"
+      >
+        {geocodedDeals.map((deal) => {
+              if (!deal.lat || !deal.lng) return null;
+              
+              const isHovered = deal.id === hoveredDealId || deal.id === activeMarker;
+              
+              // Custom SVG Path for a "Price Pill" (Rounded Rectangle with tail)
+              const pillPath = "M -20 -10 L 20 -10 C 23 -10 25 -8 25 -5 L 25 5 C 25 8 23 10 20 10 L 5 10 L 0 15 L -5 10 L -20 10 C -23 10 -25 8 -25 5 L -25 -5 C -25 -8 -23 -10 -20 -10 Z";
+
+              return (
+                <Marker
+                  key={deal.id}
+                  position={{ lat: parseFloat(deal.lat), lng: parseFloat(deal.lng) }}
                   onClick={() => onSelectDeal(deal)}
-                  className="mt-2 w-full bg-slate-900 text-white text-xs py-1.5 rounded hover:bg-slate-700 transition-colors"
-                >
-                    View Details
-                </button>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+                  label={{
+                    text: `$${(deal.price / 1000).toFixed(0)}k`,
+                    color: "white", 
+                    fontSize: "11px",
+                    fontWeight: "bold",
+                    className: "map-price-label",
+                    labelOrigin: new window.google.maps.Point(0, 0)
+                  }}
+                  icon={{
+                      path: pillPath,
+                      fillColor: isHovered ? "#ef4444" : "#10b981", // Red on hover, Emerald default
+                      fillOpacity: 1,
+                      strokeColor: "white",
+                      strokeWeight: 1.5,
+                      scale: isHovered ? 1.4 : 1.2, // Slightly larger on hover
+                      labelOrigin: new window.google.maps.Point(0, 0)
+                  }}
+                  zIndex={isHovered ? 100 : 1}
+                />
+              );
+            })
+          }
+      </GoogleMap>
     </div>
   );
 };
@@ -85,6 +225,7 @@ const DealMap = ({ deals, onSelectDeal }) => {
 DealMap.propTypes = {
   deals: PropTypes.array.isRequired,
   onSelectDeal: PropTypes.func.isRequired,
+  hoveredDealId: PropTypes.string,
 };
 
 export default DealMap;

@@ -1,6 +1,8 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const API_KEY = "AIzaSyAC2Qh88gAxMKXRnC6am8jcP-TuKTAXhPg";
 
 let genAI = null;
 let model = null;
@@ -11,6 +13,14 @@ if (API_KEY) {
 }
 
 /**
+ * Generates a consistent ID for the cache based on the address.
+ * Removes non-alphanumeric characters and converts to lowercase.
+ */
+const generateCacheId = (addressString) => {
+    return addressString.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+};
+
+/**
  * Analyzes a real estate deal using Gemini.
  * Acts as a skeptical senior underwriter.
  * 
@@ -18,6 +28,36 @@ if (API_KEY) {
  * @returns {Promise<object>} - { score, verdict, analysis, risks, strengths }
  */
 export const analyzeDeal = async (dealData) => {
+  // 1. Check Cache
+  if (dealData.address) {
+      const cacheId = generateCacheId(dealData.address);
+      const cacheRef = doc(db, 'property_cache', cacheId);
+      
+      try {
+          const cacheSnap = await getDoc(cacheRef);
+          if (cacheSnap.exists()) {
+              const cacheData = cacheSnap.data();
+              // Check if cache is fresh (e.g., < 30 days) and matches current input roughly
+              // Note: For AI analysis, if inputs (Price/ARV) change drastically, we might want to re-run.
+              // For now, we'll cache based on address to save cost, assuming broad strokes validation.
+              // Better: Check if cached inputs are similar? Let's just cache for now.
+              
+              const lastUpdated = cacheData.lastUpdated?.toDate();
+              const thirtyDaysAgo = new Date();
+              thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+              
+              if (lastUpdated && lastUpdated > thirtyDaysAgo && cacheData.geminiData) {
+                  // Optional: Check if cached price/ARV matches current? 
+                  // For MVP, we simply return cached to save tokens.
+                  console.log("Returning cached AI analysis for:", dealData.address);
+                  return { success: true, data: cacheData.geminiData };
+              }
+          }
+      } catch (e) {
+          console.warn("Cache lookup failed:", e);
+      }
+  }
+
   if (!model) {
     if (import.meta.env.DEV) {
       console.warn("🔧 DEBUG: VITE_GEMINI_API_KEY is missing. Returning MOCK analysis for development.");
@@ -93,6 +133,21 @@ export const analyzeDeal = async (dealData) => {
     // Clean up markdown code blocks if present
     const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
     const data = JSON.parse(jsonString);
+
+    // Save to Cache
+    if (dealData.address) {
+        try {
+            const cacheId = generateCacheId(dealData.address);
+            const cacheRef = doc(db, 'property_cache', cacheId);
+            await setDoc(cacheRef, {
+                address: dealData.address,
+                geminiData: data,
+                lastUpdated: serverTimestamp()
+            }, { merge: true });
+        } catch (e) {
+            console.warn("Failed to update cache:", e);
+        }
+    }
 
     return {
       success: true,

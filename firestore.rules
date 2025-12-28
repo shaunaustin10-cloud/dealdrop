@@ -33,7 +33,13 @@ service cloud.firestore {
 
     // --- Private Deals Collection (New Internal Tool) ---
     match /artifacts/{appId}/users/{userId}/deals/{dealId} {
-      allow read, write: if request.auth.uid == userId;
+      allow read: if request.auth.uid == userId || resource.data.publiclyVisible == true;
+      allow write: if request.auth.uid == userId;
+    }
+    
+    // --- Property Cache Collection ---
+    match /property_cache/{cacheId} {
+      allow read, write: if isAuthenticated();
     }
     
     // --- Stripe Extensions Collections (Standard Rules) ---

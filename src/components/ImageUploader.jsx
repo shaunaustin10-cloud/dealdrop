@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { X, Plus, Image as ImageIcon, AlertCircle, UploadCloud, Loader2 } from 'lucide-react';
+import { X, Image as ImageIcon, AlertCircle, UploadCloud, Loader2 } from 'lucide-react';
 import { storage } from '../firebaseConfig'; // Import storage
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import imageCompression from 'browser-image-compression';

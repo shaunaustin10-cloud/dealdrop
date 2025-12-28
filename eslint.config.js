@@ -5,6 +5,7 @@ import pluginReactHooks from "eslint-plugin-react-hooks";
 import pluginReactRefresh from "eslint-plugin-react-refresh";
 
 export default [
+  { ignores: ["dist/", "functions/"] },
   {
     files: ["**/*.{js,jsx}"],
     languageOptions: {

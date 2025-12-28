@@ -9,11 +9,12 @@
  * @param {number} params.sqft - Square Footage (used for sanity checks)
  * @returns {object} - { score, verdict, metrics: { roi, cashFlow, equity, capRate } }
  */
-export const calculateDealScore = ({ price, arv, rehab, rent }) => {
+export const calculateDealScore = ({ price, arv, rehab, rent, hasPool }) => {
     const purchasePrice = Number(price) || 0;
     const afterRepairValue = Number(arv) || 0;
     const rehabCost = Number(rehab) || 0;
     const monthlyRent = Number(rent) || 0;
+    const pool = hasPool === true || hasPool === 'true';
 
     if (purchasePrice === 0 || afterRepairValue === 0) {
         return {
@@ -28,7 +29,6 @@ export const calculateDealScore = ({ price, arv, rehab, rent }) => {
     // 1. The 70% Rule Score (Wholesaler/Flipper Standard)
     // Target Max Allowable Offer (MAO) = (ARV * 0.70) - Rehab
     const mao = (afterRepairValue * 0.70) - rehabCost;
-    const priceToMaoRatio = purchasePrice / mao;
     
     let flipScore = 0;
     if (purchasePrice <= mao) flipScore = 100;
@@ -59,6 +59,11 @@ export const calculateDealScore = ({ price, arv, rehab, rent }) => {
         finalScore = (flipScore * 0.6) + (rentalScore * 0.4);
     } else {
         finalScore = flipScore;
+    }
+
+    // Pool Bonus: A pool can add desirability/value, bumping the score slightly
+    if (pool) {
+        finalScore += 5;
     }
 
     finalScore = Math.round(Math.min(100, Math.max(0, finalScore)));

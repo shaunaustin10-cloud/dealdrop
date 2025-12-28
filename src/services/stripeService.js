@@ -16,7 +16,9 @@ export const createCheckoutSession = async (userId, priceId) => {
     price: priceId,
     success_url: window.location.origin + '/dashboard?success=true',
     cancel_url: window.location.origin + '/dashboard?canceled=true',
-    mode: 'subscription', // Change to 'payment' for one-time fees
+    mode: 'subscription',
+    allow_promotion_codes: true,
+    payment_method_types: ['card'],
   });
 
   // 2. Listen for the extension to attach the 'url' field to the doc
@@ -40,7 +42,7 @@ export const createCheckoutSession = async (userId, priceId) => {
 /**
  * Redirects the user to the Stripe Customer Portal to manage their sub.
  */
-export const createPortalSession = async (functionsInstance) => {
+export const createPortalSession = async () => {
     // Note: The extension also provides a callable function for the portal
     // typically named 'ext-firestore-stripe-payments-createPortalLink'
     // If using the client SDK, this is easier, but for now, we will assume 

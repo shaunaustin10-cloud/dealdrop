@@ -41,18 +41,24 @@ exports.getPropertyData = onCall({ secrets: ["RENTCAST_API_KEY"] }, async (reque
     valueUrl.searchParams.append('state', state);
     if (zip) valueUrl.searchParams.append('zip', zip);
 
+    logger.info("Fetching Value from:", valueUrl.toString().replace(apiKey, 'HIDDEN'));
+
     const valueRes = await fetch(valueUrl, { headers });
     const valueData = await valueRes.json();
+    logger.info(`Value API Response: ${valueRes.status}`, valueData);
 
     // 2. Fetch Rent Estimate
-    const rentUrl = new URL(`${BASE_URL}/avm/rent`);
+    const rentUrl = new URL(`${BASE_URL}/avm/rent/long-term`);
     rentUrl.searchParams.append('address', address);
     rentUrl.searchParams.append('city', city);
     rentUrl.searchParams.append('state', state);
     if (zip) rentUrl.searchParams.append('zip', zip);
 
+    logger.info("Fetching Rent from:", rentUrl.toString().replace(apiKey, 'HIDDEN'));
+
     const rentRes = await fetch(rentUrl, { headers });
     const rentData = await rentRes.json();
+    logger.info(`Rent API Response: ${rentRes.status}`, rentData);
 
     return {
       arv: valueData,
@@ -62,5 +68,41 @@ exports.getPropertyData = onCall({ secrets: ["RENTCAST_API_KEY"] }, async (reque
   } catch (error) {
     logger.error("RentCast API Request Failed", error);
     throw new HttpsError('internal', 'Failed to fetch property data from provider.');
+  }
+});
+
+/**
+ * Secure Proxy for Google Geocoding API.
+ */
+exports.getGeocode = onCall({ secrets: ["GOOGLE_MAPS_API_KEY"] }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'The function must be called while authenticated.');
+  }
+
+  const { address } = request.data;
+  if (!address) {
+    throw new HttpsError('invalid-argument', 'Address is required.');
+  }
+
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  if (!apiKey) {
+    logger.error("Google Maps API Key is missing in environment variables.");
+    throw new HttpsError('internal', 'Server configuration error.');
+  }
+
+  try {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.status === 'OK' && data.results.length > 0) {
+      const { lat, lng } = data.results[0].geometry.location;
+      return { lat, lng };
+    } else {
+      return null;
+    }
+  } catch (error) {
+    logger.error("Geocoding API Request Failed", error);
+    throw new HttpsError('internal', 'Failed to fetch geocode data.');
   }
 });

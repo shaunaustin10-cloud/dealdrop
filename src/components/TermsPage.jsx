@@ -6,7 +6,7 @@ export default function TermsPage() {
       <div className="max-w-4xl mx-auto bg-slate-900 border border-slate-800 rounded-lg shadow-xl p-8 md:p-12">
         <h1 className="text-4xl font-bold text-white mb-6">Terms of Service</h1>
         <p className="text-slate-400 mb-4">
-          Welcome to REI Deal Drop! These Terms of Service ("Terms") govern your use of our website and services.
+          Welcome to REI Deal Drop! These Terms of Service (&quot;Terms&quot;) govern your use of our website and services.
           By accessing or using our services, you agree to be bound by these Terms and our Privacy Policy.
           If you do not agree to these Terms, please do not use our services.
         </p>
@@ -19,7 +19,7 @@ export default function TermsPage() {
         <h2 className="text-2xl font-semibold text-white mb-3 mt-8">2. Changes to Terms</h2>
         <p className="text-slate-400 mb-4">
           We reserve the right, at our sole discretion, to modify or replace these Terms at any time.
-          If a revision is material, we will provide at least 30 days' notice prior to any new terms taking effect.
+          If a revision is material, we will provide at least 30 days&apos; notice prior to any new terms taking effect.
           What constitutes a material change will be determined at our sole discretion.
         </p>
 

@@ -83,7 +83,7 @@ export const useFetchDeals = (isPublic = false, sortBy = 'createdAt') => {
         unsubscribe();
         clearTimeout(timeoutId);
     };
-  }, [isPublic, user?.uid, sortBy]); // Depend on user.uid, not user object
+  }, [isPublic, user, user?.uid, sortBy]); // Depend on user.uid, not user object
 
   return { deals, loading, error };
 };
@@ -98,7 +98,8 @@ export const useDeals = () => {
       address, price, rehab, arv, rent, sqft, bedrooms, bathrooms, imageUrls, notes, aiAnalysis, 
       sellerName, sellerPhone, sellerEmail, leadSource, status,
       contractPrice, assignmentFee, emd, inspectionWindow, closingDate, proofOfContractPath, hasValidContract,
-      comps
+      comps,
+      propertyType, lotSqft, hasPool, occupancy
     } = dealData;
       
     // 1. Priority: AI Rehab Estimate (Legacy/Fallback)
@@ -118,7 +119,8 @@ export const useDeals = () => {
       price: Number(price) || 0,
       arv: Number(arv) || 0,
       rehab: effectiveRehab,
-      rent: Number(rent) || 0
+      rent: Number(rent) || 0,
+      hasPool: hasPool
     });
 
     const newDeal = {
@@ -140,6 +142,11 @@ export const useDeals = () => {
       leadSource: leadSource || 'Off-Market',
       status: status || 'New Lead',
       
+      propertyType: propertyType || 'Single Family',
+      lotSqft: Number(lotSqft) || 0,
+      hasPool: hasPool === true || hasPool === 'true',
+      occupancy: occupancy || 'Vacant',
+
       // Assignment Details
       contractPrice: Number(contractPrice) || 0,
       assignmentFee: Number(assignmentFee) || 0,
@@ -174,7 +181,8 @@ export const useDeals = () => {
       address, price, rehab, arv, rent, sqft, bedrooms, bathrooms, imageUrls, notes, aiAnalysis, 
       sellerName, sellerPhone, sellerEmail, leadSource, status,
       contractPrice, assignmentFee, emd, inspectionWindow, closingDate, proofOfContractPath, hasValidContract,
-      comps
+      comps,
+      propertyType, lotSqft, hasPool, occupancy
     } = dealData;
       
     // --- Smart Scoring Logic (Update) ---
@@ -192,7 +200,8 @@ export const useDeals = () => {
       price: Number(price) || 0,
       arv: Number(arv) || 0,
       rehab: effectiveRehab,
-      rent: Number(rent) || 0
+      rent: Number(rent) || 0,
+      hasPool: hasPool
     });
 
     const updatedDeal = {
@@ -213,6 +222,11 @@ export const useDeals = () => {
       sellerEmail: sellerEmail || '',
       leadSource: leadSource || 'Off-Market',
       status: status || 'New Lead',
+
+      propertyType: propertyType || 'Single Family',
+      lotSqft: Number(lotSqft) || 0,
+      hasPool: hasPool === true || hasPool === 'true',
+      occupancy: occupancy || 'Vacant',
 
       // Assignment Details
       contractPrice: Number(contractPrice) || 0,
