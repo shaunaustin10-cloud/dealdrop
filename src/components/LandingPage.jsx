@@ -62,7 +62,7 @@ const LandingPage = () => {
             <div className="bg-emerald-500 p-2 rounded-lg shadow-lg shadow-emerald-500/20">
               <LayoutGrid size={24} className="text-white" />
             </div>
-            <span className="font-bold text-lg md:text-2xl tracking-tight text-white">REI <span className="text-emerald-400">Deal Drop</span> <span className="text-xs text-slate-500 ml-1 md:ml-2">v2.0</span></span>
+            <span className="font-bold text-lg md:text-2xl tracking-tight text-white">REI <span className="text-emerald-400">Deal Drop</span></span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
