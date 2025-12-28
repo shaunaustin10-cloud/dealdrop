@@ -210,6 +210,7 @@ export default function MainApp() {
                   deal={selectedDeal} 
                   onBack={handleBack} 
                   onEdit={handleEditClick}
+                  onDelete={handleDeleteDeal}
                   onUpgrade={() => setShowCreditsModal(true)}
                 />
               )

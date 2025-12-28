@@ -14,7 +14,8 @@ import {
   Map as MapIcon,
   BadgeDollarSign,
   ShieldCheck,
-  Hammer
+  Hammer,
+  Trash2
 } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
@@ -25,13 +26,13 @@ import { formatAddress } from '../utils/formatAddress';
 import { generateDealReport } from '../utils/generatePdf';
 
 const getGoogleStreetViewUrl = (address) => {
-  const API_KEY = "AIzaSyAMAwO4mk88sulghs-7BkHfX2-Z6996BGQ";
+  const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   if (!API_KEY || !address) return `https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&q=80&w=800`;
   
   return `https://maps.googleapis.com/maps/api/streetview?size=800x600&location=${encodeURIComponent(address)}&key=${API_KEY}`;
 };
 
-const DealDetail = ({ deal, onBack, onEdit, onUpgrade }) => {
+const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade }) => {
   const { user } = useAuth();
   const { isPro } = useSubscription();
   const streetViewUrl = getGoogleStreetViewUrl(deal.address);
@@ -124,6 +125,17 @@ const DealDetail = ({ deal, onBack, onEdit, onUpgrade }) => {
         </button>
         
         <div className="flex gap-3">
+            {onDelete && (
+                <button 
+                  onClick={() => onDelete(deal.id)}
+                  className="flex items-center gap-2 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-700 dark:text-white hover:text-red-600 dark:hover:text-red-400 px-3 py-2 md:px-4 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-800 shadow-sm"
+                  title="Delete Deal"
+                >
+                  <Trash2 size={18} />
+                  <span className="hidden sm:inline text-sm font-bold">Delete</span>
+                </button>
+            )}
+
             <button 
               onClick={() => onEdit(deal)}
               className="flex items-center gap-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-3 py-2 md:px-4 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 shadow-sm"
@@ -472,6 +484,7 @@ DealDetail.propTypes = {
   }).isRequired,
   onBack: PropTypes.func.isRequired,
   onEdit: PropTypes.func,
+  onDelete: PropTypes.func,
   onUpgrade: PropTypes.func,
 };
 

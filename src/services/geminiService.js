@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 
-const API_KEY = "AIzaSyAC2Qh88gAxMKXRnC6am8jcP-TuKTAXhPg";
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 let genAI = null;
 let model = null;

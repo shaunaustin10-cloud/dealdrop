@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyAMAwO4mk88sulghs-7BkHfX2-Z6996BGQ";
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 // Helper to load image from URL for PDF with Timeout & Error handling
 const getImageData = (url, timeout = 5000) => {

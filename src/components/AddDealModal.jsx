@@ -22,7 +22,7 @@ const REHAB_LEVELS = {
 
 const libraries = ['places'];
 const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
-const GOOGLE_MAPS_API_KEY = "AIzaSyAMAwO4mk88sulghs-7BkHfX2-Z6996BGQ";
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 // Helper function to get Google Static Map URL (Satellite/Hybrid)
 const getGoogleStaticMapUrl = (lat, lng, address) => {
@@ -84,6 +84,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
   const [comps, setComps] = useState([]);
   const [newComp, setNewComp] = useState({ address: '', soldPrice: '', link: '' });
   const [showFinancing, setShowFinancing] = useState(false);
+  const [analysisMode, setAnalysisMode] = useState('investor'); // 'agent' or 'investor'
 
   // Fetch User Profile Role
   useEffect(() => {
@@ -93,19 +94,27 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
         const docRef = doc(db, 'artifacts', appId, 'profiles', user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setUserProfile(docSnap.data());
+          const profile = docSnap.data();
+          setUserProfile(profile);
+          
+          // Set default mode based on role or existing data
+          if (initialData && initialData.roleAtCreation) {
+              setAnalysisMode(initialData.roleAtCreation);
+          } else {
+              setAnalysisMode(profile.role || 'investor');
+          }
         }
       } catch (e) {
         console.warn("Could not fetch profile for modal logic", e);
       }
     };
     fetchProfile();
-  }, [user, isOpen]);
+  }, [user, isOpen, initialData]);
 
   // Google Maps Autocomplete
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: "AIzaSyAMAwO4mk88sulghs-7BkHfX2-Z6996BGQ",
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     libraries: libraries
   });
   const [autocomplete, setAutocomplete] = useState(null);
@@ -354,7 +363,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
   };
 
   // Logic for Agent vs Investor Mode
-  const isAgentMode = userProfile?.role === 'agent';
+  const isAgentMode = analysisMode === 'agent';
 
   // Live Result Preview Logic (Best Practice: As-Is vs Renovated Scenarios)
   const calculateLiveResult = () => {
@@ -436,7 +445,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
         resultLabel,
         mortgagePayoff: mortgageNum,
         taxProrations: taxesNum,
-        roleAtCreation: userProfile?.role || 'investor'
+        roleAtCreation: analysisMode
     };
     finalFormData.hasValidContract = isAssignment;
 
@@ -477,8 +486,28 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
         
         {/* Scrollable Body */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
+
+           {/* Agent Mode Toggle */}
+           {userProfile?.role === 'agent' && (
+              <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-6 border border-slate-200 dark:border-slate-700">
+                 <button
+                    type="button"
+                    onClick={() => setAnalysisMode('agent')}
+                    className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${analysisMode === 'agent' ? 'bg-blue-600 text-white shadow' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+                 >
+                    <Target size={16} /> Listing Agent
+                 </button>
+                 <button
+                    type="button"
+                    onClick={() => setAnalysisMode('investor')}
+                    className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${analysisMode === 'investor' ? 'bg-emerald-500 text-white shadow' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+                 >
+                    <DollarSign size={16} /> Investor / Buyer
+                 </button>
+              </div>
+           )}
            
-           {/* Toggle Deal Type */}
+           {/* Toggle Deal Type (Investor Only) */}
            {!isAgentMode && (
              <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-6">
                <button 

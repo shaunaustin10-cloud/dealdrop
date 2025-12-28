@@ -68,7 +68,7 @@ const geocodeAddress = async (address) => {
 const DealMap = ({ deals, onSelectDeal, hoveredDealId }) => {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: "AIzaSyAMAwO4mk88sulghs-7BkHfX2-Z6996BGQ",
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     libraries: ['places']
   });
 

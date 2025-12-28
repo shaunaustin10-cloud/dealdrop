@@ -205,9 +205,9 @@ const DealList = ({ onDeleteDeal, onSelectDeal, onEditDeal, isPublic, buyBox }) 
 };
 
 DealList.propTypes = {
-  onDeleteDeal: PropTypes.func.isRequired,
+  onDeleteDeal: PropTypes.func,
   onSelectDeal: PropTypes.func.isRequired,
-  onEditDeal: PropTypes.func.isRequired,
+  onEditDeal: PropTypes.func,
   isPublic: PropTypes.bool,
   buyBox: PropTypes.object,
 };

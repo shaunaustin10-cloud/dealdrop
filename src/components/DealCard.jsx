@@ -4,7 +4,7 @@ import { Home, Trash2, ChevronRight, TrendingUp } from 'lucide-react';
 import { calculateDealScore } from '../utils/calculateDealScore';
 
 const getGoogleStreetViewUrl = (address) => {
-  const API_KEY = "AIzaSyAMAwO4mk88sulghs-7BkHfX2-Z6996BGQ";
+  const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   if (!API_KEY || !address) return `https://picsum.photos/seed/${address || 'default'}/400/300`;
   
   return `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${encodeURIComponent(address)}&key=${API_KEY}`;
@@ -34,10 +34,11 @@ const DealCard = ({ deal, onClick, onDelete, isAdmin }) => {
       onClick={() => onClick(deal)}
       className="group bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-900/20 flex flex-col h-full relative cursor-pointer"
     >
-      {isAdmin && (
+      {onDelete && (
         <button 
           onClick={(e) => { e.stopPropagation(); onDelete(deal.id); }}
           className="absolute top-2 right-2 z-30 bg-red-500/80 hover:bg-red-500 p-2 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Delete Deal"
         >
           <Trash2 size={16} />
         </button>
@@ -143,8 +144,8 @@ DealCard.propTypes = {
     projectedResult: PropTypes.any,
   }).isRequired,
   onClick: PropTypes.func.isRequired,
-  onDelete: PropTypes.func.isRequired,
-  isAdmin: PropTypes.bool.isRequired,
+  onDelete: PropTypes.func,
+  isAdmin: PropTypes.bool,
 };
 
 export default DealCard;

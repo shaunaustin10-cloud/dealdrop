@@ -54,9 +54,7 @@ export default function MarketplacePage() {
         </div>
 
         <DealList 
-            onDeleteDeal={() => {}} // Public view usually doesn't allow delete from list directly unless admin
             onSelectDeal={handleSelectDeal}
-            onEditDeal={() => {}} // Public view usually doesn't allow edit
             isPublic={true}
         />
       </main>
