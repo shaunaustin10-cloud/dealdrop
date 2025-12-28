@@ -60,11 +60,22 @@ const DealCard = ({ deal, onClick, onDelete, isAdmin }) => {
         <div className="absolute bottom-3 left-4 right-4">
            <div className="flex justify-between items-end">
                <div>
-                   <span className={`${verdictColor} bg-slate-950/50 backdrop-blur-md border border-slate-700/50 text-[10px] font-black uppercase px-2 py-1 rounded mb-2 inline-block tracking-wider`}>
-                     {verdict}
-                   </span>
+                   <div className="flex gap-2 mb-2">
+                       <span className={`${verdictColor} bg-slate-950/50 backdrop-blur-md border border-slate-700/50 text-[10px] font-black uppercase px-2 py-1 rounded inline-block tracking-wider`}>
+                         {verdict}
+                       </span>
+                       {(deal.hasPool === true || deal.hasPool === 'true') && (
+                           <span className="bg-blue-500/80 backdrop-blur-md border border-blue-400/50 text-white text-[10px] font-black uppercase px-2 py-1 rounded inline-block tracking-wider">
+                             Pool
+                           </span>
+                       )}
+                   </div>
                    <h3 className="text-white font-bold truncate text-lg leading-tight drop-shadow-md">{deal.address}</h3>
-                   <p className="text-slate-300 text-xs truncate opacity-90">{deal.city || 'Location Details'}</p>
+                   <div className="flex items-center gap-2 text-slate-300 text-xs truncate opacity-90 mt-0.5">
+                      <span>{deal.propertyType || 'Single Family'}</span>
+                      <span>•</span>
+                      <span>{deal.city || 'Location Details'}</span>
+                   </div>
                </div>
            </div>
         </div>
