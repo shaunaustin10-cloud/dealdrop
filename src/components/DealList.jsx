@@ -27,7 +27,7 @@ const DealList = ({ onDeleteDeal, onSelectDeal, onEditDeal, isPublic, buyBox }) 
   const [viewMode, setViewMode] = useState(() => window.innerWidth < 1024 ? 'list' : 'both'); // 'map', 'list', 'both' (desktop)
   const [hoveredDealId, setHoveredDealId] = useState(null);
 
-  const { deals: allDeals, loading, error } = useFetchDeals(isPublic, sortBy);
+  const { deals: allDeals, loading, error } = useFetchDeals(isPublic);
 
   // Handle Mobile/Desktop View Default
   useEffect(() => {

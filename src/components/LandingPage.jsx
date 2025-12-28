@@ -71,7 +71,7 @@ const LandingPage = () => {
           </div>
           <div className="flex items-center gap-4">
             <Link to="/login" className="text-sm font-bold text-white hover:text-emerald-400 transition-colors">Login</Link>
-            <Link to="/register" className="bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2 text-xs md:text-sm md:px-5 md:py-2.5 rounded-full font-bold transition-all shadow-lg shadow-emerald-900/20 hover:shadow-emerald-900/40 transform hover:-translate-y-0.5 whitespace-nowrap">
+            <Link to="/register" className="bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-2.5 text-sm rounded-full font-bold transition-all shadow-lg shadow-emerald-900/20 hover:shadow-emerald-900/40 transform hover:-translate-y-0.5 whitespace-nowrap">
               Get Started
             </Link>
           </div>
