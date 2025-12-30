@@ -105,21 +105,15 @@ export const updateUserBuyBox = async (uid, buyBoxData) => {
 };
 
 /**
- * Fetches the user's Buy Box criteria.
+ * Updates the user's profile to mark onboarding as complete.
  */
-export const getUserBuyBox = async (uid) => {
-  if (!uid) return null;
-  
+export const completeOnboarding = async (uid) => {
+  if (!uid) return;
+  const userRef = doc(db, 'artifacts', appId, 'profiles', uid);
   try {
-    const userRef = doc(db, 'artifacts', appId, 'profiles', uid);
-    const snapshot = await getDoc(userRef);
-    
-    if (snapshot.exists() && snapshot.data().buyBox) {
-      return snapshot.data().buyBox;
-    }
-    return null;
+    await updateDoc(userRef, { hasOnboarded: true });
   } catch (error) {
-    console.error("Error fetching buy box:", error);
-    return null;
+    console.error("Error updating onboarding status:", error);
   }
 };
+

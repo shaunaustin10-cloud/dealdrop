@@ -1,23 +1,53 @@
-import React, { useState } from 'react';
-import { LayoutGrid, Plus, Zap, User as UserIcon, Sun, Moon } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { LayoutGrid, Plus, Zap, User as UserIcon, Sun, Moon, ShieldAlert } from 'lucide-react';
 import { Link, Routes, Route } from 'react-router-dom';
 import DealList from './components/DealList';
 import DealDetail from './components/DealDetail';
 import AddDealModal from './components/AddDealModal';
 import PricingModal from './components/PricingModal';
 import ProfilePage from './components/ProfilePage';
+import AdminDashboard from './components/AdminDashboard';
 import Toast from './components/Toast';
 import CreditsExhaustedModal from './components/CreditsExhaustedModal';
 import { useAuth } from './context/AuthContext';
 import { useDeals } from './hooks/useDeals';
 import { useSubscription } from './hooks/useSubscription';
 import { useTheme } from './context/ThemeContext';
+import CookieConsent from './components/CookieConsent';
+import OnboardingModal from './components/OnboardingModal';
+
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from './firebaseConfig';
 
 export default function MainApp() {
   const { user, logout } = useAuth();
   const { addDeal, updateDeal, deleteDeal } = useDeals();
   const { isPro, loading: subLoading } = useSubscription();
   const { theme, toggleTheme } = useTheme();
+  
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+        if (!user) {
+            setIsAdmin(false);
+            return;
+        }
+        const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
+        try {
+            const docRef = doc(db, 'artifacts', appId, 'profiles', user.uid);
+            const snap = await getDoc(docRef);
+            if (snap.exists() && snap.data().role === 'admin') {
+                setIsAdmin(true);
+            } else {
+                setIsAdmin(false);
+            }
+        } catch (e) {
+            console.warn("Nav admin check failed", e);
+        }
+    };
+    checkAdmin();
+  }, [user]);
 
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -102,6 +132,16 @@ export default function MainApp() {
                 <LayoutGrid size={18} />
                 Dashboard
              </Link>
+             
+             {isAdmin && (
+                 <Link 
+                   to="/admin" 
+                   className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                 >
+                    <ShieldAlert size={18} />
+                    Admin
+                 </Link>
+             )}
           </div>
           
           <div className="flex items-center gap-4">
@@ -163,6 +203,7 @@ export default function MainApp() {
       
       <main className="max-w-7xl mx-auto px-4 py-8 flex-grow">
         <Routes>
+           <Route path="/admin" element={<AdminDashboard />} />
            <Route path="/profile" element={<ProfilePage />} />
            <Route path="/" element={
               !selectedDeal ? (
@@ -262,6 +303,9 @@ export default function MainApp() {
             setShowPricingModal(true);
         }}
       />
+
+      <CookieConsent />
+      <OnboardingModal />
 
     </div>
   );
