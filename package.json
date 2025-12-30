@@ -6,7 +6,7 @@
   "scripts": {
     "emulators": "bash -c '. \"$HOME/.sdkman/bin/sdkman-init.sh\" && firebase emulators:start --import=./firebase-data --export-on-exit=./firebase-data'",
     "vite:dev": "vite --host --debug proxy",
-    "dev": "concurrently /* \"npm run emulators\" */ \"npm run vite:dev\"",
+    "dev": "npm run vite:dev",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint ."
