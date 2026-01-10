@@ -29,25 +29,34 @@ const getGoogleStreetViewUrl = (address) => {
   const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   if (!API_KEY || !address) return `https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&q=80&w=800`;
   
-  return `https://maps.googleapis.com/maps/api/streetview?size=800x600&location=${encodeURIComponent(address)}&key=${API_KEY}`;
+  return `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${encodeURIComponent(address)}&key=${API_KEY}`;
 };
 
 const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade }) => {
   const { user } = useAuth();
   const { isPro } = useSubscription();
   const streetViewUrl = getGoogleStreetViewUrl(deal.address);
+
+  // Sold Performance Calculation
+  const isSold = deal.status === 'Closed' && parseFloat(deal.soldPrice) > 0;
+  const soldPrice = parseFloat(deal.soldPrice) || 0;
+  const purchasePrice = parseFloat(deal.price) || 0;
+  const rehabCost = parseFloat(deal.rehab) || 0;
+  const totalInvestment = purchasePrice + rehabCost;
+  const realizedProfit = soldPrice - totalInvestment;
+  const realizedRoi = totalInvestment > 0 ? (realizedProfit / totalInvestment) * 100 : 0;
   
   const [activeImage, setActiveImage] = useState(
     (deal.imageUrls && deal.imageUrls.length > 0 && !deal.imageUrls[0].includes('picsum')) 
       ? deal.imageUrls[0] 
       : streetViewUrl
   );
-  const [imageLoaded, setImageLoaded] = useState(false);
+  // Removed unused imageLoaded state
   const [downloading, setDownloading] = useState(false);
 
   // Reset loader when active image changes
   useEffect(() => {
-    setImageLoaded(false);
+     // No-op
   }, [activeImage]);
 
   const handleDownloadReport = async () => {
@@ -165,6 +174,7 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade }) => {
               <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-black tracking-widest ${
                   deal.status === 'New Lead' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30' :
                   deal.status === 'Under Contract' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30' :
+                  deal.status === 'Closed' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30' :
                   'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600'
               }`}>
                   {deal.status || 'New Lead'}
@@ -193,32 +203,62 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade }) => {
             </div>
           </div>
         </div>
+
+        {/* Closed Deal Performance Banner */}
+        {isSold && (
+            <div className="mt-6 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="bg-emerald-500 p-2 rounded-lg text-white shadow-lg shadow-emerald-500/30">
+                        <TrendingUp size={24} />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-black text-emerald-600 dark:text-emerald-400">
+                            {realizedRoi >= 20 ? "🚀 HOMERUN DEAL!" : realizedRoi > 0 ? "✅ PROFITABLE EXIT" : "⚠️ SOLD AT LOSS"}
+                        </h3>
+                        <p className="text-sm text-slate-600 dark:text-slate-300">
+                            Sold for <strong>{formatMoney(soldPrice)}</strong> on {deal.closingDate || 'Closing'}
+                        </p>
+                    </div>
+                </div>
+                <div className="flex gap-8 text-center">
+                    <div>
+                        <p className="text-[10px] uppercase font-black tracking-widest text-slate-500">Realized Profit</p>
+                        <p className={`text-2xl font-black ${realizedProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
+                            {realizedProfit >= 0 ? '+' : ''}{formatMoney(realizedProfit)}
+                        </p>
+                    </div>
+                    <div>
+                        <p className="text-[10px] uppercase font-black tracking-widest text-slate-500">Realized ROI</p>
+                        <p className={`text-2xl font-black ${realizedRoi >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
+                            {realizedRoi.toFixed(1)}%
+                        </p>
+                    </div>
+                </div>
+            </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Sticky Gallery (4/12 width) */}
         <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 aspect-[4/3] relative group shadow-2xl">
-            {!imageLoaded && (
-               <div className="absolute inset-0 bg-slate-100 dark:bg-slate-800 animate-pulse z-10 flex items-center justify-center">
+             {/* Loader behind the image */}
+             <div className="absolute inset-0 bg-slate-100 dark:bg-slate-800 flex items-center justify-center z-0">
                  <div className="w-10 h-10 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin"></div>
-               </div>
-            )}
+             </div>
+            
             <img 
               src={activeImage} 
               alt={deal.address} 
               referrerPolicy="no-referrer"
-              className="w-full h-full object-cover transition-opacity duration-500"
-              onLoad={() => setImageLoaded(true)}
+              className="w-full h-full object-cover relative z-10 transition-opacity duration-300"
               onError={() => {
                  if (activeImage !== streetViewUrl) {
                     setActiveImage(streetViewUrl);
                  } else {
                     setActiveImage("https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&q=80&w=800");
-                    setImageLoaded(true);
                  }
               }}
-              style={{ opacity: imageLoaded ? 1 : 0 }}
             />
           </div>
           
@@ -481,6 +521,15 @@ DealDetail.propTypes = {
     sellerPhone: PropTypes.string,
     sellerEmail: PropTypes.string,
     createdBy: PropTypes.string,
+    soldPrice: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    roleAtCreation: PropTypes.string,
+    mortgagePayoff: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    taxProrations: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    commissionPct: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    miscClosingCosts: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    lat: PropTypes.number,
+    lng: PropTypes.number,
+    closingDate: PropTypes.string,
   }).isRequired,
   onBack: PropTypes.func.isRequired,
   onEdit: PropTypes.func,

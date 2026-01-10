@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import InputField from './InputField'; // Assuming InputField is a reusable component
 import ImageUploader from './ImageUploader'; // Assuming ImageUploader is a reusable component
 
@@ -113,6 +114,11 @@ const AssignmentDetails = ({ dealId, onPostAssignment }) => {
       </form>
     </div>
   );
+};
+
+AssignmentDetails.propTypes = {
+  dealId: PropTypes.string.isRequired,
+  onPostAssignment: PropTypes.func.isRequired,
 };
 
 export default AssignmentDetails;

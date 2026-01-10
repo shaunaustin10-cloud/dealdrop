@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { getUserProfile } from '../services/userService';
 import { ShieldCheck } from 'lucide-react';
 
@@ -55,3 +56,7 @@ export default function SellerCard({ userId }) {
     </div>
   );
 }
+
+SellerCard.propTypes = {
+  userId: PropTypes.string.isRequired,
+};

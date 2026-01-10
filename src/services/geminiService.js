@@ -46,9 +46,14 @@ export const analyzeDeal = async (dealData) => {
               const thirtyDaysAgo = new Date();
               thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
               
-              if (lastUpdated && lastUpdated > thirtyDaysAgo && cacheData.geminiData) {
-                  // Optional: Check if cached price/ARV matches current? 
-                  // For MVP, we simply return cached to save tokens.
+              // Check if inputs match the cached version
+              const inputsMatch = 
+                  cacheData.inputs &&
+                  cacheData.inputs.price === dealData.price &&
+                  cacheData.inputs.arv === dealData.arv &&
+                  cacheData.inputs.rehab === dealData.rehab;
+
+              if (lastUpdated && lastUpdated > thirtyDaysAgo && cacheData.geminiData && inputsMatch) {
                   console.log("Returning cached AI analysis for:", dealData.address);
                   return { success: true, data: cacheData.geminiData };
               }
@@ -110,8 +115,8 @@ export const analyzeDeal = async (dealData) => {
          - 50-74: Thin / Average (Might work for buy-and-hold, risky flip)
          - <50: Bad Deal / Overpriced
       5. Provide a specific "Verdict": "HOMERUN", "GOOD BUY", "THIN DEAL", or "PASS".
-      6. List 3 specific "Risks" (e.g., "Rehab budget seems too low for this spread", "Cap rate is below market average").
-      7. List 3 "Strengths".
+      6. List 3 specific "Strengths" (e.g., "Deep equity position", "Desirable school district").
+      7. List 3 "Risks" (e.g., "Rehab budget seems too low for this spread", "Cap rate is below market average").
       8. Write a short, punchy "Underwriter's Summary" (max 2 sentences).
 
       Return ONLY valid JSON with this structure:
@@ -119,8 +124,8 @@ export const analyzeDeal = async (dealData) => {
         "score": number,
         "verdict": "string",
         "summary": "string",
-        "risks": ["string", "string"],
         "strengths": ["string", "string"],
+        "risks": ["string", "string"],
         "calculated_mao": number,
         "projected_profit": number
       }
@@ -142,6 +147,11 @@ export const analyzeDeal = async (dealData) => {
             await setDoc(cacheRef, {
                 address: dealData.address,
                 geminiData: data,
+                inputs: {
+                    price: dealData.price,
+                    arv: dealData.arv,
+                    rehab: dealData.rehab
+                },
                 lastUpdated: serverTimestamp()
             }, { merge: true });
         } catch (e) {

@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { X, Zap, CheckCircle, ArrowRight } from 'lucide-react';
 
 const CreditsExhaustedModal = ({ isOpen, onClose, onUpgrade }) => {
@@ -22,8 +23,8 @@ const CreditsExhaustedModal = ({ isOpen, onClose, onUpgrade }) => {
             <Zap size={40} fill="currentColor" />
           </div>
 
-          <h2 className="text-3xl font-black text-white mb-2">You're All Out!</h2>
-          <p className="text-slate-400 mb-8">You've used all your free analysis credits. Upgrade to Pro to unlock unlimited data and professional reports.</p>
+          <h2 className="text-3xl font-black text-white mb-2">You&apos;re All Out!</h2>
+          <p className="text-slate-400 mb-8">You&apos;ve used all your free analysis credits. Upgrade to Pro to unlock unlimited data and professional reports.</p>
 
           <div className="bg-slate-800/50 rounded-2xl p-6 mb-8 text-left border border-slate-700">
             <h4 className="text-emerald-400 font-bold text-xs uppercase tracking-widest mb-4">Pro Benefits:</h4>
@@ -60,6 +61,12 @@ const CreditsExhaustedModal = ({ isOpen, onClose, onUpgrade }) => {
       </div>
     </div>
   );
+};
+
+CreditsExhaustedModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onUpgrade: PropTypes.func.isRequired,
 };
 
 export default CreditsExhaustedModal;

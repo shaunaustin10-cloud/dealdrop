@@ -21,7 +21,7 @@ const SkeletonCard = () => (
   </div>
 );
 
-const DealList = ({ onDeleteDeal, onSelectDeal, onEditDeal, isPublic, buyBox }) => {
+const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
   const [sortBy, setSortBy] = useState('createdAt');
   const [filterAddress, setFilterAddress] = useState('');
   const [viewMode, setViewMode] = useState(() => window.innerWidth < 1024 ? 'list' : 'both'); // 'map', 'list', 'both' (desktop)
@@ -177,7 +177,7 @@ const DealList = ({ onDeleteDeal, onSelectDeal, onEditDeal, isPublic, buyBox }) 
         )}
 
         {/* Right Side: Map (Fixed on Desktop, Visible on Mobile) */}
-        <div className={`flex-1 rounded-2xl overflow-hidden border border-slate-800 relative bg-slate-900 transition-all duration-300 ${viewMode === 'both' ? 'hidden lg:block lg:h-full' : (viewMode === 'map' ? 'block h-[600px] lg:h-full' : 'hidden')}`}>
+        <div className={`flex-1 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 relative bg-slate-100 dark:bg-slate-900 transition-all duration-300 ${viewMode === 'both' ? 'hidden lg:block lg:h-full' : (viewMode === 'map' ? 'block h-[600px] lg:h-full' : 'hidden')}`}>
             <DealMap deals={filteredDeals} onSelectDeal={onSelectDeal} hoveredDealId={hoveredDealId} />
         </div>
 
@@ -185,7 +185,7 @@ const DealList = ({ onDeleteDeal, onSelectDeal, onEditDeal, isPublic, buyBox }) 
         <div className="lg:hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-50">
             <button 
                 onClick={() => setViewMode(prev => prev === 'list' ? 'map' : 'list')}
-                className="bg-slate-900 text-white px-6 py-3 rounded-full shadow-xl shadow-black/50 border border-slate-700 font-bold flex items-center gap-2 hover:scale-105 transition-transform"
+                className="bg-slate-900 dark:bg-slate-900 text-white px-6 py-3 rounded-full shadow-xl shadow-black/50 border border-slate-700 font-bold flex items-center gap-2 hover:scale-105 transition-transform"
             >
                 {viewMode === 'list' ? (
                     <>

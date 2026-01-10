@@ -61,6 +61,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
     contractPrice: '', assignmentFee: '', emd: '', inspectionWindow: '', closingDate: '',
     commissionPct: '3', miscClosingCosts: '0',
     mortgagePayoff: '', taxProrations: '',
+    soldPrice: '', // Added Sold Price
     // Financing Defaults
     financing: {
         loanType: 'hardmoney', // cash, hardmoney, dscr
@@ -85,6 +86,28 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
   const [newComp, setNewComp] = useState({ address: '', soldPrice: '', link: '' });
   const [showFinancing, setShowFinancing] = useState(false);
   const [analysisMode, setAnalysisMode] = useState('investor'); // 'agent' or 'investor'
+  
+  // Track inputs used for the last successful analysis to detect changes
+  const [lastAnalyzedInputs, setLastAnalyzedInputs] = useState(null);
+  const [cooldown, setCooldown] = useState(false);
+
+  // Initialize lastAnalyzedInputs if opening an existing deal with analysis
+  useEffect(() => {
+     if (initialData && initialData.aiAnalysis) {
+         setLastAnalyzedInputs({
+             price: initialData.price,
+             arv: initialData.arv,
+             rehab: initialData.rehab
+         });
+     }
+  }, [initialData]);
+
+  // Check if current inputs differ from what was analyzed
+  const isAnalysisStale = formData.aiAnalysis && lastAnalyzedInputs && (
+      formData.price !== lastAnalyzedInputs.price ||
+      formData.arv !== lastAnalyzedInputs.arv ||
+      formData.rehab !== lastAnalyzedInputs.rehab
+  );
 
   // Fetch User Profile Role
   useEffect(() => {
@@ -183,6 +206,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
         miscClosingCosts: initialData.miscClosingCosts || '0',
         mortgagePayoff: initialData.mortgagePayoff || '',
         taxProrations: initialData.taxProrations || '',
+        soldPrice: initialData.soldPrice || '', // Added
         financing: initialData.financing || {
             loanType: 'hardmoney',
             interestRate: '12',
@@ -203,6 +227,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
         contractPrice: '', assignmentFee: '', emd: '', inspectionWindow: '', closingDate: '',
         commissionPct: '3', miscClosingCosts: '0',
         mortgagePayoff: '', taxProrations: '',
+        soldPrice: '', // Added
         financing: {
             loanType: 'hardmoney',
             interestRate: '12',
@@ -352,6 +377,16 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
                       gemini: result.data
                   }
               }));
+              // Update reference for stale check
+              setLastAnalyzedInputs({
+                  price: formData.price,
+                  arv: formData.arv,
+                  rehab: formData.rehab
+              });
+              
+              // Start 10-second cooldown
+              setCooldown(true);
+              setTimeout(() => setCooldown(false), 10000);
           } else {
               setFetchError(result.error);
           }
@@ -417,7 +452,6 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
     e.preventDefault();
     
     // Role-based result calculation
-    const priceNum = parseFloat(formData.price) || 0;
     const arvNum = parseFloat(formData.arv) || 0;
     const rehabNum = parseFloat(formData.rehab) || 0;
     const commissionPctNum = parseFloat(formData.commissionPct) || 0;
@@ -540,6 +574,22 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
            )}
 
            <div className="grid grid-cols-2 gap-3 mb-6 sticky top-0 z-10 bg-white dark:bg-slate-900 pb-2">
+                <button 
+                    type="button" 
+                    onClick={handleAnalyzeDeal}
+                    disabled={analyzing || cooldown || !formData.price || !formData.arv || (formData.aiAnalysis?.gemini && !isAnalysisStale)}
+                    className={`font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all border ${
+                        analyzing || cooldown || !formData.price || !formData.arv || (formData.aiAnalysis?.gemini && !isAnalysisStale)
+                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 cursor-not-allowed' 
+                        : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-transparent hover:shadow-lg hover:shadow-indigo-500/20'
+                    }`}
+                >
+                    {analyzing ? <Loader2 className="animate-spin" size={18} /> : <Calculator size={18} />}
+                    {analyzing ? 'Analyzing...' : 
+                     cooldown ? 'Wait 10s...' :
+                     (formData.aiAnalysis?.gemini && !isAnalysisStale ? 'Analysis Current' : '1. AI Analyze')}
+                </button>
+
                 <div className="flex flex-col gap-1">
                     <button 
                         type="button" 
@@ -548,32 +598,29 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
                         className="w-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all border border-slate-200 dark:border-slate-700 shadow-sm"
                     >
                         {fetchingMarket ? <Loader2 className="animate-spin" size={18} /> : <Search size={18} />}
-                        {fetchingMarket ? 'Fetching...' : '1. Fetch Data'}
+                        {fetchingMarket ? 'Fetching...' : '2. Fetch Data'}
                     </button>
                     {!isPro && (
                         <p className="text-[9px] text-center text-slate-500 uppercase font-bold tracking-tighter">Cost: 1 Credit ({credits} Left)</p>
                     )}
                 </div>
-                <button 
-                    type="button" 
-                    onClick={handleAnalyzeDeal}
-                    disabled={analyzing || !formData.price || !formData.arv}
-                    className={`font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all border ${
-                        analyzing || !formData.price || !formData.arv 
-                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 cursor-not-allowed' 
-                        : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-transparent hover:shadow-lg hover:shadow-indigo-500/20'
-                    }`}
-                >
-                    {analyzing ? <Loader2 className="animate-spin" size={18} /> : <Calculator size={18} />}
-                    {analyzing ? 'Analyzing...' : '2. AI Analyze'}
-                </button>
            </div>
 
            {fetchError && <p className="text-red-400 text-xs text-center mb-4">{fetchError}</p>}
 
            {formData.aiAnalysis && (
-             <div className="mb-6">
-               <DealAnalysis deal={formData} />
+             <div className="mb-6 relative">
+               {isAnalysisStale && (
+                   <div className="absolute -top-3 left-0 right-0 z-20 flex justify-center">
+                       <div className="bg-amber-100 dark:bg-amber-900/80 text-amber-800 dark:text-amber-200 text-xs font-bold px-4 py-1.5 rounded-full shadow-sm border border-amber-200 dark:border-amber-700/50 flex items-center gap-2 backdrop-blur-sm animate-bounce-short">
+                           <Settings size={12} className="animate-spin-slow" />
+                           <span>Financials changed. Re-run analysis for accuracy.</span>
+                       </div>
+                   </div>
+               )}
+               <div className={isAnalysisStale ? 'opacity-60 transition-opacity' : ''}>
+                   <DealAnalysis deal={formData} />
+               </div>
              </div>
            )}
 
@@ -994,6 +1041,20 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
                     </select>
                   </div>
                </div>
+               
+               {/* Conditional Sold Price */}
+               {formData.status === 'Closed' && (
+                   <div className="animate-fade-in bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/20">
+                       <InputField 
+                           label="Final Sold Price" 
+                           type="number" 
+                           value={formData.soldPrice} 
+                           onChange={v => setFormData({...formData, soldPrice: v})} 
+                           prefix="$" 
+                       />
+                   </div>
+               )}
+
                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <InputField label="Seller Name" value={formData.sellerName} onChange={v => setFormData({...formData, sellerName: v})} placeholder="John Doe" />
                   <InputField label="Seller Phone" value={formData.sellerPhone} onChange={v => setFormData({...formData, sellerPhone: v})} placeholder="555-0123" />

@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebaseConfig';
 
@@ -76,7 +76,23 @@ export const fetchPropertyData = async (addressString) => {
     // Helper to format comps
     const formatComps = (compsList) => {
         if (!compsList || !Array.isArray(compsList)) return [];
-        return compsList.slice(0, 5).map(comp => { // increased to 5
+        
+        // Prioritize SOLD comps, then sort by date
+        const sortedComps = [...compsList].sort((a, b) => {
+            // Check status (Sold vs Active/Other)
+            const aSold = a.listingStatus === 'Sold' || !!a.lastSaleDate;
+            const bSold = b.listingStatus === 'Sold' || !!b.lastSaleDate;
+            
+            if (aSold && !bSold) return -1;
+            if (!aSold && bSold) return 1;
+            
+            // If status same, sort by date (newest first)
+            const dateA = new Date(a.lastSaleDate || a.listedDate || 0);
+            const dateB = new Date(b.lastSaleDate || b.listedDate || 0);
+            return dateB - dateA;
+        });
+
+        return sortedComps.slice(0, 5).map(comp => { // increased to 5
             let displayAddress = 'Unknown Address';
             if (comp.formattedAddress) {
                 displayAddress = comp.formattedAddress;
@@ -85,14 +101,19 @@ export const fetchPropertyData = async (addressString) => {
             } else if (comp.address) {
                 displayAddress = comp.address; 
             }
+            
+            // Determine price and label
+            const price = comp.price || comp.lastSalePrice || 0;
+            const isSold = comp.listingStatus === 'Sold' || !!comp.lastSaleDate;
 
             return {
                 address: displayAddress,
-                price: comp.price || comp.lastSalePrice || 0, // For sales
+                price: price, // For sales
                 rent: comp.rent || comp.price || 0,           // For rentals
                 distance: comp.distance ? `${comp.distance.toFixed(1)}mi` : 'N/A',
                 date: comp.lastSaleDate || comp.listedDate || 'N/A',
-                daysOld: comp.daysOnMarket || null
+                daysOld: comp.daysOnMarket || null,
+                status: isSold ? 'Sold' : 'Active'
             };
         });
     };

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
@@ -67,6 +68,10 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+AuthProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
 // ProtectedRoute component now uses the AuthContext
 export const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -76,4 +81,8 @@ export const ProtectedRoute = ({ children }) => {
   if (!user) return <Navigate to="/login" />;
 
   return children;
+};
+
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired,
 };

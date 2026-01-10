@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { Check, X, Zap, Briefcase, User } from 'lucide-react';
 import { createCheckoutSession } from '../services/stripeService';
 import { useAuth } from '../context/AuthContext';
@@ -212,3 +213,8 @@ export default function PricingModal({ isOpen, onClose }) {
     </div>
   );
 }
+
+PricingModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+};

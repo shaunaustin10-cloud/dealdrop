@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { doc, getDoc, collection, getDocs, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { ShieldAlert, Users, LayoutGrid, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -93,7 +93,7 @@ const AdminDashboard = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center">
             <h3 className="text-xl font-bold mb-4">User Management</h3>
             <p className="text-slate-400">
-                To manage users (reset passwords, delete accounts), please use the <a href="https://console.firebase.google.com" target="_blank" className="text-emerald-400 hover:underline">Firebase Console</a>.
+                To manage users (reset passwords, delete accounts), please use the <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer" className="text-emerald-400 hover:underline">Firebase Console</a>.
             </p>
         </div>
       </div>

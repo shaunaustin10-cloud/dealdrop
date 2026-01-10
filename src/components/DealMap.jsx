@@ -4,6 +4,7 @@ import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import { Loader2 } from 'lucide-react';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebaseConfig';
+import { useTheme } from '../context/ThemeContext';
 
 const containerStyle = {
   width: '100%',
@@ -16,16 +17,88 @@ const defaultCenter = {
   lng: -98.5795
 };
 
-// Standard Light Mode Style
-const mapOptions = {
-  disableDefaultUI: true,
-  zoomControl: true,
-  streetViewControl: true,
-  mapTypeControl: false,
-  fullscreenControl: false,
-};
+const darkMapStyle = [
+  { elementType: "geometry", stylers: [{ color: "#1e293b" }] }, // slate-800
+  { elementType: "labels.text.stroke", stylers: [{ color: "#1e293b" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#94a3b8" }] }, // slate-400
+  {
+    featureType: "administrative.locality",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#cbd5e1" }], // slate-300
+  },
+  {
+    featureType: "poi",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#94a3b8" }],
+  },
+  {
+    featureType: "poi.park",
+    elementType: "geometry",
+    stylers: [{ color: "#0f172a" }], // slate-900
+  },
+  {
+    featureType: "poi.park",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#64748b" }],
+  },
+  {
+    featureType: "road",
+    elementType: "geometry",
+    stylers: [{ color: "#334155" }], // slate-700
+  },
+  {
+    featureType: "road",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#1e293b" }],
+  },
+  {
+    featureType: "road",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#94a3b8" }],
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry",
+    stylers: [{ color: "#475569" }], // slate-600
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#1e293b" }],
+  },
+  {
+    featureType: "road.highway",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#f1f5f9" }], // slate-100
+  },
+  {
+    featureType: "transit",
+    elementType: "geometry",
+    stylers: [{ color: "#334155" }],
+  },
+  {
+    featureType: "transit.station",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#94a3b8" }],
+  },
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#0f172a" }], // slate-900 (Dark water)
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#cbd5e1" }],
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.stroke",
+    stylers: [{ color: "#0f172a" }],
+  },
+];
 
-const libraries = ['places'];
+const lightMapStyle = []; // Default Google Maps Light Style
 
 // Helper to geocode address (Cloud Function -> Client Fallback)
 const geocodeAddress = async (address) => {
@@ -72,11 +145,21 @@ const DealMap = ({ deals, onSelectDeal, hoveredDealId }) => {
     libraries: ['places']
   });
 
+  const { theme } = useTheme();
   const [map, setMap] = useState(null);
   const [activeMarker, setActiveMarker] = useState(null);
   const [geocodedDeals, setGeocodedDeals] = useState([]);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const mapRef = useRef(null);
+
+  const mapOptions = {
+    disableDefaultUI: true,
+    zoomControl: true,
+    streetViewControl: true,
+    mapTypeControl: false,
+    fullscreenControl: false,
+    styles: theme === 'dark' ? darkMapStyle : lightMapStyle,
+  };
 
   const onLoad = useCallback((map) => {
     mapRef.current = map;
@@ -180,7 +263,7 @@ const DealMap = ({ deals, onSelectDeal, hoveredDealId }) => {
         onLoad={onLoad}
         onUnmount={onUnmount}
         options={mapOptions}
-        mapTypeId="satellite"
+        mapTypeId="roadmap"
       >
         {geocodedDeals.map((deal) => {
               if (!deal.lat || !deal.lng) return null;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { X, Image as ImageIcon, AlertCircle, UploadCloud, Loader2 } from 'lucide-react';
 import { storage } from '../firebaseConfig'; // Import storage
@@ -9,11 +9,21 @@ const ImageUploader = ({ imageUrls, onImageUrlsChange, onFilesUploaded, fallback
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState('');
+  const [localPreviews, setLocalPreviews] = useState([]);
+
+  // Cleanup object URLs to avoid memory leaks
+  useEffect(() => {
+    return () => localPreviews.forEach(url => URL.revokeObjectURL(url));
+  }, [localPreviews]);
 
   const handleImageUpload = async (event) => {
     setError('');
     const files = event.target.files;
     if (!files || files.length === 0) return;
+
+    // 1. Create Immediate Previews
+    const previews = Array.from(files).map(file => URL.createObjectURL(file));
+    setLocalPreviews(previews);
 
     setUploading(true);
     setUploadProgress(0);
@@ -45,7 +55,6 @@ const ImageUploader = ({ imageUrls, onImageUrlsChange, onFilesUploaded, fallback
             (uploadError) => {
               console.error("Upload error:", uploadError);
               setError("Failed to upload image. Please try again.");
-              setUploading(false);
               reject(uploadError);
             }, 
             async () => {
@@ -61,12 +70,13 @@ const ImageUploader = ({ imageUrls, onImageUrlsChange, onFilesUploaded, fallback
       if (onFilesUploaded) {
         onFilesUploaded(newFiles);
       }
-      setUploading(false);
 
     } catch (e) {
       console.error("Image upload or compression error:", e);
       setError("An error occurred during upload. Please ensure files are images and try again.");
-      setUploading(false);
+    } finally {
+        setUploading(false);
+        setLocalPreviews([]); // Clear previews as we now have real URLs
     }
   };
 
@@ -74,8 +84,9 @@ const ImageUploader = ({ imageUrls, onImageUrlsChange, onFilesUploaded, fallback
     onImageUrlsChange(imageUrls.filter(url => url !== urlToRemove));
   };
 
-  const imagesToDisplay = imageUrls.length > 0 ? imageUrls : (fallbackImage ? [fallbackImage] : []);
-  const isFallback = imageUrls.length === 0 && !!fallbackImage;
+  const imagesToDisplay = [...(imageUrls || []), ...localPreviews];
+  const showFallback = imagesToDisplay.length === 0 && !!fallbackImage;
+  const displayList = showFallback ? [fallbackImage] : imagesToDisplay;
 
   return (
     <div>
@@ -112,39 +123,50 @@ const ImageUploader = ({ imageUrls, onImageUrlsChange, onFilesUploaded, fallback
       </div>
       
       <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-        {imagesToDisplay.map((url, index) => (
-          <div key={index} className="flex items-center gap-3 bg-slate-800 p-2 rounded-lg border border-slate-700 group hover:border-emerald-500/30 transition-colors">
-            <div className="w-10 h-10 bg-slate-900 rounded overflow-hidden flex-shrink-0 border border-slate-700 relative">
-               <img 
-                 src={url} 
-                 alt="Thumbnail" 
-                 className="w-full h-full object-cover"
-                 onError={(e) => {
-                   e.target.style.display = 'none';
-                   e.target.nextSibling.style.display = 'flex';
-                 }}
-               />
-               <div className="hidden absolute inset-0 w-full h-full items-center justify-center text-slate-600 bg-slate-900">
-                 <ImageIcon size={16} />
-               </div>
-            </div>
-            <div className="flex-1 min-w-0">
-               <span className="text-slate-300 truncate block text-xs font-mono">{url.substring(0, 40)}...</span>
-               {isFallback && <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Satellite Preview</span>}
-            </div>
-            {!isFallback && (
-              <button
-                type="button"
-                onClick={() => handleRemoveImageUrl(url)}
-                className="text-slate-500 hover:text-red-400 transition-colors p-1"
-                title="Remove Image"
-              >
-                <X size={16} />
-              </button>
-            )}
-          </div>
-        ))}
-        {imagesToDisplay.length === 0 && (
+        {displayList.map((url, index) => {
+            // Check if this url is a blob (local preview)
+            const isPreview = url.startsWith('blob:');
+
+            return (
+              <div key={index} className="flex items-center gap-3 bg-slate-800 p-2 rounded-lg border border-slate-700 group hover:border-emerald-500/30 transition-colors">
+                <div className="w-10 h-10 bg-slate-900 rounded overflow-hidden flex-shrink-0 border border-slate-700 relative">
+                  <img 
+                    src={url} 
+                    alt="Thumbnail" 
+                    className={`w-full h-full object-cover ${isPreview ? 'opacity-70' : ''}`}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                  <div className="hidden absolute inset-0 w-full h-full items-center justify-center text-slate-600 bg-slate-900">
+                    <ImageIcon size={16} />
+                  </div>
+                  {isPreview && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <Loader2 size={12} className="text-white animate-spin" />
+                      </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-slate-300 truncate block text-xs font-mono">{url.substring(0, 40)}...</span>
+                  {showFallback && <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Satellite Preview</span>}
+                  {isPreview && <span className="text-[10px] text-blue-400 font-bold uppercase tracking-wider">Uploading...</span>}
+                </div>
+                {!showFallback && !isPreview && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImageUrl(url)}
+                    className="text-slate-500 hover:text-red-400 transition-colors p-1"
+                    title="Remove Image"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+            );
+        })}
+        {displayList.length === 0 && (
             <div className="flex items-center justify-center h-24 text-slate-500 bg-slate-800 rounded-lg border border-slate-700 text-sm">
                 No images yet.
             </div>

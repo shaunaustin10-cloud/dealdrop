@@ -1,13 +1,12 @@
 import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-// Helper to load image from URL for PDF with Timeout & Error handling
+// Helper to load image from URL for PDF
 const getImageData = (url, timeout = 5000) => {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-        reject(new Error("Image Load Timeout"));
-    }, timeout);
+    const timer = setTimeout(() => reject(new Error("Image Load Timeout")), timeout);
 
     const img = new Image();
     img.crossOrigin = 'Anonymous';
@@ -19,11 +18,11 @@ const getImageData = (url, timeout = 5000) => {
       canvas.height = img.height;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL('image/jpeg', 0.8)); // Use JPEG for smaller PDF size
+      resolve(canvas.toDataURL('image/jpeg', 0.8));
     };
-    img.onerror = (e) => {
-        clearTimeout(timer);
-        reject(new Error("Image Load Error"));
+    img.onerror = () => {
+      clearTimeout(timer);
+      reject(new Error("Image Load Error"));
     };
   });
 };
@@ -36,18 +35,18 @@ export const generateDealReport = async (deal, userProfile = null) => {
   const contentWidth = doc.internal.pageSize.getWidth() - 2 * margin;
   let y = 15;
 
-  const emerald = [16, 185, 129];
+  // Colors
   const slate = [15, 23, 42];
+  const emerald = [16, 185, 129];
   const lightGray = [248, 250, 252];
-  const fallbackHouse = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&q=80&w=800";
 
-  // --- Header & Branding ---
+  // --- HEADER ---
   if (userProfile?.logoUrl) {
     try {
       const logoData = await getImageData(userProfile.logoUrl);
       doc.addImage(logoData, 'PNG', margin, y, 25, 15, undefined, 'FAST');
     } catch { 
-        console.warn("PDF Logo Load Failed"); 
+        console.warn("Logo failed");
     }
   } else {
     doc.setFillColor(...emerald);
@@ -57,192 +56,181 @@ export const generateDealReport = async (deal, userProfile = null) => {
     doc.setTextColor(...slate);
     doc.text('REI Deal Drop', margin + 10, y + 6);
   }
-
+  
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100);
-  doc.text(`Prepared on ${new Date().toLocaleDateString()}`, doc.internal.pageSize.getWidth() - margin, y + 6, { align: 'right' });
-  
+  doc.text(`Report Date: ${new Date().toLocaleDateString()}`, doc.internal.pageSize.getWidth() - margin, y + 6, { align: 'right' });
   y += 20;
 
-  // --- Property Title ---
-  doc.setFontSize(22);
+  // --- TITLE ---
+  doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...slate);
   const splitAddress = doc.splitTextToSize(deal.address || 'Unknown Property', contentWidth);
   doc.text(splitAddress, margin, y);
-  y += (splitAddress.length * 8) + 5;
+  y += (splitAddress.length * 8) + 2;
 
-  // --- Hero Image with Robust Fallback ---
+  // --- HERO IMAGE ---
   const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=800x600&location=${encodeURIComponent(deal.address)}&key=${GOOGLE_MAPS_API_KEY}`;
-  const primaryImageUrl = (deal.imageUrls && deal.imageUrls.length > 0 && !deal.imageUrls[0].includes('picsum')) ? deal.imageUrls[0] : null;
+  const primaryImageUrl = (deal.imageUrls && deal.imageUrls.length > 0 && !deal.imageUrls[0].includes('picsum')) ? deal.imageUrls[0] : streetViewUrl;
+
+  try {
+      const heroData = await getImageData(primaryImageUrl);
+      doc.addImage(heroData, 'JPEG', margin, y, contentWidth, 80, undefined, 'FAST');
+  } catch {
+      // Fallback gray box
+      doc.setFillColor(240);
+      doc.rect(margin, y, contentWidth, 80, 'F');
+      doc.text("Image Unavailable", margin + contentWidth/2, y + 40, { align: 'center' });
+  }
+  y += 85;
+
+  // --- PROPERTY SPECS ---
+  const specs = [
+      { label: 'Bedrooms', val: deal.bedrooms || '-' },
+      { label: 'Bathrooms', val: deal.bathrooms || '-' },
+      { label: 'Sqft', val: deal.sqft ? `${deal.sqft} sqft` : '-' },
+      { label: 'Year Built', val: deal.yearBuilt || '-' },
+      { label: 'Prop Type', val: deal.propertyType || 'Single Family' }
+  ];
   
-  let heroImageData = null;
-  
-  // Try 1: User Image
-  if (primaryImageUrl) {
-      try {
-          heroImageData = await getImageData(primaryImageUrl);
-      } catch {
-          console.warn("Primary Image failed for PDF Hero, trying StreetView...");
-      }
-  }
-
-  // Try 2: StreetView (if Try 1 failed)
-  if (!heroImageData) {
-      try {
-          heroImageData = await getImageData(streetViewUrl);
-      } catch {
-          console.warn("StreetView failed for PDF Hero, using Generic Placeholder...");
-      }
-  }
-
-  if (heroImageData) {
-    doc.addImage(heroImageData, 'JPEG', margin, y, contentWidth, 75, undefined, 'FAST');
-    y += 85;
-  } else {
-    y += 5;
-  }
-
-  // --- Key Stat Cards ---
-  const cardWidth = (contentWidth - 10) / 3;
-  const drawStatCard = (label, value, x, yPos, color = slate) => {
-    doc.setFillColor(...lightGray);
-    doc.roundedRect(x, yPos, cardWidth, 22, 2, 2, 'F');
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(100);
-    doc.text(label.toUpperCase(), x + cardWidth/2, yPos + 7, { align: 'center' });
-    doc.setFontSize(14);
-    doc.setTextColor(...color);
-    doc.text(value, x + cardWidth/2, yPos + 16, { align: 'center' });
-  };
-
-  drawStatCard('Asking Price', `$${Number(deal.price).toLocaleString()}`, margin, y);
-  drawStatCard('Est. ARV', `$${Number(deal.arv).toLocaleString()}`, margin + cardWidth + 5, y, emerald);
-  drawStatCard('Target Rent', `$${Number(deal.rent).toLocaleString()}`, margin + (cardWidth * 2) + 10, y);
-  
-  y += 32;
-
-  // --- Executive Summary Box ---
-  if (deal.aiAnalysis?.gemini) {
-    const gemini = deal.aiAnalysis.gemini;
-    doc.setFillColor(...slate);
-    doc.roundedRect(margin, y, contentWidth, 40, 2, 2, 'F');
-    
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...emerald);
-    doc.text(`MARKET ANALYSIS VERDICT: ${gemini.verdict}`, margin + 5, y + 8);
-    
-    doc.setFontSize(14);
-    doc.setTextColor(255, 255, 255);
-    doc.text(`Score: ${gemini.score}/100`, contentWidth + margin - 5, y + 10, { align: 'right' });
-
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(200);
-    const summaryText = gemini.summary || 'Strategic investment opportunity identified based on current market velocity and equity spread.';
-    const splitSummary = doc.splitTextToSize(summaryText, contentWidth - 10);
-    doc.text(splitSummary, margin + 5, y + 18);
-    
-    y += 50;
-  }
-
-  // --- Comps Section ---
-  if (deal.aiAnalysis?.market?.comps?.length > 0) {
-    const comps = deal.aiAnalysis.market.comps.slice(0, 5);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...slate);
-    doc.text('RECENT SALES COMPARABLES', margin, y);
-    y += 4;
-    doc.setDrawColor(230);
-    doc.line(margin, y, margin + contentWidth, y);
-    y += 6;
-
-    comps.forEach((c) => {
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(80);
-        doc.text(c.address.substring(0, 50), margin, y);
-        doc.text(`$${Number(c.price).toLocaleString()}`, margin + (contentWidth * 0.7), y);
-        doc.text(c.distance, margin + (contentWidth * 0.9), y, { align: 'right' });
-        y += 7;
-    });
-    y += 10;
-  }
-
-  // --- ADD PAGE 2: PROPERTY GALLERY ---
-  if (deal.imageUrls && deal.imageUrls.length > 0) {
-      doc.addPage();
-      let galleryY = 20;
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
+  const specWidth = contentWidth / specs.length;
+  specs.forEach((spec, i) => {
+      doc.setFillColor(...lightGray);
+      doc.rect(margin + (i * specWidth), y, specWidth - 2, 15, 'F');
+      
+      doc.setFontSize(7);
+      doc.setTextColor(120);
+      doc.text(spec.label.toUpperCase(), margin + (i * specWidth) + (specWidth/2), y + 5, { align: 'center' });
+      
+      doc.setFontSize(10);
       doc.setTextColor(...slate);
-      doc.text('PROPERTY PHOTO GALLERY', margin, galleryY);
-      galleryY += 10;
+      doc.setFont('helvetica', 'bold');
+      doc.text(spec.val.toString(), margin + (i * specWidth) + (specWidth/2), y + 11, { align: 'center' });
+  });
+  y += 22;
 
-      // Filter out only valid URLs (exclude picsum or empty)
-      const validImages = deal.imageUrls.filter(url => !url.includes('picsum'));
-      
-      // Let's add up to 4 images in a grid
-      const imgWidth = (contentWidth - 5) / 2;
-      const imgHeight = 60;
+  // --- FINANCIAL BREAKDOWN TABLE ---
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...slate);
+  doc.text("Financial Breakdown", margin, y);
+  y += 2;
 
-      for (let i = 0; i < validImages.length; i++) {
-          if (i > 0 && i % 4 === 0) {
-              doc.addPage();
-              galleryY = 20;
-          }
+  const price = parseFloat(deal.price) || 0;
+  const rehab = parseFloat(deal.rehab) || 0;
+  const arv = parseFloat(deal.arv) || 0;
+  const closingCosts = parseFloat(deal.miscClosingCosts) || 0;
+  const assignment = parseFloat(deal.assignmentFee) || 0;
+  
+  const totalCost = price + rehab + closingCosts + assignment;
+  const projectedProfit = arv - totalCost;
+  const roi = totalCost > 0 ? (projectedProfit / totalCost) * 100 : 0;
 
+  const financeData = [
+      ['Purchase Price', `$${price.toLocaleString()}`],
+      ['Estimated Rehab', `$${rehab.toLocaleString()}`],
+      ['Closing Costs & Fees', `$${(closingCosts + assignment).toLocaleString()}`],
+      ['TOTAL PROJECT COST', `$${totalCost.toLocaleString()}`],
+      ['After Repair Value (ARV)', `$${arv.toLocaleString()}`],
+      ['PROJECTED NET PROFIT', `$${projectedProfit.toLocaleString()}`],
+      ['ESTIMATED ROI', `${roi.toFixed(1)}%`]
+  ];
+
+  autoTable(doc, {
+    startY: y + 4,
+    head: [['Item', 'Amount']],
+    body: financeData,
+    theme: 'striped',
+    headStyles: { fillColor: emerald, textColor: 255, fontStyle: 'bold' },
+    styles: { fontSize: 10, cellPadding: 3 },
+    columnStyles: {
+        0: { cellWidth: 'auto', fontStyle: 'bold' },
+        1: { cellWidth: 50, halign: 'right' }
+    },
+    didParseCell: function (data) {
+        if (data.row.index === 3 || data.row.index === 5) {
+            data.cell.styles.fontStyle = 'bold';
+            data.cell.styles.textColor = slate;
+            data.cell.styles.fillColor = [226, 232, 240];
+        }
+    }
+  });
+
+  y = doc.lastAutoTable.finalY + 15;
+
+  // --- MARKET ANALYSIS & COMPS ---
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text("Market Analysis & Comps", margin, y);
+  
+  if (deal.aiAnalysis?.gemini) {
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80);
+      doc.text(`AI Score: ${deal.aiAnalysis.gemini.score}/100  |  Verdict: ${deal.aiAnalysis.gemini.verdict}`, margin, y + 6);
+  }
+
+  y += 10;
+
+  // Filter sold comps or use existing
+  let comps = deal.comps || [];
+  if (deal.aiAnalysis?.market?.comps) {
+      comps = [...comps, ...deal.aiAnalysis.market.comps];
+  }
+  // Dedup and sort
+  comps = comps.filter((v,i,a)=>a.findIndex(t=>(t.address === v.address))===i);
+
+  const compData = comps.slice(0, 5).map(c => [
+      c.address?.substring(0, 30),
+      c.status || 'Sold',
+      `$${Number(c.price).toLocaleString()}`,
+      c.date || '-',
+      c.distance || '-'
+  ]);
+
+  if (compData.length > 0) {
+      autoTable(doc, {
+        startY: y,
+        head: [['Address', 'Status', 'Price', 'Date', 'Dist']],
+        body: compData,
+        theme: 'grid',
+        headStyles: { fillColor: slate, textColor: 255 },
+        styles: { fontSize: 8 },
+      });
+      y = doc.lastAutoTable.finalY + 15;
+  } else {
+      doc.setFontSize(10);
+      doc.text("No comparable sales data available.", margin, y + 5);
+      y += 15;
+  }
+
+  // --- PHOTO GALLERY (Page 2) ---
+  if (deal.imageUrls && deal.imageUrls.length > 1) {
+      doc.addPage();
+      let gy = 20;
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text("Property Photos", margin, gy);
+      gy += 10;
+
+      const galleryImages = deal.imageUrls.filter(u => !u.includes('picsum')).slice(0, 6);
+      const imgW = (contentWidth - 10) / 2;
+      const imgH = 60;
+
+      for (let i = 0; i < galleryImages.length; i++) {
           try {
-              const imgData = await getImageData(validImages[i]);
-              const xPos = margin + (i % 2 === 0 ? 0 : imgWidth + 5);
-              const yPos = galleryY + (Math.floor((i % 4) / 2) * (imgHeight + 5));
-              
-              doc.addImage(imgData, 'JPEG', xPos, yPos, imgWidth, imgHeight, undefined, 'FAST');
-          } catch (e) {
-              console.warn(`Gallery image ${i} failed to load for PDF`);
+              const imgData = await getImageData(galleryImages[i]);
+              const xPos = margin + (i % 2 === 0 ? 0 : imgW + 10);
+              const yPos = gy + (Math.floor(i / 2) * (imgH + 10));
+              doc.addImage(imgData, 'JPEG', xPos, yPos, imgW, imgH, undefined, 'FAST');
+          } catch {
+              // skip
           }
       }
   }
 
-  // --- Footer (Global for all pages) ---
-  const totalPages = doc.internal.getNumberOfPages();
-  const pageHeight = doc.internal.pageSize.getHeight();
-
-  for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i);
-      
-      // Page Number
-      doc.setFontSize(8);
-      doc.setTextColor(150);
-      doc.text(`Page ${i} of ${totalPages}`, doc.internal.pageSize.getWidth() - margin, pageHeight - 10, { align: 'right' });
-
-      // Agent Branding (Last Page Only)
-      if (i === totalPages) {
-        doc.setFillColor(...lightGray);
-        doc.rect(0, pageHeight - 35, doc.internal.pageSize.getWidth(), 25, 'F');
-        
-        let footerX = margin;
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...slate);
-        doc.text(userProfile?.displayName || 'Real Estate Professional', footerX, pageHeight - 25);
-        
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(100);
-        const contactLine = [
-            userProfile?.company,
-            userProfile?.phone ? `Tel: ${userProfile.phone}` : null,
-            userProfile?.email,
-            userProfile?.website
-        ].filter(Boolean).join('  •  ');
-        doc.text(contactLine, footerX, pageHeight - 20);
-      }
-  }
-
-  doc.save(`REI_Deal_Drop_${deal.address.substring(0, 20).replace(/\s/g, '_')}.pdf`);
+  // Save
+  doc.save(`DealReport_${deal.address.substring(0, 10)}.pdf`);
 };

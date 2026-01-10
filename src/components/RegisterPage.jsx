@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import { useNavigate, Link } from 'react-router-dom';
-import { LayoutGrid, ArrowRight, User, Mail, Lock, Check } from 'lucide-react';
+import { LayoutGrid, ArrowRight, User, Mail, Lock } from 'lucide-react';
 import { createUserProfile } from '../services/userService'; 
 
 export default function RegisterPage() {

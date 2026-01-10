@@ -9,12 +9,44 @@
  * @param {number} params.sqft - Square Footage (used for sanity checks)
  * @returns {object} - { score, verdict, metrics: { roi, cashFlow, equity, capRate } }
  */
-export const calculateDealScore = ({ price, arv, rehab, rent, hasPool }) => {
+export const calculateDealScore = ({ price, arv, rehab, rent, hasPool, soldPrice }) => {
     const purchasePrice = Number(price) || 0;
     const afterRepairValue = Number(arv) || 0;
     const rehabCost = Number(rehab) || 0;
     const monthlyRent = Number(rent) || 0;
     const pool = hasPool === true || hasPool === 'true';
+    const finalSoldPrice = Number(soldPrice) || 0;
+
+    // 0. Sold Deal Logic (Realized Profit)
+    if (finalSoldPrice > 0) {
+        const totalInvestment = purchasePrice + rehabCost;
+        const profit = finalSoldPrice - totalInvestment;
+        const roi = totalInvestment > 0 ? (profit / totalInvestment) * 100 : 0;
+        
+        let score = 0;
+        let verdict = "PASS";
+        let color = "text-slate-500";
+
+        if (roi >= 20) { score = 100; verdict = "HOMERUN (SOLD)"; color = "text-emerald-400"; }
+        else if (roi >= 15) { score = 90; verdict = "GREAT (SOLD)"; color = "text-emerald-400"; }
+        else if (roi >= 10) { score = 80; verdict = "GOOD (SOLD)"; color = "text-green-400"; }
+        else if (roi > 0) { score = 65; verdict = "OK (SOLD)"; color = "text-yellow-400"; }
+        else { score = 40; verdict = "LOSS (SOLD)"; color = "text-red-500"; }
+
+        return {
+            score,
+            verdict,
+            verdictColor: color,
+            metrics: {
+                mao: 0,
+                capRate: 0,
+                equity: 0,
+                roi: roi.toFixed(1),
+                totalInvestment,
+                profit
+            }
+        };
+    }
 
     if (purchasePrice === 0 || afterRepairValue === 0) {
         return {

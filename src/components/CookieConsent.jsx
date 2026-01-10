@@ -24,7 +24,7 @@ const CookieConsent = () => {
           <p className="font-bold text-white mb-1">We value your privacy</p>
           <p>
             We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. 
-            By clicking "Accept", you consent to our use of cookies. 
+            By clicking &quot;Accept&quot;, you consent to our use of cookies. 
             Read our <a href="/privacy" className="text-emerald-400 hover:underline">Privacy Policy</a>.
           </p>
         </div>

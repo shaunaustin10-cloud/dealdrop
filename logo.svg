@@ -20,8 +20,8 @@
   <!-- Main Pin Shape -->
   <path d="M256 64C167.6 64 96 135.6 96 224c0 53 21.4 101.4 56 136l104 104 104-104c34.6-34.6 56-83 56-136 0-88.4-71.6-160-160-160z" fill="url(#grad1)" filter="url(#glow)"/>
   
-  <!-- House/Roof Cutout (Negative Space) -->
-  <path d="M256 140l-60 60h30v70h60v-70h30z" fill="#0f172a" />
+  <!-- Center Cutout -->
+  <circle cx="256" cy="224" r="50" fill="#0f172a" />
   
   <!-- Checkmark / Signal (The Verification) -->
   <path d="M340 120l20-20M172 120l-20-20" stroke="#34d399" stroke-width="8" stroke-linecap="round" opacity="0.6"/>

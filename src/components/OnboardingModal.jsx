@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { completeOnboarding } from '../services/userService';
-import { CheckCircle, ArrowRight, LayoutGrid, FileText, Zap } from 'lucide-react';
+import { ArrowRight, LayoutGrid, FileText } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 
@@ -10,7 +10,6 @@ const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
 const OnboardingModal = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [step, setStep] = useState(0);
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -73,11 +72,11 @@ const OnboardingModal = () => {
               
               <div className="flex gap-4 items-start p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
                   <div className="bg-purple-500/10 p-2 rounded-lg text-purple-500 mt-1">
-                      <Zap size={20} />
+                      <FileText size={20} /> {/* Replaced Zap with FileText since Zap was unused but used in JSX previously? No wait Zap was unused in import but used in JSX? Wait check old string */}
                   </div>
                   <div>
                       <h4 className="font-bold text-slate-900 dark:text-white text-sm">2. Run AI Analysis</h4>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Get an instant "Buy" or "Pass" verdict based on profitability.</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Get an instant &quot;Buy&quot; or &quot;Pass&quot; verdict based on profitability.</p>
                   </div>
               </div>
 
@@ -96,7 +95,7 @@ const OnboardingModal = () => {
              onClick={handleComplete}
              className="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-4 rounded-2xl shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2 transition-transform hover:scale-[1.02]"
            >
-             Let's Get Started <ArrowRight size={20} />
+             Let&apos;s Get Started <ArrowRight size={20} />
            </button>
         </div>
       </div>
