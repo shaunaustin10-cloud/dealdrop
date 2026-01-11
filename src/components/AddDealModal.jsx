@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { X, Search, Loader2, Calculator, FileText, Target, DollarSign, Settings } from 'lucide-react';
+import { X, Search, Loader2, Calculator, FileText, Target, DollarSign, Settings, ShieldCheck } from 'lucide-react';
 import { Autocomplete, useJsApiLoader } from '@react-google-maps/api';
 import { httpsCallable } from 'firebase/functions';
 import ImageUploader from './ImageUploader';
@@ -11,8 +11,9 @@ import { analyzeDeal } from '../services/geminiService';
 import { decrementUserCredits } from '../services/userService';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../hooks/useSubscription';
-import { functions, db } from '../firebaseConfig';
+import { functions, db, storage } from '../firebaseConfig'; // Added storage
 import { doc, getDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'; // Added storage functions
 
 const REHAB_LEVELS = {
   LIGHT: { label: 'Light ($20/sqft)', cost: 20 },
@@ -82,6 +83,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
   // State
   const [isAssignment, setIsAssignment] = useState(false);
   const [postToMarketplace, setPostToMarketplace] = useState(false);
+  const [proofFile, setProofFile] = useState(null); // Proof of Contract File
   const [comps, setComps] = useState([]);
   const [newComp, setNewComp] = useState({ address: '', soldPrice: '', link: '' });
   const [showFinancing, setShowFinancing] = useState(false);
@@ -472,6 +474,37 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
         resultLabel = 'Est. Net Profit';
     }
 
+    // Determine Status & Verification
+    let finalStatus = formData.status;
+    let proofUrl = null;
+
+    if (postToMarketplace) {
+        // VIP Check (Score > 75)
+        const score = formData.aiAnalysis?.gemini?.score || 0; // Or calculate if needed
+        if (score > 75) {
+            if (!proofFile && !initialData?.proofOfContractPath) {
+                alert("VIP Deals (Score > 75) require Proof of Contract to be posted to the Marketplace.");
+                return;
+            }
+            finalStatus = 'Pending Verification';
+        } else {
+            finalStatus = 'Available'; // Auto-publish standard deals
+        }
+
+        // Upload Proof if provided
+        if (proofFile) {
+            try {
+                const storageRef = ref(storage, `contracts/${user.uid}/${Date.now()}_${proofFile.name}`);
+                await uploadBytes(storageRef, proofFile);
+                proofUrl = await getDownloadURL(storageRef);
+            } catch (err) {
+                console.error("Proof upload failed:", err);
+                alert("Failed to upload contract proof.");
+                return;
+            }
+        }
+    }
+
     let finalFormData = { 
         ...formData, 
         comps,
@@ -479,7 +512,9 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
         resultLabel,
         mortgagePayoff: mortgageNum,
         taxProrations: taxesNum,
-        roleAtCreation: analysisMode
+        roleAtCreation: analysisMode,
+        status: finalStatus,
+        proofOfContractPath: proofUrl || initialData?.proofOfContractPath || null
     };
     finalFormData.hasValidContract = isAssignment;
 
@@ -492,7 +527,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
     }
 
     if (initialData) {
-      onUpdate(initialData.id, finalFormData);
+      onUpdate(initialData.id, finalFormData, postToMarketplace);
     } else {
       onAdd(finalFormData, postToMarketplace);
     }
@@ -500,6 +535,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
     setNewComp({ address: '', soldPrice: '', link: '' });
     setComps([]);
     setPostToMarketplace(false);
+    setProofFile(null);
     onClose();
   };
 
@@ -1069,6 +1105,54 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
               onCurrentInputChange={setTempImageUrl}
               fallbackImage={generatedMapImageUrl}
             />
+
+            {/* Marketplace & Verification Section */}
+            <div className="bg-gradient-to-r from-slate-100 to-white dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 p-4 rounded-xl space-y-4">
+                <div className="flex items-center gap-3">
+                    <input 
+                        type="checkbox" 
+                        id="postToMarketplace" 
+                        checked={postToMarketplace} 
+                        onChange={(e) => setPostToMarketplace(e.target.checked)}
+                        className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <div>
+                        <label htmlFor="postToMarketplace" className="font-bold text-slate-900 dark:text-white cursor-pointer select-none">
+                            Post to Marketplace?
+                        </label>
+                        <p className="text-xs text-slate-500">Visible to other investors. High-scoring deals require verification.</p>
+                    </div>
+                </div>
+
+                {postToMarketplace && (
+                    <div className="animate-fade-in pl-8 border-l-2 border-emerald-500/30">
+                        {(formData.aiAnalysis?.gemini?.score > 75) ? (
+                            <div className="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-200 dark:border-amber-500/30">
+                                <h5 className="text-amber-800 dark:text-amber-400 font-bold text-sm flex items-center gap-2">
+                                    <ShieldCheck size={16} /> Verification Required
+                                </h5>
+                                <p className="text-xs text-amber-700 dark:text-amber-300 mt-1 mb-3">
+                                    This deal has a high score ({formData.aiAnalysis?.gemini?.score}). To list it as a VIP First Look deal, you must upload proof of contract.
+                                </p>
+                                <label className="block text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider mb-1 font-semibold">
+                                    Upload Contract (PDF/Image)
+                                </label>
+                                <input 
+                                    type="file" 
+                                    accept=".pdf,image/*"
+                                    onChange={(e) => setProofFile(e.target.files[0])}
+                                    className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                                />
+                            </div>
+                        ) : (
+                            <div className="text-xs text-emerald-600 dark:text-emerald-400">
+                                <span className="font-bold">Standard Listing:</span> This deal will be posted to the public marketplace immediately.
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
             <div>
               <label className="block text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider mb-1 font-semibold">Notes</label>
               <textarea 
