@@ -33,7 +33,17 @@ export const AuthProvider = ({ children }) => {
           setLoading(false);
         }, (err) => {
           console.error("Profile sync error:", err);
-          setUser(currentUser); // Still allow login even if profile fails
+          
+          // CRITICAL: If permission denied, it likely means the Auth Token is for a user
+          // that doesn't exist in the current Emulator database (wiped DB).
+          // We MUST sign out to clear this invalid state.
+          if (err.code === 'permission-denied' || err.message.includes('permission')) {
+              console.warn("Profile sync permission denied. Force signing out to clear invalid state.");
+              signOut(auth).catch(e => console.error("Force logout failed", e));
+              setUser(null);
+          } else {
+              setUser(currentUser); // Still allow login even if profile fails (other errors)
+          }
           setLoading(false);
         });
 

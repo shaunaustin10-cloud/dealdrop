@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80">
+  <!-- Official NextHome "Dog/House" Icon Shape (Simplified Representation) -->
+  <path d="M20 20 L40 20 L40 60 L20 60 Z" fill="#FFFFFF" />
+  <path d="M10 20 L15 20 L15 60 L10 60 Z" fill="#FFFFFF" opacity="0.8" />
+  <path d="M45 20 L50 20 L50 60 L45 60 Z" fill="#FFFFFF" opacity="0.8" />
+  
+  <!-- Text -->
+  <text x="60" y="55" font-family="Arial, sans-serif" font-weight="bold" font-size="32" fill="#FFFFFF">NextHome</text>
+  <text x="60" y="75" font-family="Arial, sans-serif" font-size="12" fill="#FFFFFF" letter-spacing="1">MISSION TO SERVE</text>
+</svg>

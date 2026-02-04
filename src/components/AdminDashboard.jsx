@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where, orderBy, updateDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-import { ShieldAlert, Users, LayoutGrid, DollarSign } from 'lucide-react';
+import { ShieldAlert, Users, LayoutGrid, DollarSign, CheckCircle, XCircle, FileText, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
@@ -13,6 +13,7 @@ const AdminDashboard = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ users: 0, deals: 0 });
+  const [pendingDeals, setPendingDeals] = useState([]);
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -28,6 +29,7 @@ const AdminDashboard = () => {
         if (snap.exists() && snap.data().role === 'admin') {
            setIsAdmin(true);
            fetchStats();
+           fetchPendingDeals();
         } else {
            navigate('/dashboard');
         }
@@ -51,6 +53,52 @@ const AdminDashboard = () => {
           setStats({ users: usersSnap.size, deals: 'N/A' });
       } catch (e) {
           console.error("Stats fetch error", e);
+      }
+  };
+
+  const fetchPendingDeals = async () => {
+      try {
+          const dealsRef = collection(db, 'artifacts', appId, 'publicDeals');
+          // Query for Pending Verification deals
+          // Note: Ensure you have an index for 'status'
+          const q = query(dealsRef, where('status', '==', 'Pending Verification'), orderBy('createdAt', 'desc'));
+          const snapshot = await getDocs(q);
+          const deals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setPendingDeals(deals);
+      } catch (e) {
+          console.error("Error fetching pending deals:", e);
+      }
+  };
+
+  const handleApprove = async (dealId) => {
+      if (!confirm("Approve this deal for the VIP Marketplace?")) return;
+      try {
+          const dealRef = doc(db, 'artifacts', appId, 'publicDeals', dealId);
+          await updateDoc(dealRef, {
+              status: 'Available', // or 'Active'
+              isVipApproved: true,
+              approvedAt: new Date()
+          });
+          // Remove from local state
+          setPendingDeals(prev => prev.filter(d => d.id !== dealId));
+          alert("Deal Approved!");
+      } catch (e) {
+          console.error("Approval failed:", e);
+          alert("Error approving deal.");
+      }
+  };
+
+  const handleReject = async (dealId) => {
+      if (!confirm("Reject this deal? It will be set to 'Draft' status.")) return;
+      try {
+          const dealRef = doc(db, 'artifacts', appId, 'publicDeals', dealId);
+          await updateDoc(dealRef, {
+              status: 'Draft',
+              rejectionReason: prompt("Reason for rejection?") || "Admin Review Failed"
+          });
+          setPendingDeals(prev => prev.filter(d => d.id !== dealId));
+      } catch (e) {
+          console.error("Rejection failed:", e);
       }
   };
 
@@ -90,7 +138,59 @@ const AdminDashboard = () => {
             </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center">
+        {/* Verification Queue */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 mb-8">
+            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <FileText className="text-amber-500" /> Verification Queue
+                {pendingDeals.length > 0 && (
+                    <span className="bg-amber-500 text-slate-900 text-xs px-2 py-1 rounded-full font-black">
+                        {pendingDeals.length} Pending
+                    </span>
+                )}
+            </h3>
+
+            {pendingDeals.length === 0 ? (
+                <p className="text-slate-500 italic">No deals pending verification.</p>
+            ) : (
+                <div className="space-y-4">
+                    {pendingDeals.map(deal => (
+                        <div key={deal.id} className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex flex-col md:flex-row justify-between gap-4">
+                            <div>
+                                <h4 className="font-bold text-lg text-white">{deal.address}</h4>
+                                <div className="flex gap-4 text-sm text-slate-400 mt-1">
+                                    <span>Score: <strong className={deal.dealScore > 84 ? "text-emerald-400" : "text-white"}>{deal.dealScore}</strong></span>
+                                    <span>Price: ${Number(deal.price).toLocaleString()}</span>
+                                    <span>User: {deal.sellerContactEmail || deal.createdBy}</span>
+                                </div>
+                                {deal.proofOfContractPath ? (
+                                    <a href={deal.proofOfContractPath} target="_blank" rel="noreferrer" className="text-blue-400 text-xs flex items-center gap-1 mt-2 hover:underline">
+                                        <ExternalLink size={12} /> View Contract Proof
+                                    </a>
+                                ) : (
+                                    <span className="text-red-400 text-xs mt-2 block">No Proof Uploaded</span>
+                                )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button 
+                                    onClick={() => handleReject(deal.id)}
+                                    className="bg-slate-800 hover:bg-red-900/30 text-slate-300 hover:text-red-400 px-4 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2"
+                                >
+                                    <XCircle size={16} /> Reject
+                                </button>
+                                <button 
+                                    onClick={() => handleApprove(deal.id)}
+                                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2"
+                                >
+                                    <CheckCircle size={16} /> Approve & Post
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center opacity-50">
             <h3 className="text-xl font-bold mb-4">User Management</h3>
             <p className="text-slate-400">
                 To manage users (reset passwords, delete accounts), please use the <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer" className="text-emerald-400 hover:underline">Firebase Console</a>.

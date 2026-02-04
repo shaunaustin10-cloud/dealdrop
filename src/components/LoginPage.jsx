@@ -95,6 +95,32 @@ const LoginPage = () => {
               </Link>
             </p>
           </div>
+          
+          <div className="mt-8 pt-8 border-t border-slate-800 text-center">
+             <button
+               type="button" 
+               onClick={async () => {
+                  if(!confirm("This will clear all local data (including broken login sessions) and refresh the page. Continue?")) return;
+                  try {
+                      localStorage.clear();
+                      sessionStorage.clear();
+                      // Attempt to clear Firebase IndexedDB
+                      if (window.indexedDB && window.indexedDB.databases) {
+                          const dbs = await window.indexedDB.databases();
+                          dbs.forEach(db => {
+                              if (db.name && db.name.includes('firebase')) {
+                                  window.indexedDB.deleteDatabase(db.name);
+                              }
+                          });
+                      }
+                  } catch (e) { console.error("Reset error", e); }
+                  window.location.href = '/login';
+               }}
+               className="text-xs text-slate-600 hover:text-slate-400 underline transition-colors"
+             >
+               Troubleshoot: Reset App Data
+             </button>
+          </div>
         </form>
       </div>
     </div>

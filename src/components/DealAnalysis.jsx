@@ -7,11 +7,13 @@ const DealAnalysis = ({ deal }) => {
   // Calculate real-time metrics
   const { score, verdict, verdictColor, metrics } = calculateDealScore(deal);
   const market = deal.aiAnalysis?.market;
+  const isAgent = deal.roleAtCreation === 'agent';
 
   return (
     <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-emerald-500/30 rounded-2xl p-6 animate-fade-in relative overflow-hidden">
       <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
       
+      {!isAgent && (
       <div className="flex items-center justify-between mb-6">
         <div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -24,6 +26,7 @@ const DealAnalysis = ({ deal }) => {
             <span className={`text-xs font-bold uppercase tracking-wider ${verdictColor}`}>{verdict}</span>
         </div>
       </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Financial Snapshot */}

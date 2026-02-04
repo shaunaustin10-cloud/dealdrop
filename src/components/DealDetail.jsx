@@ -15,15 +15,19 @@ import {
   BadgeDollarSign,
   ShieldCheck,
   Hammer,
-  Trash2
+  Trash2,
+  Lock,
+  Phone
 } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../hooks/useSubscription';
+import { useDeals } from '../hooks/useDeals';
 import DealAnalysis from './DealAnalysis';
-import { formatAddress } from '../utils/formatAddress';
+import { formatAddress, getShortAddress } from '../utils/formatAddress';
 import { generateDealReport } from '../utils/generatePdf';
+import { createCheckoutSession } from '../services/stripeService';
 
 const getGoogleStreetViewUrl = (address) => {
   const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -32,10 +36,19 @@ const getGoogleStreetViewUrl = (address) => {
   return `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${encodeURIComponent(address)}&key=${API_KEY}`;
 };
 
-const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade }) => {
+const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade, isPublic }) => {
   const { user } = useAuth();
-  const { isPro } = useSubscription();
+  const { isPro, isVIP } = useSubscription();
+  const { updateDeal } = useDeals();
   const streetViewUrl = getGoogleStreetViewUrl(deal.address);
+
+  // VIP Gating Logic for High-Score Deals
+  const isFirstLook = (deal.dealScore || 0) >= 84;
+  const isLocked = (isFirstLook && !isVIP && !user?.isVerified) || !user;
+  const isOwner = user && (deal.sellerId === user.uid || deal.createdBy === user.uid);
+
+  const shortLocation = deal.city ? `${deal.city}, ${deal.state || ''}`.replace(/,\s*$/, '') : getShortAddress(deal.address);
+  const shortDesc = `${shortLocation} • ${deal.propertyType || 'Single Family'}`;
 
   // Sold Performance Calculation
   const isSold = deal.status === 'Closed' && parseFloat(deal.soldPrice) > 0;
@@ -53,11 +66,51 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade }) => {
   );
   // Removed unused imageLoaded state
   const [downloading, setDownloading] = useState(false);
+  const [buying, setBuying] = useState(false);
+  const [contacting, setContacting] = useState(false);
 
   // Reset loader when active image changes
   useEffect(() => {
      // No-op
   }, [activeImage]);
+
+  const handleMarkContacted = async () => {
+    if (!isOwner) return;
+    setContacting(true);
+    try {
+        await updateDeal(deal.id, { ...deal, status: 'Contacted' });
+    } catch (error) {
+        console.error("Failed to update status:", error);
+        alert("Failed to update status.");
+    } finally {
+        setContacting(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+      if (!user) return;
+      if (isLocked) {
+          if (onUpgrade) onUpgrade();
+          else alert("This VIP First Look deal requires a Pro or Business subscription.");
+          return;
+      }
+      if (!confirm("Secure this deal with a $500 refundable deposit? You will be redirected to Stripe.")) return;
+
+      setBuying(true);
+      try {
+          const priceId = import.meta.env.VITE_STRIPE_PRICE_ID_DEPOSIT || 'price_1Qf7e8KirdM61FvwVPReyz'; // Fallback to a known ID for testing if needed
+          if (!priceId || priceId.includes('placeholder')) {
+              alert("Deposit payments are not yet enabled in this environment.");
+              return;
+          }
+          await createCheckoutSession(user.uid, priceId, 'payment', { dealId: deal.id });
+      } catch (error) {
+          console.error("Buy Now failed:", error);
+          alert("Failed to initiate payment. Please try again.");
+      } finally {
+          setBuying(false);
+      }
+  };
 
   const handleDownloadReport = async () => {
     if (!user) return;
@@ -76,7 +129,7 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade }) => {
       const userSnap = await getDoc(userRef);
       const profileData = userSnap.exists() ? userSnap.data() : null;
       
-      await generateDealReport(deal, profileData);
+      await generateDealReport(deal, profileData, activeImage);
     } catch (error) {
       console.error("PDF Generation failed:", error);
       alert("Failed to generate report. Please try again.");
@@ -110,8 +163,13 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade }) => {
   const commPct = Number(deal.commissionPct) || 3;
   const miscCosts = Number(deal.miscClosingCosts) || 0;
   
-  const estimatedComm = (isAgentCreated ? arv : price) * (commPct / 100);
-  const sellerNet = arv - estimatedComm - miscCosts - effectiveRehab - mortgage - taxes;
+  // Scenario 1: As-Is Sale (at List Price)
+  const commAsIs = price * (commPct / 100);
+  const netAsIs = price - commAsIs - miscCosts - mortgage - taxes;
+
+  // Scenario 2: Renovated Sale (at ARV)
+  const commRenovated = arv * (commPct / 100);
+  const netRenovated = arv - commRenovated - miscCosts - effectiveRehab - mortgage - taxes;
 
   // Interactive Links
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${deal.lat && deal.lng ? `${deal.lat},${deal.lng}` : encodeURIComponent(deal.address)}`;
@@ -134,7 +192,7 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade }) => {
         </button>
         
         <div className="flex gap-3">
-            {onDelete && (
+            {onDelete && isOwner && (
                 <button 
                   onClick={() => onDelete(deal.id)}
                   className="flex items-center gap-2 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-700 dark:text-white hover:text-red-600 dark:hover:text-red-400 px-3 py-2 md:px-4 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-800 shadow-sm"
@@ -173,16 +231,32 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade }) => {
             <div className="flex flex-wrap items-center gap-3 mb-2">
               <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-black tracking-widest ${
                   deal.status === 'New Lead' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30' :
+                  deal.status === 'Contacted' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30' :
                   deal.status === 'Under Contract' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30' :
                   deal.status === 'Closed' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30' :
                   'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600'
               }`}>
                   {deal.status || 'New Lead'}
               </span>
+              {deal.hasValidContract && (
+                  <span className="bg-indigo-600 text-white px-2 py-0.5 rounded text-[10px] uppercase font-black tracking-widest border border-indigo-500/30 shadow-sm">
+                    Wholesale
+                  </span>
+              )}
+              {isPublic && deal.adminVerificationStatus === 'pending' && (
+                  <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded text-[10px] uppercase font-black tracking-widest border border-amber-200 dark:border-amber-500/30">
+                    Verification Pending
+                  </span>
+              )}
+              {isPublic && deal.adminVerificationStatus === 'approved' && (
+                  <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded text-[10px] uppercase font-black tracking-widest border border-emerald-200 dark:border-emerald-500/30">
+                    Verified Deal
+                  </span>
+              )}
               <span className="text-slate-500 dark:text-slate-500 text-xs font-bold uppercase tracking-widest">Added {deal.createdAt ? new Date(deal.createdAt.seconds * 1000).toLocaleDateString() : 'Recently'}</span>
             </div>
-            <h1 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white leading-tight">
-               {formatAddress(deal.address, true)}
+            <h1 className={`text-2xl md:text-4xl font-black text-slate-900 dark:text-white leading-tight ${isLocked ? 'select-none' : ''}`}>
+               {isLocked ? shortDesc : formatAddress(deal.address, true)}
             </h1>
           </div>
           
@@ -203,6 +277,36 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade }) => {
             </div>
           </div>
         </div>
+
+        {/* VIP First Look Banner */}
+        {deal.dealScore >= 84 && !isSold && (
+            <div className={`mt-6 bg-gradient-to-r ${isLocked ? 'from-slate-500/10 to-slate-600/10 border-slate-500/30' : 'from-amber-500/10 to-orange-500/10 border-amber-500/30'} border rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 animate-pulse-slow`}>
+                <div className="flex items-center gap-3">
+                    <div className={`bg-gradient-to-r ${isLocked ? 'from-slate-600 to-slate-700' : 'from-amber-500 to-orange-500'} p-2 rounded-lg text-white shadow-lg`}>
+                        {isLocked ? <Lock size={24} /> : <BadgeDollarSign size={24} />}
+                    </div>
+                    <div>
+                        <h3 className={`text-lg font-black ${isLocked ? 'text-slate-600 dark:text-slate-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                            {isLocked ? 'VIP EXCLUSIVE ACCESS' : 'VIP FIRST LOOK OPPORTUNITY'}
+                        </h3>
+                        <p className="text-sm text-slate-600 dark:text-slate-300">
+                            {isLocked 
+                                ? 'This high-scoring deal is currently restricted to Pro & Business members.' 
+                                : <>This deal scores <span className="font-bold">{deal.dealScore}/100</span>. Secure it now before it hits the open market.</>
+                            }
+                        </p>
+                    </div>
+                </div>
+                <button 
+                    onClick={handleBuyNow}
+                    disabled={buying}
+                    className={`bg-gradient-to-r ${isLocked ? 'from-slate-700 to-slate-800' : 'from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'} text-white px-6 py-3 rounded-xl font-bold uppercase tracking-wider shadow-xl transform hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center gap-2`}
+                >
+                    {buying ? <Loader2 size={18} className="animate-spin" /> : (isLocked ? <ShieldCheck size={18} /> : <DollarSign size={18} />)}
+                    {buying ? 'Processing...' : (isLocked ? 'Upgrade to Unlock' : 'Buy It Now')}
+                </button>
+            </div>
+        )}
 
         {/* Closed Deal Performance Banner */}
         {isSold && (
@@ -313,7 +417,7 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade }) => {
                   </div>
                   <div>
                     <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest mb-1">Selling Commission ({commPct}%)</p>
-                    <p className="text-xl font-black text-red-500 dark:text-red-400">-{formatMoney(estimatedComm)}</p>
+                    <p className="text-xl font-black text-red-500 dark:text-red-400">-{formatMoney(commRenovated)}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -327,15 +431,27 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade }) => {
                   </div>
                 </div>
                 <div className="h-px bg-slate-200 dark:bg-slate-800 my-2"></div>
-                <div className="bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200 dark:border-emerald-500/10 p-4 rounded-xl flex justify-between items-center">
-                  <div>
-                    <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest mb-0.5">Estimated Net to Seller</p>
-                    <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400">{formatMoney(sellerNet)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest mb-0.5">Renovated Scenario</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Includes {formatMoney(effectiveRehab)} repairs</p>
-                  </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* As-Is Scenario */}
+                    <div className="bg-blue-50 dark:bg-blue-500/5 border border-blue-200 dark:border-blue-500/10 p-4 rounded-xl">
+                        <div className="flex justify-between items-start mb-2">
+                            <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest">As-Is Net</p>
+                            <span className="text-[10px] bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded font-bold">List: {formatMoney(price)}</span>
+                        </div>
+                        <p className="text-2xl font-black text-blue-600 dark:text-blue-400">{formatMoney(netAsIs)}</p>
+                        <p className="text-xs text-slate-400 mt-1">No Renovations</p>
+                    </div>
+
+                    {/* Renovated Scenario */}
+                    <div className="bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200 dark:border-emerald-500/10 p-4 rounded-xl">
+                        <div className="flex justify-between items-start mb-2">
+                            <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest">Renovated Net</p>
+                            <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-300 px-2 py-0.5 rounded font-bold">ARV: {formatMoney(arv)}</span>
+                        </div>
+                        <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{formatMoney(netRenovated)}</p>
+                        <p className="text-xs text-slate-400 mt-1">-{formatMoney(effectiveRehab)} Renovation Budget</p>
+                    </div>
                 </div>
               </div>
             ) : (
@@ -373,8 +489,22 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade }) => {
             )}
           </div>
 
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-            <div className="p-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xl relative">
+             {!user && (
+                 <div className="absolute inset-0 z-20 backdrop-blur-md bg-white/30 dark:bg-slate-900/50 flex flex-col items-center justify-center text-center p-6">
+                     <div className="bg-slate-900/90 p-6 rounded-2xl shadow-2xl max-w-md border border-slate-700">
+                         <div className="bg-emerald-500/20 p-3 rounded-full w-fit mx-auto mb-4">
+                             <Lock className="text-emerald-500" size={32} />
+                         </div>
+                         <h3 className="text-xl font-bold text-white mb-2">Unlock Market Insights</h3>
+                         <p className="text-slate-400 mb-6">Login to view the AI-powered market analysis, rent estimates, and comparable sales data for this property.</p>
+                         <a href="/login" className="bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-3 px-6 rounded-xl transition-all block w-full">
+                             Login to Unlock
+                         </a>
+                     </div>
+                 </div>
+             )}
+            <div className={`p-6 ${!user ? 'blur-sm select-none' : ''}`}>
               <div className="flex items-center gap-2 mb-6">
                 <div className="p-2 bg-indigo-500/10 rounded-lg">
                   <TrendingUp className="text-indigo-600 dark:text-indigo-400" size={20} />
@@ -385,80 +515,116 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade }) => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl">
-             <div className="flex items-center gap-2 mb-6">
-                <div className="p-2 bg-purple-500/10 rounded-lg">
-                  <FileText className="text-purple-600 dark:text-purple-400" size={20} />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">CRM Details</h3>
-             </div>
-             
-             <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <span className="text-slate-500 text-[10px] uppercase font-black tracking-widest block mb-1">Lead Source</span>
-                    <span className="text-slate-900 dark:text-white font-bold">{deal.leadSource || 'Off-Market'}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 text-[10px] uppercase font-black tracking-widest block mb-1">Status</span>
-                    <span className="text-slate-900 dark:text-white font-bold">{deal.status || 'New Lead'}</span>
-                  </div>
-                </div>
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700/50">
-                  <span className="text-slate-500 text-[10px] uppercase font-black tracking-widest block mb-2">Seller Contact</span>
-                  {deal.sellerName ? (
-                    <div className="space-y-2">
-                       <p className="text-slate-900 dark:text-white font-bold">{deal.sellerName}</p>
-                       <p className="text-slate-500 dark:text-slate-400 text-sm">{deal.sellerPhone}</p>
-                       <p className="text-slate-500 dark:text-slate-400 text-sm truncate">{deal.sellerEmail}</p>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+             {!user && (
+                 <div className="absolute inset-0 z-20 backdrop-blur-md bg-white/30 dark:bg-slate-900/50 flex flex-col items-center justify-center text-center p-6">
+                      <div className="bg-slate-900/90 p-6 rounded-2xl shadow-2xl max-w-md border border-slate-700">
+                         <h3 className="text-xl font-bold text-white mb-2">Contact Details Hidden</h3>
+                         <p className="text-slate-400 mb-6">Sign in to access seller contact information and property location details.</p>
+                         <a href="/login" className="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-xl transition-all block w-full">
+                             Login to View Contact
+                         </a>
+                     </div>
+                 </div>
+             )}
+             <div className={!user ? 'blur-sm select-none' : ''}>
+                <div className="flex items-center gap-2 mb-6">
+                    <div className="p-2 bg-purple-500/10 rounded-lg">
+                    <FileText className="text-purple-600 dark:text-purple-400" size={20} />
                     </div>
-                  ) : (
-                    <p className="text-slate-500 dark:text-slate-600 text-sm italic">No contact info provided.</p>
-                  )}
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">CRM Details</h3>
                 </div>
-             </div>
+                
+                <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                    <div>
+                        <span className="text-slate-500 text-[10px] uppercase font-black tracking-widest block mb-1">Lead Source</span>
+                        <span className="text-slate-900 dark:text-white font-bold">{deal.leadSource || 'Off-Market'}</span>
+                    </div>
+                    <div>
+                        <span className="text-slate-500 text-[10px] uppercase font-black tracking-widest block mb-1">Status</span>
+                        <span className="text-slate-900 dark:text-white font-bold">{deal.status || 'New Lead'}</span>
+                    </div>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700/50">
+                    <span className="text-slate-500 text-[10px] uppercase font-black tracking-widest block mb-2">Seller Contact</span>
+                    {deal.sellerName ? (
+                        <div className="space-y-3">
+                        <p className="text-slate-900 dark:text-white font-bold">{deal.sellerName}</p>
+                        <div className="flex flex-col gap-2">
+                            <a 
+                                href={`tel:${deal.sellerPhone}`} 
+                                className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold hover:underline w-fit"
+                            >
+                                <Phone size={14} />
+                                {deal.sellerPhone}
+                            </a>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm truncate">{deal.sellerEmail}</p>
+                        </div>
+                        
+                        {isOwner && (deal.status === 'New Lead' || !deal.status) && (
+                            <button 
+                                onClick={handleMarkContacted}
+                                disabled={contacting}
+                                className="w-full mt-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 py-2 px-3 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2"
+                            >
+                                {contacting ? <Loader2 size={12} className="animate-spin" /> : <ShieldCheck size={12} />}
+                                Mark as Contacted
+                            </button>
+                        )}
+                        </div>
+                    ) : (
+                        <p className="text-slate-500 dark:text-slate-600 text-sm italic">No contact info provided.</p>
+                    )}
+                    </div>
+                </div>
 
-             <div className="mt-6">
-                {deal.lat && deal.lng ? (
-                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <a 
+                <div className="mt-6">
+                    {deal.lat && deal.lng ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <a 
+                            href={googleMapsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 transition-all font-bold text-sm shadow-sm hover:shadow-md group"
+                        >
+                            <MapIcon size={18} className="text-emerald-500 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
+                            Open in Google Maps
+                        </a>
+                        <a 
+                            href={interactiveStreetViewUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 transition-all font-bold text-sm shadow-sm hover:shadow-md group"
+                        >
+                            <ExternalLink size={18} className="text-blue-500 dark:text-blue-400 group-hover:scale-110 transition-transform" />
+                            Interactive Street View
+                        </a>
+                    </div>
+                    ) : (
+                    <a 
                         href={googleMapsUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 transition-all font-bold text-sm shadow-sm hover:shadow-md group"
-                      >
+                        className="flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 transition-all font-bold text-sm shadow-sm hover:shadow-md group w-full"
+                    >
                         <MapIcon size={18} className="text-emerald-500 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
                         Open in Google Maps
-                      </a>
-                      <a 
-                        href={interactiveStreetViewUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 transition-all font-bold text-sm shadow-sm hover:shadow-md group"
-                      >
-                        <ExternalLink size={18} className="text-blue-500 dark:text-blue-400 group-hover:scale-110 transition-transform" />
-                        Interactive Street View
-                      </a>
-                   </div>
-                ) : (
-                   <a 
-                    href={googleMapsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 transition-all font-bold text-sm shadow-sm hover:shadow-md group w-full"
-                  >
-                    <MapIcon size={18} className="text-emerald-500 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
-                    Open in Google Maps
-                  </a>
-                )}
+                    </a>
+                    )}
+                </div>
              </div>
           </div>
 
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl">
-             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                Project Resources
-             </h3>
-             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+             <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    Project Resources
+                </h3>
+                <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase px-2 py-1 rounded border border-amber-500/20">Coming Soon</span>
+             </div>
+             <p className="text-slate-500 text-xs mb-6 italic">Access our preferred network of lenders and contractors.</p>
+             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 opacity-60">
                 <a href="#" className="bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 p-4 rounded-xl flex flex-col items-center text-center transition-all group shadow-sm hover:shadow-md">
                    <div className="bg-emerald-500/10 p-3 rounded-full mb-3 group-hover:scale-110 transition-transform">
                       <BadgeDollarSign size={24} className="text-emerald-500 dark:text-emerald-400" />
@@ -530,11 +696,17 @@ DealDetail.propTypes = {
     lat: PropTypes.number,
     lng: PropTypes.number,
     closingDate: PropTypes.string,
+    hasValidContract: PropTypes.bool,
+    sellerId: PropTypes.string,
+    city: PropTypes.string,
+    state: PropTypes.string,
+    adminVerificationStatus: PropTypes.string,
   }).isRequired,
   onBack: PropTypes.func.isRequired,
   onEdit: PropTypes.func,
   onDelete: PropTypes.func,
   onUpgrade: PropTypes.func,
+  isPublic: PropTypes.bool,
 };
 
 export default DealDetail;

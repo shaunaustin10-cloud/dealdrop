@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutGrid, Plus, Zap, User as UserIcon, Sun, Moon, ShieldAlert } from 'lucide-react';
-import { Link, Routes, Route } from 'react-router-dom';
+import { LayoutGrid, Plus, Zap, User as UserIcon, Sun, Moon, ShieldAlert, Globe, Briefcase, Home } from 'lucide-react';
+import { Link, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import DealList from './components/DealList';
 import DealDetail from './components/DealDetail';
 import AddDealModal from './components/AddDealModal';
@@ -26,6 +26,7 @@ export default function MainApp() {
   const { theme, toggleTheme } = useTheme();
   
   const [isAdmin, setIsAdmin] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -68,9 +69,9 @@ export default function MainApp() {
     }
   };
 
-  const handleUpdateDeal = async (id, dealData) => {
+  const handleUpdateDeal = async (id, dealData, shouldPublish) => {
     try {
-      await updateDeal(id, dealData);
+      await updateDeal(id, dealData, shouldPublish);
       setShowAddModal(false);
       setEditingDeal(null);
       setToast({ show: true, message: 'Deal updated successfully!', type: 'success' });
@@ -109,33 +110,60 @@ export default function MainApp() {
     setShowAddModal(true);
   };
 
+  // Helper to determine active tab style
+  const getNavLinkClass = (path) => {
+      const isActive = location.pathname.includes(path);
+      return `flex items-center gap-2 px-3 py-2 text-sm font-bold rounded-lg transition-colors ${
+          isActive 
+          ? 'bg-slate-100 dark:bg-slate-800 text-primary' 
+          : 'text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800'
+      }`;
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 font-sans selection:bg-emerald-500/30 pb-20 transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0f172a] text-slate-900 dark:text-slate-200 font-sans selection:bg-emerald-500/30 pb-20 transition-colors duration-300">
       <Toast toast={toast} setToast={setToast} />
       
-      <nav className="border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md sticky top-0 z-40 transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => setSelectedDeal(null)}>
-            <div className="bg-emerald-500 p-1.5 rounded-lg">
-              <LayoutGrid size={20} className="text-white" />
+      <nav className="border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-[#0f172a]/80 backdrop-blur-md sticky top-0 z-40 transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          <Link to="/dashboard/pipeline" className="flex items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => setSelectedDeal(null)}>
+            <div className="bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg">
+               <LayoutGrid className="text-primary" size={20} />
             </div>
-            <span className="font-bold text-lg md:text-xl tracking-tight text-slate-900 dark:text-white mr-4">REI <span className="text-emerald-600 dark:text-emerald-400">Deal Drop</span></span>
+            <span className="font-serif text-xl text-slate-900 dark:text-white tracking-tight">REI Deal <span className="text-primary italic">Drop</span></span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1 mr-auto">
              <Link 
-               to="/dashboard" 
-               onClick={() => setSelectedDeal(null)}
-               className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+               to="/" 
+               className="flex items-center gap-2 px-3 py-2 text-sm font-bold rounded-lg text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
              >
-                <LayoutGrid size={18} />
-                Dashboard
+                <Home size={18} />
+                Home
+             </Link>
+
+             <Link 
+               to="/dashboard/pipeline" 
+               onClick={() => setSelectedDeal(null)}
+               className={getNavLinkClass('pipeline')}
+             >
+                <Briefcase size={18} />
+                My Pipeline
+             </Link>
+
+             <Link 
+               to="/dashboard/marketplace" 
+               onClick={() => setSelectedDeal(null)}
+               className={getNavLinkClass('marketplace')}
+             >
+                <Globe size={18} />
+                Marketplace
              </Link>
              
              {isAdmin && (
                  <Link 
-                   to="/admin" 
+                   to="/dashboard/admin" 
                    className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                  >
                     <ShieldAlert size={18} />
@@ -147,7 +175,7 @@ export default function MainApp() {
           <div className="flex items-center gap-4">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="p-2 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               aria-label="Toggle Theme"
             >
               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
@@ -169,7 +197,7 @@ export default function MainApp() {
             )}
 
             {user ? (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 md:gap-4">
                 <Link to="/dashboard/profile" className="flex items-center gap-2 group p-1 rounded-lg hover:bg-slate-800 transition-colors">
                   <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden group-hover:border-emerald-500 transition-colors">
                      {(user.photoUrl || user.photoURL) ? (
@@ -178,15 +206,15 @@ export default function MainApp() {
                         <UserIcon size={16} className="text-slate-400" />
                      )}
                   </div>
-                  <div className="flex flex-col items-start leading-none">
-                    <span className="hidden md:inline text-xs text-slate-500 mb-0.5">Settings</span>
-                    <span className="hidden md:inline text-sm font-bold text-slate-300 group-hover:text-white transition-colors">{user.displayName || user.email?.split('@')[0] || 'My Profile'}</span>
+                  <div className="hidden md:flex flex-col items-start leading-none">
+                    <span className="text-xs text-slate-500 mb-0.5">Settings</span>
+                    <span className="text-sm font-bold text-slate-300 group-hover:text-white transition-colors">{user.displayName || user.email?.split('@')[0] || 'My Profile'}</span>
                   </div>
                 </Link>
                 <div className="h-8 w-px bg-slate-800 hidden md:block"></div>
                 <button 
                   onClick={handleLogout}
-                  className="text-xs uppercase font-bold tracking-wider px-3 py-1 rounded-full border border-slate-700 text-slate-500 hover:text-slate-300 transition-colors"
+                  className="hidden md:block text-xs uppercase font-bold tracking-wider px-3 py-1 rounded-full border border-slate-700 text-slate-500 hover:text-slate-300 transition-colors"
                 >
                   Logout
                 </button>
@@ -203,37 +231,38 @@ export default function MainApp() {
       
       <main className="max-w-7xl mx-auto px-4 py-8 flex-grow">
         <Routes>
-           <Route path="/admin" element={<AdminDashboard />} />
-           <Route path="/profile" element={<ProfilePage />} />
-           <Route path="/" element={
+           <Route path="admin" element={<AdminDashboard />} />
+           <Route path="profile" element={<ProfilePage />} />
+           
+           {/* Pipeline Route */}
+           <Route path="pipeline" element={
               !selectedDeal ? (
                 <div className="space-y-8">
-                  {/* Compact Dashboard Header */}
-                  <div className="relative overflow-hidden rounded-2xl bg-slate-900 border border-slate-800 p-6 md:p-8 shadow-lg">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl"></div>
-                    <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl"></div>
+                  {/* Pipeline Header */}
+                  <div className="relative overflow-hidden rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 px-4 py-3 md:px-6 md:py-4 shadow-sm mb-4">
+                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl"></div>
                     
-                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
-                        <h1 className="text-2xl md:text-3xl font-black text-white mb-1">
-                          Deal <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Pipeline</span>
+                        <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-tight">
+                          My <span className="text-primary">Pipeline</span>
                         </h1>
-                        <p className="text-slate-400 text-sm max-w-md">
-                          Track leads, analyze numbers, and generate professional reports.
+                        <p className="text-slate-500 dark:text-slate-400 text-[10px] md:text-xs font-medium">
+                          Manage your personal deal flow and analysis.
                         </p>
                       </div>
 
                       {user ? (
                         <button 
                           onClick={() => setShowAddModal(true)} 
-                          className="bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-900/20 hover:shadow-emerald-900/40 transform hover:-translate-y-0.5"
+                          className="bg-primary hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md transform hover:-translate-y-0.5"
                         >
-                          <Plus size={18}/> Analyze New Deal
+                          <Plus size={16}/> New Deal
                         </button>
                       ) : (
-                        <div className="flex gap-3">
-                          <Link to="/register" className="bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all">Get Started</Link>
-                          <Link to="/login" className="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm border border-slate-700 transition-all">Login</Link>
+                        <div className="flex gap-2">
+                          <Link to="/register" className="bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2 rounded-lg font-bold text-xs transition-all shadow-sm">Get Started</Link>
+                          <Link to="/login" className="bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg font-bold text-xs border border-slate-200 dark:border-slate-700 transition-all shadow-sm">Login</Link>
                         </div>
                       )}
                     </div>
@@ -253,27 +282,68 @@ export default function MainApp() {
                   onEdit={handleEditClick}
                   onDelete={handleDeleteDeal}
                   onUpgrade={() => setShowCreditsModal(true)}
+                  isPublic={false}
                 />
               )
            } />
+
+           {/* Marketplace Route */}
+           <Route path="marketplace" element={
+              !selectedDeal ? (
+                <div className="space-y-8">
+                  {/* Marketplace Header */}
+                  <div className="relative overflow-hidden rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 px-4 py-3 md:px-6 md:py-4 shadow-sm mb-4">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                    <div className="relative z-10">
+                        <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-tight">
+                          Live <span className="text-blue-500 dark:text-blue-400">Marketplace</span>
+                        </h1>
+                        <p className="text-slate-500 dark:text-slate-400 text-[10px] md:text-xs font-medium">
+                          Verified off-market deals from top wholesalers.
+                        </p>
+                    </div>
+                  </div>
+
+                  <DealList 
+                    onDeleteDeal={handleDeleteDeal}
+                    onSelectDeal={handleSelectDeal}
+                    isPublic={true}
+                  />
+                </div>
+              ) : (
+                <DealDetail 
+                  deal={selectedDeal} 
+                  onBack={handleBack} 
+                  onDelete={handleDeleteDeal}
+                  onUpgrade={() => setShowCreditsModal(true)}
+                  isPublic={true}
+                />
+              )
+           } />
+
+           {/* Default Redirect */}
+           <Route path="/" element={<Navigate to="pipeline" replace />} />
         </Routes>
       </main>
       
-      <footer className="bg-slate-950 border-t border-slate-900 py-12 mt-auto">
-         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-2">
-               <div className="bg-slate-900 p-1.5 rounded-lg">
-                  <LayoutGrid size={20} className="text-slate-500" />
-               </div>
-               <span className="font-bold text-lg text-slate-500">REI Deal Drop</span>
+      <footer className="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-900 py-12 mt-auto">
+         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-start gap-8">
+            <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                   <div className="bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg">
+                      <LayoutGrid size={20} className="text-primary" />
+                   </div>
+                   <span className="font-serif text-lg text-slate-900 dark:text-white">REI Deal <span className="text-primary italic">Drop</span></span>
+                </div>
+                <p className="text-slate-500 dark:text-slate-600 text-[10px] leading-relaxed max-w-2xl uppercase tracking-wider font-medium">
+                  &copy; {new Date().getFullYear()} REI Deal Drop. All rights reserved.
+                </p>
             </div>
-            <p className="text-slate-600 text-sm">
-              &copy; {new Date().getFullYear()} REI Deal Drop. All rights reserved.
-            </p>
-            <div className="flex gap-6 text-sm text-slate-600">
-               <Link to="/terms" className="hover:text-slate-400 transition-colors">Terms</Link>
-               <Link to="/privacy" className="hover:text-slate-400 transition-colors">Privacy</Link>
-               <a href="#" className="hover:text-slate-400 transition-colors">Support</a>
+            <div className="flex gap-6 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-600">
+               <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+               <Link to="/terms" className="hover:text-primary transition-colors">Terms</Link>
+               <Link to="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
+               <a href="#" className="hover:text-primary transition-colors">Support</a>
             </div>
          </div>
       </footer>
@@ -305,8 +375,48 @@ export default function MainApp() {
       />
 
       <CookieConsent />
-      <OnboardingModal />
-
-    </div>
-  );
-}
+            <OnboardingModal />
+      
+            {/* Mobile Bottom Navigation */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-50 px-6 py-3 flex justify-around items-center backdrop-blur-md bg-white/80 dark:bg-slate-900/80">
+               <Link 
+                 to="/dashboard/pipeline" 
+                 onClick={() => setSelectedDeal(null)}
+                 className={`flex flex-col items-center gap-1 ${location.pathname.includes('pipeline') ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
+               >
+                  <Briefcase size={20} />
+                  <span className="text-[10px] font-bold uppercase tracking-tighter">Pipeline</span>
+               </Link>
+               
+               <Link 
+                 to="/dashboard/marketplace" 
+                 onClick={() => setSelectedDeal(null)}
+                 className={`flex flex-col items-center gap-1 ${location.pathname.includes('marketplace') ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
+               >
+                  <Globe size={20} />
+                  <span className="text-[10px] font-bold uppercase tracking-tighter">Marketplace</span>
+               </Link>
+      
+               {isAdmin && (
+                  <Link 
+                    to="/dashboard/admin" 
+                    className={`flex flex-col items-center gap-1 ${location.pathname.includes('admin') ? 'text-red-600' : 'text-slate-400'}`}
+                  >
+                     <ShieldAlert size={20} />
+                     <span className="text-[10px] font-bold uppercase tracking-tighter">Admin</span>
+                  </Link>
+               )}
+      
+               <Link 
+                 to="/dashboard/profile" 
+                 className={`flex flex-col items-center gap-1 ${location.pathname.includes('profile') ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
+               >
+                  <UserIcon size={20} />
+                  <span className="text-[10px] font-bold uppercase tracking-tighter">Profile</span>
+               </Link>
+            </div>
+      
+          </div>
+        );
+      }
+      

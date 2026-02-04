@@ -28,3 +28,29 @@ export const formatAddress = (address, isPro) => {
   
   return address; // Return original if we can't parse it easily (fallback)
 };
+
+/**
+ * Extracts "City, State" from a standard address string.
+ * @param {string} address 
+ * @returns {string} City, State (or "Location Details" if parse fails)
+ */
+export const getShortAddress = (address) => {
+    if (!address) return "Location Details";
+    const parts = address.split(',').map(p => p.trim());
+    
+    // Handle "123 Main St, Portsmouth, VA 23704"
+    if (parts.length >= 3) {
+        const city = parts[1];
+        const statePart = parts[2].split(' ')[0];
+        return `${city}, ${statePart}`;
+    }
+    
+    // Handle "123 Main St, Portsmouth, VA"
+    if (parts.length === 2) {
+         // Assuming "Street, City State" ? Unlikely. 
+         // If it's "City, State" only, just return it.
+         return address; 
+    }
+
+    return "Location Details";
+};

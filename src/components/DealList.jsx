@@ -1,47 +1,34 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { LayoutGrid, Search, SlidersHorizontal, Map as MapIcon, List } from 'lucide-react'; 
+import { LayoutGrid, Search, SlidersHorizontal, Map as MapIcon, List, TrendingUp } from 'lucide-react'; 
 import DealCard from './DealCard'; 
 import DealMap from './DealMap';
 import { useFetchDeals } from '../hooks/useDeals';
 
 const SkeletonCard = () => (
-  <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden h-full flex flex-col">
-    <div className="h-48 bg-slate-800 animate-pulse relative">
-       <div className="absolute inset-0 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 animate-shimmer" style={{ backgroundSize: '200% 100%' }}></div>
+  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden h-full flex flex-col">
+    <div className="h-48 bg-slate-100 dark:bg-slate-800 animate-pulse relative">
+       <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800 animate-shimmer" style={{ backgroundSize: '200% 100%' }}></div>
     </div>
     <div className="p-4 flex-1 space-y-4">
-      <div className="h-6 bg-slate-800 rounded w-3/4 animate-pulse"></div>
+      <div className="h-6 bg-slate-100 dark:bg-slate-800 rounded w-3/4 animate-pulse"></div>
       <div className="flex justify-between">
-        <div className="h-4 bg-slate-800 rounded w-1/4 animate-pulse"></div>
-        <div className="h-4 bg-slate-800 rounded w-1/4 animate-pulse"></div>
+        <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-1/4 animate-pulse"></div>
+        <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-1/4 animate-pulse"></div>
       </div>
-      <div className="h-10 bg-slate-800 rounded w-full animate-pulse mt-4"></div>
+      <div className="h-10 bg-slate-100 dark:bg-slate-800 rounded w-full animate-pulse mt-4"></div>
     </div>
   </div>
 );
 
 const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
-  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortBy, setSortBy] = useState(isPublic ? 'publishedAt' : 'createdAt');
   const [filterAddress, setFilterAddress] = useState('');
-  const [viewMode, setViewMode] = useState(() => window.innerWidth < 1024 ? 'list' : 'both'); // 'map', 'list', 'both' (desktop)
+  const [viewMode, setViewMode] = useState('list'); // 'map', 'list'
   const [hoveredDealId, setHoveredDealId] = useState(null);
+  const [vipOnly, setVipOnly] = useState(false);
 
-  const { deals: allDeals, loading, error } = useFetchDeals(isPublic);
-
-  // Handle Mobile/Desktop View Default
-  useEffect(() => {
-    const handleResize = () => {
-        if (window.innerWidth < 1024) {
-            setViewMode(prev => prev === 'both' ? 'list' : prev);
-        } else {
-            setViewMode('both');
-        }
-    };
-    window.addEventListener('resize', handleResize);
-    handleResize(); // Init
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const { deals: allDeals, loading, error } = useFetchDeals(isPublic, sortBy);
 
   // Initialize filter from Buy Box if available
   useEffect(() => {
@@ -59,6 +46,10 @@ const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
             deal.address && deal.address.toLowerCase().includes(searchLower)
         );
     }
+
+    if (vipOnly) {
+        result = result.filter(deal => (deal.dealScore || 0) >= 84);
+    }
     
     if (isPublic && buyBox) {
         result = result.filter(deal => {
@@ -74,16 +65,16 @@ const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
         result.sort((a, b) => (b.dealScore || 0) - (a.dealScore || 0));
     } else if (sortBy === 'price') {
         result.sort((a, b) => (a.price || 0) - (b.price || 0));
-    } else if (sortBy === 'createdAt') {
+    } else if (sortBy === 'createdAt' || sortBy === 'publishedAt') {
         result.sort((a, b) => {
-             const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : (a.createdAt || 0);
-             const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : (b.createdAt || 0);
+             const dateA = a[sortBy]?.toDate ? a[sortBy].toDate() : (a[sortBy] || 0);
+             const dateB = b[sortBy]?.toDate ? b[sortBy].toDate() : (b[sortBy] || 0);
              return dateB - dateA;
         });
     }
 
     return result;
-  }, [allDeals, filterAddress, isPublic, buyBox, sortBy]);
+  }, [allDeals, filterAddress, isPublic, buyBox, sortBy, vipOnly]);
 
   if (loading) {
     return (
@@ -105,32 +96,39 @@ const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-full">
       {/* Search & Filters Bar */}
-      <div className="flex-shrink-0 flex flex-col md:flex-row justify-between items-center gap-4 bg-white/50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 backdrop-blur-sm mb-4">
-        <div className="relative w-full md:w-96">
+      <div className="flex-shrink-0 flex flex-col md:flex-row justify-between items-center gap-3 bg-white/50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800 backdrop-blur-sm mb-3">
+        <div className="relative w-full md:w-80">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search size={18} className="text-slate-400 dark:text-slate-500" />
+            <Search size={16} className="text-slate-400 dark:text-slate-500" />
           </div>
           <input
             type="text"
-            placeholder="Search properties by address..."
+            placeholder="Search properties..."
             value={filterAddress}
             onChange={(e) => setFilterAddress(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl leading-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-all hover:bg-slate-50 dark:hover:bg-slate-750"
+            className="block w-full pl-9 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg leading-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-xs transition-all hover:bg-slate-50 dark:hover:bg-slate-750"
           />
         </div>
         
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-xl px-4 py-2 border border-slate-200 dark:border-slate-700 w-full md:w-auto">
-            <SlidersHorizontal size={16} className="text-slate-400" />
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <button 
+            onClick={() => setVipOnly(!vipOnly)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-[10px] md:text-xs font-bold ${vipOnly ? 'bg-amber-500 border-amber-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'}`}
+          >
+            <TrendingUp size={14} />
+            VIP Only
+          </button>
+          <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-700 w-full md:w-auto">
+            <SlidersHorizontal size={14} className="text-slate-400" />
             <select
               id="sort-by"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-transparent border-none text-slate-700 dark:text-slate-300 text-sm focus:ring-0 cursor-pointer w-full outline-none"
+              className="bg-transparent border-none text-slate-700 dark:text-slate-300 text-[10px] md:text-xs font-bold focus:ring-0 cursor-pointer w-full outline-none"
             >
-              <option value="createdAt" className="text-slate-900">Newest Listed</option>
+              <option value={isPublic ? 'publishedAt' : 'createdAt'} className="text-slate-900">Newest Listed</option>
               <option value="dealScore" className="text-slate-900">Highest Score</option>
               <option value="price" className="text-slate-900">Lowest Price</option>
             </select>
@@ -138,67 +136,75 @@ const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="relative flex flex-col lg:flex-row gap-6 lg:h-[calc(100vh-250px)]">
-        
-        {/* Left Side: Deal List */}
-        {(viewMode === 'list' || viewMode === 'both') && (
-            <div className={`flex-1 ${viewMode === 'both' ? 'lg:w-1/2 lg:overflow-y-auto pr-2 custom-scrollbar' : 'w-full'}`}>
-                {filteredDeals.length > 0 ? (
-                    <div className={`grid gap-6 ${viewMode === 'list' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
-                        {filteredDeals.map(deal => (
-                        <div 
-                            key={deal.id}
-                            onMouseEnter={() => setHoveredDealId(deal.id)}
-                            onMouseLeave={() => setHoveredDealId(null)}
-                        >
-                            <DealCard 
-                                deal={deal} 
-                                onDelete={onDeleteDeal} 
-                                onClick={onSelectDeal} 
-                            />
-                        </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-center py-24 bg-slate-50/50 dark:bg-slate-900/30 rounded-3xl border border-slate-200 dark:border-slate-800 border-dashed flex flex-col items-center justify-center space-y-6">
-                        <div className="bg-white dark:bg-slate-800 p-6 rounded-full">
-                        <LayoutGrid size={48} className="text-emerald-500/50" />
-                        </div>
-                        <div className="max-w-md mx-auto space-y-2">
-                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white">No Deals Found</h3>
-                        <p className="text-slate-500 dark:text-slate-400">
-                            {filterAddress ? `No properties match "${filterAddress}". Try a different search.` : "Your pipeline is currently empty."}
-                        </p>
-                        </div>
-                    </div>
-                )}
-            </div>
-        )}
+      {/* Main Content Area */}
+      <div className="relative flex-1 min-h-0">
+        <div className={`flex flex-col lg:flex-row gap-6 h-full ${viewMode === 'hybrid' ? 'lg:h-[calc(100vh-180px)]' : 'lg:h-[calc(100vh-180px)]'}`}>
+          
+          {/* List View Component */}
+          {(viewMode === 'list' || viewMode === 'hybrid') && (
+              <div className={`${viewMode === 'hybrid' ? 'lg:w-1/2' : 'w-full'} h-full lg:overflow-y-auto pr-2 custom-scrollbar`}>
+                  {filteredDeals.length > 0 ? (
+                      <div className={`grid gap-6 ${viewMode === 'hybrid' ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
+                          {filteredDeals.map(deal => (
+                          <div 
+                              key={deal.id}
+                              onMouseEnter={() => setHoveredDealId(deal.id)}
+                              onMouseLeave={() => setHoveredDealId(null)}
+                          >
+                              <DealCard 
+                                  deal={deal} 
+                                  onDelete={onDeleteDeal} 
+                                  onClick={onSelectDeal} 
+                                  isPublic={isPublic}
+                              />
+                          </div>
+                          ))}
+                      </div>
+                  ) : (
+                      <div className="text-center py-24 bg-slate-50/50 dark:bg-slate-900/30 rounded-3xl border border-slate-200 dark:border-slate-800 border-dashed flex flex-col items-center justify-center space-y-6">
+                          <div className="bg-white dark:bg-slate-800 p-6 rounded-full">
+                          <LayoutGrid size={48} className="text-emerald-500/50" />
+                          </div>
+                          <div className="max-w-md mx-auto space-y-2">
+                          <h3 className="text-2xl font-bold text-slate-900 dark:text-white">No Deals Found</h3>
+                          <p className="text-slate-500 dark:text-slate-400">
+                              {filterAddress ? `No properties match "${filterAddress}". Try a different search.` : "Your pipeline is currently empty."}
+                          </p>
+                          </div>
+                      </div>
+                  )}
+              </div>
+          )}
 
-        {/* Right Side: Map (Fixed on Desktop, Visible on Mobile) */}
-        <div className={`flex-1 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 relative bg-slate-100 dark:bg-slate-900 transition-all duration-300 ${viewMode === 'both' ? 'hidden lg:block lg:h-full' : (viewMode === 'map' ? 'block h-[600px] lg:h-full' : 'hidden')}`}>
-            <DealMap deals={filteredDeals} onSelectDeal={onSelectDeal} hoveredDealId={hoveredDealId} />
+          {/* Map View Component */}
+          {(viewMode === 'map' || viewMode === 'hybrid') && (
+              <div className={`${viewMode === 'hybrid' ? 'lg:w-1/2' : 'w-full'} h-[500px] lg:h-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 relative bg-slate-100 dark:bg-slate-900 shadow-inner`}>
+                  <DealMap deals={filteredDeals} onSelectDeal={onSelectDeal} hoveredDealId={hoveredDealId} />
+              </div>
+          )}
         </div>
 
-        {/* Mobile Toggle Button */}
-        <div className="lg:hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-50">
+        {/* View Mode Toggle Controls */}
+        <div className="fixed lg:absolute bottom-24 lg:bottom-6 left-1/2 -translate-x-1/2 z-50 flex bg-slate-900/90 dark:bg-slate-800/90 backdrop-blur-md p-1 rounded-full shadow-2xl border border-slate-700/50">
             <button 
-                onClick={() => setViewMode(prev => prev === 'list' ? 'map' : 'list')}
-                className="bg-slate-900 dark:bg-slate-900 text-white px-6 py-3 rounded-full shadow-xl shadow-black/50 border border-slate-700 font-bold flex items-center gap-2 hover:scale-105 transition-transform"
+                onClick={() => setViewMode('list')}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${viewMode === 'list' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
             >
-                {viewMode === 'list' ? (
-                    <>
-                        <MapIcon size={18} /> Map View
-                    </>
-                ) : (
-                    <>
-                        <List size={18} /> List View
-                    </>
-                )}
+                <List size={16} /> <span className="hidden sm:inline">List</span>
+            </button>
+            <button 
+                onClick={() => setViewMode('hybrid')}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${viewMode === 'hybrid' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+            >
+                <LayoutGrid size={16} /> <span className="hidden sm:inline">Hybrid</span>
+            </button>
+            <button 
+                onClick={() => setViewMode('map')}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${viewMode === 'map' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+            >
+                <MapIcon size={16} /> <span className="hidden sm:inline">Map</span>
             </button>
         </div>
-
       </div>
     </div>
   );

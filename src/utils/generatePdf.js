@@ -3,31 +3,38 @@ import autoTable from 'jspdf-autotable';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-// Helper to load image from URL for PDF
-const getImageData = (url, timeout = 5000) => {
+// Helper to load image from URL for PDF using Canvas (more robust for CORS)
+const getImageData = (url) => {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("Image Load Timeout")), timeout);
-
     const img = new Image();
-    img.crossOrigin = 'Anonymous';
-    img.src = url;
+    // Enable CORS for images from Firebase/Google
+    img.crossOrigin = "anonymous";
+    
     img.onload = () => {
-      clearTimeout(timer);
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       canvas.width = img.width;
       canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL('image/jpeg', 0.8));
+      try {
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+        resolve(dataUrl);
+      } catch (err) {
+        reject(new Error("Canvas tainted: " + err.message));
+      }
     };
+    
     img.onerror = () => {
-      clearTimeout(timer);
-      reject(new Error("Image Load Error"));
+      reject(new Error("Failed to load image at: " + url));
     };
+    
+    // Add a cache buster if it's a streetview URL to bypass potential restrictive headers
+    const finalUrl = url.includes('maps.googleapis.com') ? `${url}&cb=${Date.now()}` : url;
+    img.src = finalUrl;
   });
 };
 
-export const generateDealReport = async (deal, userProfile = null) => {
+export const generateDealReport = async (deal, userProfile = null, overriddenHeroUrl = null) => {
   if (!deal) return;
 
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -37,7 +44,7 @@ export const generateDealReport = async (deal, userProfile = null) => {
 
   // Colors
   const slate = [15, 23, 42];
-  const emerald = [16, 185, 129];
+  const nextHomeOrange = [227, 82, 5]; // #E35205
   const lightGray = [248, 250, 252];
 
   // --- HEADER ---
@@ -49,40 +56,70 @@ export const generateDealReport = async (deal, userProfile = null) => {
         console.warn("Logo failed");
     }
   } else {
-    doc.setFillColor(...emerald);
-    doc.rect(margin, y, 8, 8, 'F');
+    // Recreate NextHome Mission to Serve branding in PDF
+    const iconSize = 8;
+    const roundedness = 1;
+    
+    // Draw NextHome Orange Rounded Box
+    doc.setFillColor(...nextHomeOrange);
+    doc.roundedRect(margin, y, iconSize, iconSize, roundedness, roundedness, 'F');
+    
+    // Simple minimalist D for Deker
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
+    doc.text('D', margin + 2, y + 6);
+
+    // Brand Text
+    doc.setFontSize(16);
+    doc.setFont('times', 'bold'); // Serif feel for PDF
     doc.setTextColor(...slate);
-    doc.text('REI Deal Drop', margin + 10, y + 6);
+    doc.text('NextHome Mission to Serve', margin + 11, y + 6);
+    
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(150, 150, 150);
+    doc.text('AT NEXTHOME', margin + 11, y + 9);
   }
+  
   
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100);
-  doc.text(`Report Date: ${new Date().toLocaleDateString()}`, doc.internal.pageSize.getWidth() - margin, y + 6, { align: 'right' });
+  // Date line removed per user request to clear up unwanted text
+  // doc.text(`Report Date: ${new Date().toLocaleDateString()}`, doc.internal.pageSize.getWidth() - margin, y + 6, { align: 'right' });
   y += 20;
 
   // --- TITLE ---
   doc.setFontSize(20);
-  doc.setFont('helvetica', 'bold');
+  doc.setFont('times', 'bold');
   doc.setTextColor(...slate);
-  const splitAddress = doc.splitTextToSize(deal.address || 'Unknown Property', contentWidth);
+  // Ensure we only take the primary address part if it's multi-line or contains extra data
+  const mainAddress = (deal.address || 'Unknown Property').split('\n')[0].split(',')[0] + (deal.address?.includes(',') ? ',' : '') + (deal.address?.split(',')[1] || '');
+  const splitAddress = doc.splitTextToSize(mainAddress, contentWidth);
   doc.text(splitAddress, margin, y);
   y += (splitAddress.length * 8) + 2;
 
   // --- HERO IMAGE ---
   const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=800x600&location=${encodeURIComponent(deal.address)}&key=${GOOGLE_MAPS_API_KEY}`;
-  const primaryImageUrl = (deal.imageUrls && deal.imageUrls.length > 0 && !deal.imageUrls[0].includes('picsum')) ? deal.imageUrls[0] : streetViewUrl;
+  const primaryImageUrl = overriddenHeroUrl || ((deal.imageUrls && deal.imageUrls.length > 0 && !deal.imageUrls[0].includes('picsum')) ? deal.imageUrls[0] : streetViewUrl);
 
   try {
       const heroData = await getImageData(primaryImageUrl);
       doc.addImage(heroData, 'JPEG', margin, y, contentWidth, 80, undefined, 'FAST');
-  } catch {
-      // Fallback gray box
-      doc.setFillColor(240);
-      doc.rect(margin, y, contentWidth, 80, 'F');
-      doc.text("Image Unavailable", margin + contentWidth/2, y + 40, { align: 'center' });
+  } catch (err) {
+      console.warn("Failed to load hero image for PDF:", err);
+      try {
+          // Attempt fallback to a generic house image
+          const fallbackUrl = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=800&auto=format&fit=crop";
+          const fallbackData = await getImageData(fallbackUrl);
+          doc.addImage(fallbackData, 'JPEG', margin, y, contentWidth, 80, undefined, 'FAST');
+      } catch {
+          // Final fallback if even the generic image fails
+          doc.setFillColor(240);
+          doc.rect(margin, y, contentWidth, 80, 'F');
+          doc.text("Image Unavailable", margin + contentWidth/2, y + 40, { align: 'center' });
+      }
   }
   y += 85;
 
@@ -113,7 +150,7 @@ export const generateDealReport = async (deal, userProfile = null) => {
 
   // --- FINANCIAL BREAKDOWN TABLE ---
   doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
+  doc.setFont('times', 'bold');
   doc.setTextColor(...slate);
   doc.text("Financial Breakdown", margin, y);
   y += 2;
@@ -143,7 +180,7 @@ export const generateDealReport = async (deal, userProfile = null) => {
     head: [['Item', 'Amount']],
     body: financeData,
     theme: 'striped',
-    headStyles: { fillColor: emerald, textColor: 255, fontStyle: 'bold' },
+    headStyles: { fillColor: nextHomeOrange, textColor: 255, fontStyle: 'bold' },
     styles: { fontSize: 10, cellPadding: 3 },
     columnStyles: {
         0: { cellWidth: 'auto', fontStyle: 'bold' },
@@ -160,18 +197,14 @@ export const generateDealReport = async (deal, userProfile = null) => {
 
   y = doc.lastAutoTable.finalY + 15;
 
-  // --- MARKET ANALYSIS & COMPS ---
+  // --- MARKET ANALYSIS & COMPS (Page 2) ---
+  doc.addPage();
+  y = 20; // Reset Y for new page
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...slate);
   doc.text("Market Analysis & Comps", margin, y);
   
-  if (deal.aiAnalysis?.gemini) {
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(80);
-      doc.text(`AI Score: ${deal.aiAnalysis.gemini.score}/100  |  Verdict: ${deal.aiAnalysis.gemini.verdict}`, margin, y + 6);
-  }
-
   y += 10;
 
   // Filter sold comps or use existing
@@ -182,18 +215,33 @@ export const generateDealReport = async (deal, userProfile = null) => {
   // Dedup and sort
   comps = comps.filter((v,i,a)=>a.findIndex(t=>(t.address === v.address))===i);
 
-  const compData = comps.slice(0, 5).map(c => [
-      c.address?.substring(0, 30),
-      c.status || 'Sold',
-      `$${Number(c.price).toLocaleString()}`,
-      c.date || '-',
-      c.distance || '-'
-  ]);
+  const compData = comps.slice(0, 5).map(c => {
+      // Robust date formatting
+      let displayDate = '-';
+      if (c.date) {
+          try {
+              const dateObj = new Date(c.date);
+              if (!isNaN(dateObj)) {
+                  displayDate = dateObj.toLocaleDateString('en-US');
+              }
+          } catch {
+              displayDate = c.date.toString().split(' ')[0];
+          }
+      }
+
+      return [
+          // Take only the primary address part (before the second comma or newline)
+          (c.address || '').split('\n')[0].split(',').slice(0, 2).join(','),
+          c.status || 'Sold',
+          `$${Number(c.price).toLocaleString()}`,
+          displayDate
+      ];
+  });
 
   if (compData.length > 0) {
       autoTable(doc, {
         startY: y,
-        head: [['Address', 'Status', 'Price', 'Date', 'Dist']],
+        head: [['Address', 'Status', 'Price', 'Date']],
         body: compData,
         theme: 'grid',
         headStyles: { fillColor: slate, textColor: 255 },
@@ -225,8 +273,8 @@ export const generateDealReport = async (deal, userProfile = null) => {
               const xPos = margin + (i % 2 === 0 ? 0 : imgW + 10);
               const yPos = gy + (Math.floor(i / 2) * (imgH + 10));
               doc.addImage(imgData, 'JPEG', xPos, yPos, imgW, imgH, undefined, 'FAST');
-          } catch {
-              // skip
+          } catch (e) {
+              console.warn(`Failed to load gallery image ${i}:`, e);
           }
       }
   }

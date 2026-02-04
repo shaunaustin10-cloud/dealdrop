@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "emulators": "bash -c '. \"$HOME/.sdkman/bin/sdkman-init.sh\" && firebase emulators:start --import=./firebase-data --export-on-exit=./firebase-data'",
+    "emulators": "firebase emulators:start --import=./firebase-data --export-on-exit=./firebase-data",
     "vite:dev": "vite --host --debug proxy",
     "dev": "npm run vite:dev",
     "build": "vite build",

@@ -13,10 +13,14 @@ service cloud.firestore {
     }
 
     // --- Marketplace Deals Collection ---
-    match /artifacts/{appId}/public/deals/{dealId} {
+    match /artifacts/{appId}/publicDeals/{dealId} {
       allow read: if true; // Publicly readable
-      allow create: if request.auth != null && get(/databases/$(database)/documents/artifacts/$(appId)/profiles/$(request.auth.uid)).data.role == 'wholesaler';
-      allow update, delete: if request.auth.uid == resource.data.sellerId;
+      allow create: if request.auth != null; // Allow any logged in user to post
+      allow update, delete: if request.auth != null && (
+        request.auth.uid == resource.data.sellerId || 
+        !('sellerId' in resource.data) || 
+        get(/databases/$(database)/documents/artifacts/$(appId)/profiles/$(request.auth.uid)).data.role == 'admin'
+      );
     }
     
     // --- User Profiles Collection ---
@@ -40,6 +44,11 @@ service cloud.firestore {
     // --- Property Cache Collection ---
     match /property_cache/{cacheId} {
       allow read, write: if isAuthenticated();
+    }
+    
+    // --- Platform Stats ---
+    match /artifacts/{appId}/stats/{statId} {
+      allow read: if true;
     }
     
     // --- Stripe Extensions Collections (Standard Rules) ---

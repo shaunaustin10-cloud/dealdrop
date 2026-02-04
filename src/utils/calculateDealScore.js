@@ -27,11 +27,11 @@ export const calculateDealScore = ({ price, arv, rehab, rent, hasPool, soldPrice
         let verdict = "PASS";
         let color = "text-slate-500";
 
-        if (roi >= 20) { score = 100; verdict = "HOMERUN (SOLD)"; color = "text-emerald-400"; }
-        else if (roi >= 15) { score = 90; verdict = "GREAT (SOLD)"; color = "text-emerald-400"; }
-        else if (roi >= 10) { score = 80; verdict = "GOOD (SOLD)"; color = "text-green-400"; }
-        else if (roi > 0) { score = 65; verdict = "OK (SOLD)"; color = "text-yellow-400"; }
-        else { score = 40; verdict = "LOSS (SOLD)"; color = "text-red-500"; }
+        if (roi >= 20) { score = 100; verdict = "HOMERUN (SOLD)"; color = "text-emerald-600 dark:text-emerald-400"; }
+        else if (roi >= 15) { score = 90; verdict = "GREAT (SOLD)"; color = "text-emerald-600 dark:text-emerald-400"; }
+        else if (roi >= 10) { score = 80; verdict = "GOOD (SOLD)"; color = "text-green-600 dark:text-green-400"; }
+        else if (roi > 0) { score = 65; verdict = "OK (SOLD)"; color = "text-amber-600 dark:text-amber-400"; }
+        else { score = 40; verdict = "LOSS (SOLD)"; color = "text-red-600 dark:text-red-500"; }
 
         return {
             score,
@@ -101,11 +101,11 @@ export const calculateDealScore = ({ price, arv, rehab, rent, hasPool, soldPrice
     finalScore = Math.round(Math.min(100, Math.max(0, finalScore)));
 
     // Verdict
-    let verdict = "PASS";
-    let color = "text-red-500";
-    if (finalScore >= 85) { verdict = "HOMERUN"; color = "text-emerald-400"; }
-    else if (finalScore >= 70) { verdict = "GOOD BUY"; color = "text-green-400"; }
-    else if (finalScore >= 50) { verdict = "THIN DEAL"; color = "text-yellow-400"; }
+    let verdict = "SPECULATIVE";
+    let color = "text-orange-600 dark:text-orange-400";
+    if (finalScore >= 85) { verdict = "ELITE"; color = "text-emerald-600 dark:text-emerald-400"; }
+    else if (finalScore >= 70) { verdict = "STRONG"; color = "text-green-600 dark:text-green-400"; }
+    else if (finalScore >= 50) { verdict = "OPPORTUNITY"; color = "text-amber-600 dark:text-amber-400"; }
 
     // Metrics
     const equity = afterRepairValue - totalInvestment;

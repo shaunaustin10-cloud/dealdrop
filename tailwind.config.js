@@ -6,7 +6,21 @@ export default {
   ],
   darkMode: 'class',
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: '#10B981', // Emerald 500 (Original)
+        secondary: '#00B579', 
+        accent: '#FF3F25', 
+        charcoal: '#333333', // NextHome Charcoal
+        grey: '#999999', // NextHome Grey
+        'bg-cream': '#FFF8F4', 
+        'bg-cream-dark': '#F5EDE8',
+      },
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'], // Fallback for Gordita
+        serif: ['EB Garamond', 'serif'], // Hozn $sub-font
+      }
+    },
   },
   plugins: [],
 }

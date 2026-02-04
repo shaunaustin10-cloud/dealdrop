@@ -8,6 +8,7 @@ import RegisterPage from './components/RegisterPage';
 import LandingPage from './components/LandingPage';
 import TermsPage from './components/TermsPage'; 
 import PrivacyPage from './components/PrivacyPage'; 
+import MarketplacePage from './components/MarketplacePage';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
         <AuthProvider>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/marketplace" element={<MarketplacePage />} />
             <Route path="/dashboard/*" element={
               <ProtectedRoute>
                 <MainApp />

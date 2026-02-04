@@ -9,6 +9,7 @@ import DealAnalysis from './DealAnalysis';
 import { fetchPropertyData } from '../services/rencastService';
 import { analyzeDeal } from '../services/geminiService';
 import { decrementUserCredits } from '../services/userService';
+import { calculateDealScore } from '../utils/calculateDealScore';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../hooks/useSubscription';
 import { functions, db, storage } from '../firebaseConfig'; // Added storage
@@ -53,7 +54,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
   const { isPro, credits } = useSubscription();
   const [userProfile, setUserProfile] = useState(null);
   const [formData, setFormData] = useState({
-    address: '', price: '', arv: '', rehab: '', rent: '', sqft: '', bedrooms: '', bathrooms: '', imageUrls: [], notes: '', aiAnalysis: null,
+    address: '', price: '', arv: '', rehab: '', rent: '', sqft: '', bedrooms: '', bathrooms: '', yearBuilt: '', imageUrls: [], notes: '', aiAnalysis: null,
     sellerName: '', sellerPhone: '', sellerEmail: '', leadSource: 'Off-Market', status: 'New Lead',
     lat: null, lng: null,
     // New Fields
@@ -185,6 +186,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
         sqft: initialData.sqft || '',
         bedrooms: initialData.bedrooms || '',
         bathrooms: initialData.bathrooms || '',
+        yearBuilt: initialData.yearBuilt || '',
         imageUrls: initialData.imageUrls || [],
         notes: initialData.notes || '',
         aiAnalysis: initialData.aiAnalysis || null,
@@ -197,7 +199,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
         lng: initialData.lng || null,
         propertyType: initialData.propertyType || 'Single Family',
         lotSqft: initialData.lotSqft || '',
-        hasPool: initialData.hasPool ? 'true' : 'false',
+        hasPool: (initialData.hasPool === true || initialData.hasPool === 'true') ? 'true' : 'false',
         occupancy: initialData.occupancy || 'Vacant',
         contractPrice: initialData.contractPrice || '',
         assignmentFee: initialData.assignmentFee || '',
@@ -222,7 +224,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
       setComps(initialData.comps || []);
     } else {
       setFormData({
-        address: '', price: '', arv: '', rehab: '', rent: '', sqft: '', bedrooms: '', bathrooms: '', imageUrls: [], notes: '', aiAnalysis: null,
+        address: '', price: '', arv: '', rehab: '', rent: '', sqft: '', bedrooms: '', bathrooms: '', yearBuilt: '', imageUrls: [], notes: '', aiAnalysis: null,
         sellerName: '', sellerPhone: '', sellerEmail: '', leadSource: 'Off-Market', status: 'New Lead',
         lat: null, lng: null,
         propertyType: 'Single Family', lotSqft: '', hasPool: 'false', occupancy: 'Vacant',
@@ -329,6 +331,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
         updates.sqft = rencastData.data.sqft || formData.sqft;
         updates.bedrooms = rencastData.data.bedrooms || formData.bedrooms;
         updates.bathrooms = rencastData.data.bathrooms || formData.bathrooms;
+        updates.yearBuilt = rencastData.data.yearBuilt || formData.yearBuilt;
         updates.lat = rencastData.data.latitude;
         updates.lng = rencastData.data.longitude;
         
@@ -478,12 +481,23 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
     let finalStatus = formData.status;
     let proofUrl = null;
 
+    // Calculate score using standard utility to ensure consistency with backend
+    const { score: calculatedScore } = calculateDealScore({
+        price: formData.price,
+        arv: formData.arv,
+        rehab: formData.rehab,
+        rent: formData.rent,
+        hasPool: formData.hasPool
+    });
+
     if (postToMarketplace) {
-        // VIP Check (Score > 75)
-        const score = formData.aiAnalysis?.gemini?.score || 0; // Or calculate if needed
-        if (score > 75) {
+        // VIP Check (Score >= 84)
+        // Use the calculated score if AI score is missing, or prefer calculated for consistency
+        const scoreToCheck = calculatedScore || formData.aiAnalysis?.gemini?.score || 0;
+        
+        if (scoreToCheck >= 84) {
             if (!proofFile && !initialData?.proofOfContractPath) {
-                alert("VIP Deals (Score > 75) require Proof of Contract to be posted to the Marketplace.");
+                alert(`VIP Deals (Score ${scoreToCheck} >= 84) require Proof of Contract to be posted to the Marketplace.`);
                 return;
             }
             finalStatus = 'Pending Verification';
@@ -526,17 +540,24 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
       finalFormData.imageUrls = [...finalFormData.imageUrls, tempImageUrl];
     }
 
-    if (initialData) {
-      onUpdate(initialData.id, finalFormData, postToMarketplace);
-    } else {
-      onAdd(finalFormData, postToMarketplace);
+    try {
+        if (initialData) {
+          console.log("Updating deal...", finalFormData);
+          await onUpdate(initialData.id, finalFormData, postToMarketplace);
+        } else {
+          console.log("Adding new deal... PostToMarketplace:", postToMarketplace, "Score:", finalFormData.dealScore);
+          await onAdd(finalFormData, postToMarketplace);
+        }
+        setTempImageUrl('');
+        setNewComp({ address: '', soldPrice: '', link: '' });
+        setComps([]);
+        setPostToMarketplace(false);
+        setProofFile(null);
+        onClose();
+    } catch (error) {
+        console.error("Failed to save deal:", error);
+        alert("Failed to save deal. Check console for details.");
     }
-    setTempImageUrl('');
-    setNewComp({ address: '', soldPrice: '', link: '' });
-    setComps([]);
-    setPostToMarketplace(false);
-    setProofFile(null);
-    onClose();
   };
 
   const modalTitle = initialData ? "Edit Analysis" : "Analyze New Deal";
@@ -908,16 +929,26 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
                  prefix="$" 
                  disabled={isAssignment && !isAgentMode} 
                />
-               <InputField label="Rehab Est." type="number" value={formData.rehab} onChange={v => setFormData({...formData, rehab: v})} prefix="$" />
+               <InputField 
+                 label={isAgentMode ? "Renovation Budget" : "Rehab Est."} 
+                 type="number" 
+                 value={formData.rehab} 
+                 onChange={v => setFormData({...formData, rehab: v})} 
+                 prefix="$" 
+               />
             </div>
             <div className="grid grid-cols-2 gap-4">
                <InputField label="ARV" type="number" value={formData.arv} onChange={v => setFormData({...formData, arv: v})} prefix="$" />
                <InputField label="Est. Rent" type="number" value={formData.rent} onChange={v => setFormData({...formData, rent: v})} prefix="$" />
             </div>
-            <div className="grid grid-cols-3 gap-4">
-              <InputField label="Bedrooms" type="number" value={formData.bedrooms} onChange={v => setFormData({...formData, bedrooms: v})} />
-              <InputField label="Bathrooms" type="number" value={formData.bathrooms} onChange={v => setFormData({...formData, bathrooms: v})} />
-              <div>
+            <div className="grid grid-cols-2 gap-4">
+               <InputField label="Bedrooms" type="number" value={formData.bedrooms} onChange={v => setFormData({...formData, bedrooms: v})} />
+               <InputField label="Bathrooms" type="number" value={formData.bathrooms} onChange={v => setFormData({...formData, bathrooms: v})} />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+               <InputField label="Year Built" type="number" value={formData.yearBuilt} onChange={v => setFormData({...formData, yearBuilt: v})} placeholder="1995" />
+               <div>
                   <label className="block text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider mb-1 font-semibold">Pool?</label>
                   <select
                       value={formData.hasPool}
@@ -1054,6 +1085,7 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
                       className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
                     >
                       <option value="New Lead">New Lead</option>
+                      <option value="Contacted">Contacted</option>
                       <option value="Analyzing">Analyzing</option>
                       <option value="Offer Made">Offer Made</option>
                       <option value="Under Contract">Under Contract</option>
@@ -1120,19 +1152,23 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
                         <label htmlFor="postToMarketplace" className="font-bold text-slate-900 dark:text-white cursor-pointer select-none">
                             Post to Marketplace?
                         </label>
-                        <p className="text-xs text-slate-500">Visible to other investors. High-scoring deals require verification.</p>
+                        <p className="text-xs text-slate-500">Visible to other investors. 
+                            Score: <span className="font-mono font-bold">
+                                {calculateDealScore({ price: formData.price, arv: formData.arv, rehab: formData.rehab, rent: formData.rent, hasPool: formData.hasPool }).score}
+                            </span>
+                        </p>
                     </div>
                 </div>
 
                 {postToMarketplace && (
                     <div className="animate-fade-in pl-8 border-l-2 border-emerald-500/30">
-                        {(formData.aiAnalysis?.gemini?.score > 75) ? (
+                        {(calculateDealScore({ price: formData.price, arv: formData.arv, rehab: formData.rehab, rent: formData.rent, hasPool: formData.hasPool }).score >= 84) ? (
                             <div className="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-200 dark:border-amber-500/30">
                                 <h5 className="text-amber-800 dark:text-amber-400 font-bold text-sm flex items-center gap-2">
                                     <ShieldCheck size={16} /> Verification Required
                                 </h5>
                                 <p className="text-xs text-amber-700 dark:text-amber-300 mt-1 mb-3">
-                                    This deal has a high score ({formData.aiAnalysis?.gemini?.score}). To list it as a VIP First Look deal, you must upload proof of contract.
+                                    This deal has a high score ({calculateDealScore({ price: formData.price, arv: formData.arv, rehab: formData.rehab, rent: formData.rent, hasPool: formData.hasPool }).score}). To list it as a VIP First Look deal, you must upload proof of contract.
                                 </p>
                                 <label className="block text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider mb-1 font-semibold">
                                     Upload Contract (PDF/Image)

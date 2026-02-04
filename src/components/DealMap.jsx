@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Layers } from 'lucide-react';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebaseConfig';
 import { useTheme } from '../context/ThemeContext';
@@ -100,6 +100,8 @@ const darkMapStyle = [
 
 const lightMapStyle = []; // Default Google Maps Light Style
 
+const libraries = ['places'];
+
 // Helper to geocode address (Cloud Function -> Client Fallback)
 const geocodeAddress = async (address) => {
   // 1. Try Cloud Function (Secure)
@@ -142,7 +144,7 @@ const DealMap = ({ deals, onSelectDeal, hoveredDealId }) => {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-    libraries: ['places']
+    libraries
   });
 
   const { theme } = useTheme();
@@ -150,6 +152,7 @@ const DealMap = ({ deals, onSelectDeal, hoveredDealId }) => {
   const [activeMarker, setActiveMarker] = useState(null);
   const [geocodedDeals, setGeocodedDeals] = useState([]);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  const [mapTypeId, setMapTypeId] = useState('roadmap');
   const mapRef = useRef(null);
 
   const mapOptions = {
@@ -158,7 +161,11 @@ const DealMap = ({ deals, onSelectDeal, hoveredDealId }) => {
     streetViewControl: true,
     mapTypeControl: false,
     fullscreenControl: false,
-    styles: theme === 'dark' ? darkMapStyle : lightMapStyle,
+    styles: mapTypeId === 'roadmap' && theme === 'dark' ? darkMapStyle : lightMapStyle,
+  };
+
+  const toggleMapType = () => {
+    setMapTypeId(prev => prev === 'roadmap' ? 'hybrid' : 'roadmap');
   };
 
   const onLoad = useCallback((map) => {
@@ -256,6 +263,18 @@ const DealMap = ({ deals, onSelectDeal, hoveredDealId }) => {
 
   return (
     <div className="h-full w-full relative">
+      {/* Map Type Toggle */}
+      <div className="absolute top-4 right-12 z-10">
+          <button 
+            onClick={toggleMapType}
+            className="bg-white dark:bg-slate-800 p-2.5 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center gap-2 font-bold text-xs"
+            title="Toggle Satellite View"
+          >
+            <Layers size={18} className={mapTypeId === 'hybrid' ? 'text-emerald-500' : 'text-slate-400'} />
+            <span className="hidden sm:inline">{mapTypeId === 'hybrid' ? 'Satellite' : 'Map'}</span>
+          </button>
+      </div>
+
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={defaultCenter}
@@ -263,7 +282,7 @@ const DealMap = ({ deals, onSelectDeal, hoveredDealId }) => {
         onLoad={onLoad}
         onUnmount={onUnmount}
         options={mapOptions}
-        mapTypeId="roadmap"
+        mapTypeId={mapTypeId}
       >
         {geocodedDeals.map((deal) => {
               if (!deal.lat || !deal.lng) return null;

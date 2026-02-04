@@ -46,6 +46,11 @@ export default defineConfig({
         target: 'http://127.0.0.1:9099',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/firebase-auth-emulator/, '')
+      },
+      // Proxy Firebase Functions
+      '/web-app-30504': {
+        target: 'http://127.0.0.1:5001',
+        changeOrigin: true
       }
     }
   },

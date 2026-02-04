@@ -57,6 +57,8 @@ export const createUserProfile = async (uid, userData) => {
     joinedAt: serverTimestamp(),
     subscriptionTier: 'free',
     credits: 3, // Initial free credits
+    isVerified: false, // Default to unverified
+    hasOnboarded: false,
   };
 
   try {
@@ -64,6 +66,23 @@ export const createUserProfile = async (uid, userData) => {
     console.log("✅ DEBUG: User profile created successfully");
   } catch (error) {
     console.error("❌ DEBUG: Error creating user profile:", error);
+    throw error;
+  }
+};
+
+/**
+ * Updates any field in the user's profile.
+ */
+export const updateUserProfile = async (uid, data) => {
+  if (!uid) return;
+  const userRef = doc(db, 'artifacts', appId, 'profiles', uid);
+  try {
+    await updateDoc(userRef, {
+        ...data,
+        updatedAt: serverTimestamp()
+    });
+  } catch (error) {
+    console.error("Error updating user profile:", error);
     throw error;
   }
 };

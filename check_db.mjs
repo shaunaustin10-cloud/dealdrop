@@ -10,7 +10,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // In Node.js, we need to tell it where the emulator is
-process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
+process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8081';
 
 const appId = 'default-app-id';
 

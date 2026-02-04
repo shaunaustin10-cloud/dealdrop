@@ -14,6 +14,7 @@ const PRO_IDS = [
 const BUSINESS_IDS = [
     import.meta.env.VITE_STRIPE_PRICE_ID_BUSINESS_MONTHLY,
     import.meta.env.VITE_STRIPE_PRICE_ID_BUSINESS_ANNUAL,
+    'price_1SoZ0KKhuaxmxrluGuHVwAsB', // Founding Member VIP
     'price_business_monthly_placeholder',
     'price_business_annual_placeholder'
 ].filter(Boolean);
@@ -107,6 +108,7 @@ export const useSubscription = () => {
 
   return { 
     isPro, // True if Pro or Business (Unlimited)
+    isVIP: planType === 'pro' || planType === 'business',
     planType, // 'free', 'lite', 'pro', 'business'
     subscription, 
     credits: user?.credits ?? 0, 

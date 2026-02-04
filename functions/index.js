@@ -1,10 +1,48 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { initializeApp } = require("firebase-admin/app");
+const { getFirestore } = require("firebase-admin/firestore");
 const logger = require("firebase-functions/logger");
+const { onPaymentSuccess } = require("./paymentHooks");
 
 initializeApp();
 
+exports.onPaymentSuccess = onPaymentSuccess;
+
 const BASE_URL = 'https://api.rentcast.io/v1';
+
+/**
+ * MOCK Stripe Checkout for Local/Emulator Testing.
+ * Listens for new checkout sessions and immediately provides a success URL.
+ * This simulates the behavior of the "Run Payments with Stripe" extension.
+ */
+exports.mockStripeCheckout = onDocumentCreated("customers/{uid}/checkout_sessions/{id}", async (event) => {
+    const snap = event.data;
+    if (!snap) return;
+
+    const data = snap.data();
+    
+    // Only run this mock if it's NOT a real Stripe session (check for existing url/error)
+    if (data.url || data.error) return;
+
+    logger.info(`[MOCK] Processing checkout session for user ${event.params.uid}`);
+
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Construct a fake success URL pointing back to the app
+    // We try to guess the origin or fallback to localhost
+    // Ideally, the client sends 'success_url', we can just use that.
+    const successUrl = data.success_url || "http://localhost:5173/dashboard?success=true";
+
+    // Write back to the document
+    return snap.ref.update({
+        url: successUrl,
+        mode: data.mode,
+        status: 'open', // Stripe status
+        created: Date.now()
+    });
+});
 
 /**
  * Secure Proxy for RentCast API.

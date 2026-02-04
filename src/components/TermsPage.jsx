@@ -6,7 +6,7 @@ export default function TermsPage() {
       <div className="max-w-4xl mx-auto bg-slate-900 border border-slate-800 rounded-lg shadow-xl p-8 md:p-12">
         <h1 className="text-4xl font-bold text-white mb-6">Terms of Service</h1>
         <p className="text-slate-400 mb-4">
-          Welcome to REI Deal Drop! These Terms of Service (&quot;Terms&quot;) govern your use of our website and services.
+          Welcome to NextHome Mission to Serve! These Terms of Service (&quot;Terms&quot;) govern your use of our website and services.
           By accessing or using our services, you agree to be bound by these Terms and our Privacy Policy.
           If you do not agree to these Terms, please do not use our services.
         </p>
@@ -37,7 +37,7 @@ export default function TermsPage() {
 
         <h2 className="text-2xl font-semibold text-white mb-3 mt-8">5. Intellectual Property</h2>
         <p className="text-slate-400 mb-4">
-          The Service and its original content, features and functionality are and will remain the exclusive property of REI Deal Drop and its licensors.
+          The Service and its original content, features and functionality are and will remain the exclusive property of NextHome Mission to Serve and its licensors.
         </p>
 
         <h2 className="text-2xl font-semibold text-white mb-3 mt-8">6. Termination</h2>

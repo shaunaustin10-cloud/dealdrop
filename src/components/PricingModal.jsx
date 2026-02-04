@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { Check, X, Zap, Briefcase, User } from 'lucide-react';
+import { Check, X, Zap, Briefcase, Star } from 'lucide-react';
 import { createCheckoutSession } from '../services/stripeService';
 import { useAuth } from '../context/AuthContext';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 
-// REPLACE THESE WITH ACTUAL STRIPE PRICE IDS
-const LITE_PRICE_ID_MONTHLY = import.meta.env.VITE_STRIPE_PRICE_ID_LITE_MONTHLY || 'price_lite_monthly_placeholder';
-const LITE_PRICE_ID_ANNUAL = import.meta.env.VITE_STRIPE_PRICE_ID_LITE_ANNUAL || 'price_lite_annual_placeholder';
+const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
+
+// PRICE IDS
+const FOUNDING_PRICE_ID = 'price_1SoZ0KKhuaxmxrluGuHVwAsB';
 
 const PRO_PRICE_ID_MONTHLY = import.meta.env.VITE_STRIPE_PRICE_ID_PRO_MONTHLY || 'price_pro_monthly_placeholder'; 
 const PRO_PRICE_ID_ANNUAL = import.meta.env.VITE_STRIPE_PRICE_ID_PRO_ANNUAL || 'price_pro_annual_placeholder';
@@ -19,10 +22,27 @@ export default function PricingModal({ isOpen, onClose }) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' or 'annual'
+  const [foundingCount, setFoundingCount] = useState(42); // Default fallback
+
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    // Listen to real-time member count (simulated or real doc)
+    const statsRef = doc(db, 'artifacts', appId, 'stats', 'subscriptions');
+    const unsub = onSnapshot(statsRef, (snap) => {
+        if (snap.exists()) {
+            setFoundingCount(snap.data().foundingMemberCount || 0);
+        }
+    }, (err) => {
+        console.warn("Could not fetch real-time count, using fallback", err);
+    });
+    
+    return () => unsub();
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleUpgrade = async (priceId, planName) => {
+  const handleUpgrade = async (priceId, planName, trialDays = 0) => {
     setIsLoading(true);
     setSelectedPlan(planName);
     try {
@@ -32,7 +52,7 @@ export default function PricingModal({ isOpen, onClose }) {
           setSelectedPlan(null);
           return;
       }
-      await createCheckoutSession(user.uid, priceId);
+      await createCheckoutSession(user.uid, priceId, 'subscription', {}, trialDays);
     } catch (error) {
       console.error("Checkout failed:", error);
       alert("Failed to start checkout: " + error.message);
@@ -72,46 +92,79 @@ export default function PricingModal({ isOpen, onClose }) {
 
         {/* Content */}
         <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar">
+          
+          {/* Urgent Banner for Founding Members */}
+          {foundingCount < 100 && (
+              <div className="mb-10 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 animate-pulse-slow">
+                  <div className="flex items-center gap-4">
+                      <div className="bg-amber-500 p-3 rounded-full text-white shadow-lg shadow-amber-900/40">
+                          <Star size={24} fill="currentColor" />
+                      </div>
+                      <div>
+                          <h3 className="text-xl font-black text-white uppercase tracking-tight">Founding Member Special</h3>
+                          <p className="text-amber-200/80 text-sm">Join the first 100 investors for lifetime VIP pricing + 7-day free trial.</p>
+                      </div>
+                  </div>
+                  <div className="w-full md:w-64 space-y-2">
+                      <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-amber-500">
+                          <span>{foundingCount}/100 Spots Taken</span>
+                          <span>{100 - foundingCount} Left</span>
+                      </div>
+                      <div className="h-3 bg-slate-800 rounded-full overflow-hidden border border-amber-500/20">
+                          <div 
+                            className="h-full bg-gradient-to-r from-amber-600 to-amber-400 transition-all duration-1000 shadow-[0_0_10px_rgba(245,158,11,0.5)]" 
+                            style={{ width: `${foundingCount}%` }}
+                          ></div>
+                      </div>
+                  </div>
+              </div>
+          )}
+
           <div className="grid md:grid-cols-3 gap-6">
 
-            {/* Lite Plan */}
-            <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 flex flex-col relative hover:border-slate-500 transition-colors">
+            {/* Founding Member Plan (Replacing Lite) */}
+            <div className={`border-2 rounded-2xl p-6 flex flex-col relative transition-all duration-500 ${foundingCount < 100 ? 'bg-amber-500/5 border-amber-500 shadow-2xl shadow-amber-900/10' : 'bg-slate-800/50 border-slate-700 opacity-60 grayscale'}`}>
+              {foundingCount < 100 && (
+                  <div className="absolute top-0 right-6 -translate-y-1/2 bg-amber-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
+                    Limited Offer
+                  </div>
+              )}
               <div className="mb-4">
-                <div className="w-12 h-12 bg-slate-700 rounded-xl flex items-center justify-center mb-4 text-slate-300">
-                  <User size={24} />
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${foundingCount < 100 ? 'bg-amber-500 text-white' : 'bg-slate-700 text-slate-400'}`}>
+                  <Star size={24} />
                 </div>
-                <h3 className="text-xl font-bold text-white">Lite Investor</h3>
+                <h3 className="text-xl font-bold text-white">Founding VIP</h3>
                 <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-3xl font-bold text-white">
-                    {billingCycle === 'annual' ? '$15' : '$19'}
-                  </span>
+                  <span className="text-3xl font-black text-white">$19</span>
                   <span className="text-slate-400">/mo</span>
+                  <span className="ml-2 text-xs text-slate-500 line-through">$49/mo</span>
                 </div>
-                <p className="text-sm text-slate-400 mt-2">
-                    {billingCycle === 'annual' ? 'Billed $180 yearly' : 'Billed monthly'}
+                <p className="text-xs text-amber-500 font-bold mt-2 uppercase tracking-tight">
+                    {foundingCount < 100 ? 'Includes 7-Day Free Trial' : 'Offer Expired'}
                 </p>
               </div>
 
               <ul className="space-y-3 mb-8 flex-1">
                 {[
-                  "15 AI Analyses / Month",
-                  "Standard Reports",
-                  "Comparable Sales Data",
-                  "Basic Map Features"
+                  "Unlimited AI Analysis",
+                  "VIP First Look Access (>=84)",
+                  "7-Day FREE Trial",
+                  "Locked-in $19/mo for Life",
+                  "Early Access to Features"
                 ].map((feature, i) => (
                   <li key={i} className="flex items-center gap-3 text-sm text-slate-300">
-                    <Check size={16} className="text-slate-500 flex-shrink-0" />
+                    <Check size={16} className={`${foundingCount < 100 ? 'text-amber-500' : 'text-slate-600'} flex-shrink-0`} />
                     {feature}
                   </li>
                 ))}
               </ul>
 
               <button
-                onClick={() => handleUpgrade(billingCycle === 'annual' ? LITE_PRICE_ID_ANNUAL : LITE_PRICE_ID_MONTHLY, 'Lite')}
-                disabled={isLoading}
-                className="w-full py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-all disabled:opacity-50"
+                onClick={() => handleUpgrade(FOUNDING_PRICE_ID, 'Founding VIP', 7)}
+                disabled={isLoading || foundingCount >= 100}
+                className={`w-full py-3 font-black rounded-xl transition-all shadow-lg uppercase tracking-wider text-sm ${foundingCount < 100 ? 'bg-amber-500 hover:bg-amber-400 text-white shadow-amber-900/40' : 'bg-slate-700 text-slate-500 cursor-not-allowed'}`}
               >
-                {isLoading && selectedPlan === 'Lite' ? 'Processing...' : 'Start Lite'}
+                {isLoading && selectedPlan === 'Founding VIP' ? 'Processing...' : (foundingCount < 100 ? 'Claim Founding Spot' : 'Offer Expired')}
               </button>
             </div>
             
@@ -139,10 +192,10 @@ export default function PricingModal({ isOpen, onClose }) {
               <ul className="space-y-3 mb-8 flex-1">
                 {[
                   "Unlimited* AI Analysis",
+                  "VIP First Look Access (>=84 Score)",
                   "Advanced Market Data (RentCast)",
                   "PDF Report Export",
                   "Street View & Maps",
-                  "Priority Cache Access"
                 ].map((feature, i) => (
                   <li key={i} className="flex items-center gap-3 text-sm text-white font-medium">
                     <Check size={16} className="text-emerald-400 flex-shrink-0" />
@@ -182,10 +235,10 @@ export default function PricingModal({ isOpen, onClose }) {
               <ul className="space-y-3 mb-8 flex-1">
                 {[
                   "Everything in Pro",
+                  "VIP First Look Access",
                   "White-Label Reports (Custom Logo)",
                   "Team Access (3 Seats)",
                   "Priority Support",
-                  "Dedicated Account Manager"
                 ].map((feature, i) => (
                   <li key={i} className="flex items-center gap-3 text-sm text-slate-300">
                     <Check size={16} className="text-blue-500 flex-shrink-0" />

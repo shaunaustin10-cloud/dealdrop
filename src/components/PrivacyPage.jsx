@@ -6,7 +6,7 @@ export default function PrivacyPage() {
       <div className="max-w-4xl mx-auto bg-slate-900 border border-slate-800 rounded-lg shadow-xl p-8 md:p-12">
         <h1 className="text-4xl font-bold text-white mb-6">Privacy Policy</h1>
         <p className="text-slate-400 mb-4">
-          Your privacy is important to us. This Privacy Policy explains how REI Deal Drop collects,
+          Your privacy is important to us. This Privacy Policy explains how NextHome Mission to Serve collects,
           uses, and protects your personal information when you use our website and services.
         </p>
 
