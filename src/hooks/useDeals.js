@@ -268,6 +268,34 @@ export const useDeals = () => {
     }
   };
 
+  const getDealById = async (id) => {
+    // 1. Try Public Collection
+    try {
+      const publicRef = doc(db, 'artifacts', appId, 'publicDeals', id);
+      const publicSnap = await getDoc(publicRef);
+      if (publicSnap.exists()) {
+        return { id: publicSnap.id, ...publicSnap.data(), isPublic: true };
+      }
+    } catch (e) {
+      console.warn("Public fetch failed", e);
+    }
+
+    // 2. Try Private Collection if user is logged in
+    if (user) {
+      try {
+        const privateRef = doc(db, 'artifacts', appId, 'users', user.uid, 'deals', id);
+        const privateSnap = await getDoc(privateRef);
+        if (privateSnap.exists()) {
+          return { id: privateSnap.id, ...privateSnap.data(), isPublic: false };
+        }
+      } catch (e) {
+        console.warn("Private fetch failed", e);
+      }
+    }
+
+    return null;
+  };
+
   const publishDeal = async (dealData) => {
       if (!user) throw new Error("User must be logged in to publish a deal.");
       
@@ -313,6 +341,7 @@ export const useDeals = () => {
     addDeal,
     updateDeal,
     deleteDeal,
+    getDealById,
     publishDeal
   };
 };

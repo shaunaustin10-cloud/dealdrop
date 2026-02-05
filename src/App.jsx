@@ -9,6 +9,7 @@ import LandingPage from './components/LandingPage';
 import TermsPage from './components/TermsPage'; 
 import PrivacyPage from './components/PrivacyPage'; 
 import MarketplacePage from './components/MarketplacePage';
+import PublicDealPage from './components/PublicDealPage';
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/marketplace" element={<MarketplacePage />} />
+            <Route path="/deal/:id" element={<PublicDealPage />} />
             <Route path="/dashboard/*" element={
               <ProtectedRoute>
                 <MainApp />

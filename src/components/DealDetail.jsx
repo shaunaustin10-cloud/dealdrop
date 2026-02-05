@@ -17,7 +17,9 @@ import {
   Hammer,
   Trash2,
   Lock,
-  Phone
+  Phone,
+  Link2,
+  Check
 } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
@@ -68,11 +70,20 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade, isPublic }) => 
   const [downloading, setDownloading] = useState(false);
   const [buying, setBuying] = useState(false);
   const [contacting, setContacting] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Reset loader when active image changes
   useEffect(() => {
      // No-op
   }, [activeImage]);
+
+  const handleCopyLink = () => {
+    const url = `${window.location.origin}/deal/${deal.id}`;
+    navigator.clipboard.writeText(url).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   const handleMarkContacted = async () => {
     if (!isOwner) return;
@@ -209,6 +220,15 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade, isPublic }) => 
             >
               <Edit size={18} className="text-blue-500 dark:text-blue-400" />
               <span className="hidden sm:inline text-sm font-bold">Edit Analysis</span>
+            </button>
+
+            <button 
+              onClick={handleCopyLink}
+              className="flex items-center gap-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-3 py-2 md:px-4 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 shadow-sm"
+              title="Copy Preview Link"
+            >
+              {copied ? <Check size={18} className="text-emerald-500" /> : <Link2 size={18} className="text-indigo-500" />}
+              <span className="hidden sm:inline text-sm font-bold">{copied ? 'Copied!' : 'Copy Link'}</span>
             </button>
             
             <button 
