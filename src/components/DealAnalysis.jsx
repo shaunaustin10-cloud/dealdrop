@@ -62,7 +62,7 @@ const DealAnalysis = ({ deal }) => {
              </div>
         </div>
 
-        {/* Market Data Section (RenCast) */}
+        {/* Market Data Section (RenCast + Manual Comps) */}
         <div className="bg-white dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 h-full flex flex-col shadow-sm">
              <div className="flex justify-between items-start mb-3">
                 <h4 className="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase flex items-center gap-2">
@@ -77,60 +77,75 @@ const DealAnalysis = ({ deal }) => {
                 )}
              </div>
 
-             {market ? (
+             {(market || (deal.comps && deal.comps.length > 0)) ? (
                 <div className="space-y-4 flex-1 overflow-y-auto pr-1 max-h-[300px] custom-scrollbar">
                     {/* ARV Section */}
-                    <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700/50">
-                        <div className="flex justify-between items-center mb-1">
-                            <span className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold">Verified ARV</span>
-                            <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold text-lg">
-                                ${market.arv?.toLocaleString() || 0}
-                            </span>
+                    {market && (
+                        <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold">Verified ARV</span>
+                                <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold text-lg">
+                                    ${market.arv?.toLocaleString() || 0}
+                                </span>
+                            </div>
+                            {market.arvRange && (
+                                <div className="flex justify-between items-center text-xs text-slate-400 dark:text-slate-500">
+                                    <span>Range:</span>
+                                    <span>${market.arvRange.low?.toLocaleString()} - ${market.arvRange.high?.toLocaleString()}</span>
+                                </div>
+                            )}
                         </div>
-                        {market.arvRange && (
-                             <div className="flex justify-between items-center text-xs text-slate-400 dark:text-slate-500">
-                                <span>Range:</span>
-                                <span>${market.arvRange.low?.toLocaleString()} - ${market.arvRange.high?.toLocaleString()}</span>
-                             </div>
-                        )}
-                    </div>
+                    )}
 
                     {/* Rent Section */}
-                    <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700/50">
-                        <div className="flex justify-between items-center mb-1">
-                            <span className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold">Rent Est.</span>
-                            <span className="text-blue-600 dark:text-blue-400 font-mono font-bold text-lg">
-                                ${market.rentEstimate?.toLocaleString() || 0}/mo
-                            </span>
+                    {market && (
+                        <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold">Rent Est.</span>
+                                <span className="text-blue-600 dark:text-blue-400 font-mono font-bold text-lg">
+                                    ${market.rentEstimate?.toLocaleString() || 0}/mo
+                                </span>
+                            </div>
+                            {market.rentRange && (
+                                <div className="flex justify-between items-center text-xs text-slate-400 dark:text-slate-500">
+                                    <span>Range:</span>
+                                    <span>${market.rentRange.low?.toLocaleString()} - ${market.rentRange.high?.toLocaleString()}/mo</span>
+                                </div>
+                            )}
                         </div>
-                        {market.rentRange && (
-                             <div className="flex justify-between items-center text-xs text-slate-400 dark:text-slate-500">
-                                <span>Range:</span>
-                                <span>${market.rentRange.low?.toLocaleString()} - ${market.rentRange.high?.toLocaleString()}/mo</span>
-                             </div>
-                        )}
-                    </div>
+                    )}
                     
                     {/* Comps Section */}
                     <div className="space-y-3">
-                        {market.comps && market.comps.length > 0 && (
-                            <div>
-                                <h5 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Recent Sales</h5>
-                                <div className="space-y-1.5">
-                                    {market.comps.map((comp, i) => (
-                                        <div key={i} className="flex justify-between items-center text-xs bg-slate-50 dark:bg-slate-800/30 p-1.5 rounded border border-slate-100 dark:border-slate-700/30">
-                                            <div className="flex flex-col truncate max-w-[65%]">
-                                                <span className="text-slate-700 dark:text-slate-300 truncate" title={comp.address}>{comp.address}</span>
-                                                <span className="text-[10px] text-slate-400 dark:text-slate-500">{comp.distance} • {comp.date ? comp.date.split('T')[0] : 'N/A'}</span>
-                                            </div>
-                                            <span className="font-mono text-emerald-600 dark:text-emerald-400/90">${comp.price.toLocaleString()}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                        {(() => {
+                            const allComps = [...(deal.comps || []), ...(market?.comps || [])]
+                                .filter((v, i, a) => a.findIndex(t => t.address === v.address) === i);
+                            
+                            if (allComps.length === 0) return null;
 
-                        {market.rentComps && market.rentComps.length > 0 && (
+                            return (
+                                <div>
+                                    <h5 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Recent Sales</h5>
+                                    <div className="space-y-1.5">
+                                        {allComps.map((comp, i) => (
+                                            <div key={i} className="flex justify-between items-center text-xs bg-slate-50 dark:bg-slate-800/30 p-1.5 rounded border border-slate-100 dark:border-slate-700/30">
+                                                <div className="flex flex-col truncate max-w-[65%]">
+                                                    <span className="text-slate-700 dark:text-slate-300 truncate" title={comp.address}>{comp.address}</span>
+                                                    <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                                                        {comp.distance || 'Manual'} • {comp.date ? comp.date.split('T')[0] : 'N/A'}
+                                                    </span>
+                                                </div>
+                                                <span className="font-mono text-emerald-600 dark:text-emerald-400/90">
+                                                    ${(Number(comp.price) || Number(comp.soldPrice) || 0).toLocaleString()}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
+                        {market?.rentComps && market.rentComps.length > 0 && (
                             <div>
                                 <h5 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2 border-t border-slate-100 dark:border-slate-700/50 pt-2">Rental Comps</h5>
                                 <div className="space-y-1.5">
@@ -152,7 +167,7 @@ const DealAnalysis = ({ deal }) => {
                 <div className="flex-1 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 text-xs text-center p-4">
                     <Activity size={24} className="mb-2 opacity-20" />
                     <p>No market data fetched yet.</p>
-                    <p>Click &quot;Fetch Market Data&quot; above.</p>
+                    <p>Click &quot;Fetch Market Data&quot; above or enter manual comps.</p>
                 </div>
              )}
         </div>

@@ -195,7 +195,35 @@ export const generateDealReport = async (deal, userProfile = null, overriddenHer
     }
   });
 
-  y = doc.lastAutoTable.finalY + 15;
+  y = doc.lastAutoTable.finalY + 10;
+
+  // --- DEAL NOTES ---
+  if (deal.notes) {
+      doc.setFontSize(12);
+      doc.setFont('times', 'bold');
+      doc.setTextColor(...slate);
+      doc.text("Deal Notes", margin, y);
+      y += 6;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+      
+      const splitNotes = doc.splitTextToSize(deal.notes, contentWidth);
+      // Check if notes fit on current page, if not, move to a new page or just print what fits
+      if (y + (splitNotes.length * 5) > 280) {
+          doc.addPage();
+          y = 20;
+          doc.setFontSize(12);
+          doc.setFont('times', 'bold');
+          doc.text("Deal Notes (Continued)", margin, y);
+          y += 8;
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+      }
+      doc.text(splitNotes, margin, y);
+      y += (splitNotes.length * 5) + 10;
+  }
 
   // --- MARKET ANALYSIS & COMPS (Page 2) ---
   doc.addPage();
@@ -215,7 +243,7 @@ export const generateDealReport = async (deal, userProfile = null, overriddenHer
   // Dedup and sort
   comps = comps.filter((v,i,a)=>a.findIndex(t=>(t.address === v.address))===i);
 
-  const compData = comps.slice(0, 5).map(c => {
+  const compData = comps.slice(0, 10).map(c => {
       // Robust date formatting
       let displayDate = '-';
       if (c.date) {
@@ -233,7 +261,7 @@ export const generateDealReport = async (deal, userProfile = null, overriddenHer
           // Take only the primary address part (before the second comma or newline)
           (c.address || '').split('\n')[0].split(',').slice(0, 2).join(','),
           c.status || 'Sold',
-          `$${Number(c.price).toLocaleString()}`,
+          `$${Number(c.price || c.soldPrice || 0).toLocaleString()}`,
           displayDate
       ];
   });
