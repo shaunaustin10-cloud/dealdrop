@@ -181,18 +181,24 @@ export default function MainApp() {
               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </button>
 
-            {!subLoading && !isPro && (
+            {!subLoading && (
                <div className="flex items-center gap-3">
                  <div className="hidden sm:flex flex-col items-end leading-none mr-1">
-                    <span className="text-[10px] uppercase font-black tracking-widest text-slate-500">Free Credits</span>
-                    <span className="text-sm font-bold text-slate-900 dark:text-white">{user?.credits || 0} Remaining</span>
+                    <span className="text-[10px] uppercase font-black tracking-widest text-slate-500">
+                      {isPro ? 'Premium Access' : 'Free Credits'}
+                    </span>
+                    <span className="text-sm font-bold text-slate-900 dark:text-white">
+                      {isPro ? 'Unlimited' : (user?.credits || 0)} {isPro ? 'Analysis' : 'Remaining'}
+                    </span>
                  </div>
-                 <button 
-                   onClick={() => setShowPricingModal(true)}
-                   className="flex items-center gap-1 text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400 transition-all shadow-lg shadow-amber-900/20"
-                 >
-                   <Zap size={12} fill="currentColor" /> Upgrade
-                 </button>
+                 {!isPro && (
+                    <button 
+                      onClick={() => setShowPricingModal(true)}
+                      className="flex items-center gap-1 text-xs uppercase font-bold tracking-wider px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400 transition-all shadow-lg shadow-amber-900/20"
+                    >
+                      <Zap size={12} fill="currentColor" /> Upgrade
+                    </button>
+                 )}
                </div>
             )}
 
@@ -378,7 +384,15 @@ export default function MainApp() {
             <OnboardingModal />
       
             {/* Mobile Bottom Navigation */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-50 px-6 py-3 flex justify-around items-center backdrop-blur-md bg-white/80 dark:bg-slate-900/80">
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-50 px-4 py-3 flex justify-around items-center backdrop-blur-md bg-white/80 dark:bg-slate-900/80">
+               <Link 
+                 to="/" 
+                 className={`flex flex-col items-center gap-1 ${location.pathname === '/' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
+               >
+                  <Home size={20} />
+                  <span className="text-[10px] font-bold uppercase tracking-tighter">Home</span>
+               </Link>
+
                <Link 
                  to="/dashboard/pipeline" 
                  onClick={() => setSelectedDeal(null)}

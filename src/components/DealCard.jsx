@@ -108,6 +108,18 @@ const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
             }
           }}
         />
+        {/* Status Overlays */}
+        {deal.status === 'Under Contract' && (
+            <div className="absolute top-0 left-0 w-full bg-emerald-600/90 text-white text-[10px] font-black uppercase py-1 text-center tracking-widest z-20 shadow-lg">
+                Under Contract
+            </div>
+        )}
+        {deal.status === 'Closed' && (
+            <div className="absolute top-0 left-0 w-full bg-indigo-600/90 text-white text-[10px] font-black uppercase py-1 text-center tracking-widest z-20 shadow-lg">
+                Sold / Closed
+            </div>
+        )}
+
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent h-24"></div>
         <div className="absolute bottom-3 left-4 right-4">
            <div className="flex justify-between items-end">
@@ -124,6 +136,11 @@ const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
                        {deal.hasValidContract && (
                            <span className="bg-indigo-600 text-white backdrop-blur-md border border-indigo-400/50 text-[10px] font-black uppercase px-2 py-1 rounded inline-block tracking-wider shadow-lg">
                              WHOLESALE
+                           </span>
+                       )}
+                       {deal.status === 'Under Contract' && (
+                           <span className="bg-emerald-600 text-white backdrop-blur-md border border-white/20 text-[10px] font-black uppercase px-2 py-1 rounded inline-block tracking-wider shadow-lg animate-pulse-slow">
+                             UNDER CONTRACT
                            </span>
                        )}
                        {soldVerdict && (

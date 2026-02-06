@@ -24,6 +24,7 @@ const SkeletonCard = () => (
 const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
   const [sortBy, setSortBy] = useState(isPublic ? 'publishedAt' : 'createdAt');
   const [filterAddress, setFilterAddress] = useState('');
+  const [filterSource, setFilterSource] = useState('All');
   const [viewMode, setViewMode] = useState('list'); // 'map', 'list'
   const [hoveredDealId, setHoveredDealId] = useState(null);
   const [vipOnly, setVipOnly] = useState(false);
@@ -45,6 +46,16 @@ const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
         result = result.filter(deal => 
             deal.address && deal.address.toLowerCase().includes(searchLower)
         );
+    }
+
+    if (filterSource !== 'All') {
+        result = result.filter(deal => {
+            const source = deal.leadSource || 'Off-Market';
+            if (filterSource === 'MLS/Listed') {
+                return source === 'MLS' || source === 'Listed';
+            }
+            return source === filterSource;
+        });
     }
 
     if (vipOnly) {
@@ -120,6 +131,24 @@ const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
             <TrendingUp size={14} />
             VIP Only
           </button>
+
+          <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-700 w-full md:w-auto">
+            <span className="text-[10px] uppercase font-black text-slate-400 dark:text-slate-500 whitespace-nowrap">Source</span>
+            <select
+              value={filterSource}
+              onChange={(e) => setFilterSource(e.target.value)}
+              className="bg-transparent border-none text-slate-700 dark:text-slate-300 text-[10px] md:text-xs font-bold focus:ring-0 cursor-pointer w-full outline-none"
+            >
+              <option value="All" className="text-slate-900">All Sources</option>
+              <option value="Off-Market" className="text-slate-900">Off-Market</option>
+              <option value="MLS/Listed" className="text-slate-900">MLS / Listed</option>
+              <option value="Wholesaler" className="text-slate-900">Wholesaler</option>
+              <option value="Direct Mail" className="text-slate-900">Direct Mail</option>
+              <option value="Referral" className="text-slate-900">Referral</option>
+              <option value="Other" className="text-slate-900">Other</option>
+            </select>
+          </div>
+
           <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-700 w-full md:w-auto">
             <SlidersHorizontal size={14} className="text-slate-400" />
             <select

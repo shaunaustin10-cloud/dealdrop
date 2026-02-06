@@ -7,7 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 
 export default function PublicDealPage() {
-  const { id } = useParams();
+  const { id, uid } = useParams();
   const navigate = useNavigate();
   const { getDealById } = useDeals();
   const { user } = useAuth();
@@ -20,7 +20,7 @@ export default function PublicDealPage() {
   useEffect(() => {
     const fetchDeal = async () => {
       try {
-        const dealData = await getDealById(id);
+        const dealData = await getDealById(id, uid);
         if (dealData) {
           setDeal(dealData);
         } else {
@@ -34,7 +34,7 @@ export default function PublicDealPage() {
       }
     };
     fetchDeal();
-  }, [id, getDealById]);
+  }, [id, uid, getDealById]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-200 font-sans selection:bg-emerald-500/30 pb-20 transition-colors duration-300">

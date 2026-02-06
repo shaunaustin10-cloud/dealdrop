@@ -19,7 +19,8 @@ import {
   Lock,
   Phone,
   Link2,
-  Check
+  Check,
+  Share2
 } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
@@ -77,12 +78,56 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade, isPublic }) => 
      // No-op
   }, [activeImage]);
 
-  const handleCopyLink = () => {
-    const url = `${window.location.origin}/deal/${deal.id}`;
+  const handleCopyLink = async () => {
+    const creatorId = deal.createdBy || deal.sellerId || user?.uid;
+    const url = `${window.location.origin}/deal/${creatorId}/${deal.id}`;
+    
+    // Set shareable: true if not already set, so others can view via link
+    if (isOwner && !deal.shareable) {
+        try {
+            await updateDeal(deal.id, { ...deal, shareable: true });
+        } catch (e) {
+            console.error("Failed to set deal as shareable:", e);
+        }
+    }
+
     navigator.clipboard.writeText(url).then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     });
+  };
+
+  const handleShare = async () => {
+    const creatorId = deal.createdBy || deal.sellerId || user?.uid;
+    const url = `${window.location.origin}/deal/${creatorId}/${deal.id}`;
+    const title = `Check out this deal: ${formatAddress(deal.address, true)}`;
+    const text = `I found a real estate deal scoring ${deal.dealScore}/100. ARV: ${formatMoney(arv)}. View it here:`;
+
+    // Ensure shareable is true
+    if (isOwner && !deal.shareable) {
+        try {
+            await updateDeal(deal.id, { ...deal, shareable: true });
+        } catch (e) {
+            console.error("Failed to set deal as shareable:", e);
+        }
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title,
+          text: text,
+          url: url,
+        });
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('Error sharing:', err);
+          handleCopyLink(); // Fallback to copy link
+        }
+      }
+    } else {
+      handleCopyLink(); // Fallback for browsers that don't support Web Share API
+    }
   };
 
   const handleMarkContacted = async () => {
@@ -95,6 +140,24 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade, isPublic }) => 
         alert("Failed to update status.");
     } finally {
         setContacting(false);
+    }
+  };
+
+  const handleUpdateStatus = async (newStatus) => {
+    if (!isOwner) return;
+    let soldPrice = deal.soldPrice;
+    if (newStatus === 'Closed') {
+        const input = prompt("Enter final sold price:", deal.soldPrice || deal.price);
+        if (input === null) return;
+        soldPrice = Number(input) || deal.price;
+    }
+
+    try {
+        await updateDeal(deal.id, { ...deal, status: newStatus, soldPrice });
+        alert(`Deal status updated to ${newStatus}`);
+    } catch (error) {
+        console.error("Failed to update status:", error);
+        alert("Failed to update status.");
     }
   };
 
@@ -223,12 +286,12 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade, isPublic }) => 
             </button>
 
             <button 
-              onClick={handleCopyLink}
+              onClick={handleShare}
               className="flex items-center gap-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-3 py-2 md:px-4 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 shadow-sm"
-              title="Copy Preview Link"
+              title="Share Deal"
             >
-              {copied ? <Check size={18} className="text-emerald-500" /> : <Link2 size={18} className="text-indigo-500" />}
-              <span className="hidden sm:inline text-sm font-bold">{copied ? 'Copied!' : 'Copy Link'}</span>
+              {copied ? <Check size={18} className="text-emerald-500" /> : <Share2 size={18} className="text-indigo-500" />}
+              <span className="hidden sm:inline text-sm font-bold">{copied ? 'Copied!' : 'Share'}</span>
             </button>
             
             <button 
@@ -564,6 +627,37 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade, isPublic }) => 
                     <div>
                         <span className="text-slate-500 text-[10px] uppercase font-black tracking-widest block mb-1">Status</span>
                         <span className="text-slate-900 dark:text-white font-bold">{deal.status || 'New Lead'}</span>
+                        
+                        {isOwner && (
+                            <div className="flex flex-col gap-2 mt-4">
+                                {deal.status !== 'Under Contract' && deal.status !== 'Closed' && (
+                                    <button 
+                                        onClick={() => handleUpdateStatus('Under Contract')}
+                                        className="bg-emerald-500 hover:bg-emerald-600 text-white py-2 px-3 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2"
+                                    >
+                                        <Check size={14} />
+                                        Mark Under Contract
+                                    </button>
+                                )}
+                                {deal.status !== 'Closed' && (
+                                    <button 
+                                        onClick={() => handleUpdateStatus('Closed')}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-3 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2"
+                                    >
+                                        <BadgeDollarSign size={14} />
+                                        Mark as Sold
+                                    </button>
+                                )}
+                                {(deal.status === 'Under Contract' || deal.status === 'Closed') && (
+                                    <button 
+                                        onClick={() => handleUpdateStatus('Available')}
+                                        className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 text-[10px] font-bold uppercase underline"
+                                    >
+                                        Back to Available
+                                    </button>
+                                )}
+                            </div>
+                        )}
                     </div>
                     </div>
                     <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700/50">
@@ -721,6 +815,7 @@ DealDetail.propTypes = {
     city: PropTypes.string,
     state: PropTypes.string,
     adminVerificationStatus: PropTypes.string,
+    shareable: PropTypes.bool,
   }).isRequired,
   onBack: PropTypes.func.isRequired,
   onEdit: PropTypes.func,

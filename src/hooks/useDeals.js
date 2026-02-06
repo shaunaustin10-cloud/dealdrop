@@ -10,7 +10,9 @@ import {
   query,
   where,
   getDocs,
-  setDoc
+  getDoc,
+  setDoc,
+  collectionGroup
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { calculateDealScore } from '../utils/calculateDealScore';
@@ -234,7 +236,27 @@ export const useDeals = () => {
 
     await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'deals', id), updatedDeal);
 
-    if (shouldPublish) {
+    // Check if this deal is already in the public marketplace to keep it in sync
+    let isAlreadyPublic = false;
+    try {
+        const publicDocRef = doc(db, 'artifacts', appId, 'publicDeals', id);
+        const publicSnap = await getDoc(publicDocRef);
+        if (publicSnap.exists()) {
+            isAlreadyPublic = true;
+        } else {
+            // Check via originalId field (legacy)
+            const q = query(
+              collection(db, 'artifacts', appId, 'publicDeals'), 
+              where("originalId", "==", id)
+            );
+            const snap = await getDocs(q);
+            if (!snap.empty) isAlreadyPublic = true;
+        }
+    } catch (e) {
+        console.warn("Could not verify public status during update", e);
+    }
+
+    if (shouldPublish || isAlreadyPublic) {
         await publishDeal({ ...updatedDeal, originalId: id });
     }
   };
@@ -268,7 +290,7 @@ export const useDeals = () => {
     }
   };
 
-  const getDealById = async (id) => {
+  const getDealById = async (id, uid = null) => {
     // 1. Try Public Collection
     try {
       const publicRef = doc(db, 'artifacts', appId, 'publicDeals', id);
@@ -280,17 +302,29 @@ export const useDeals = () => {
       console.warn("Public fetch failed", e);
     }
 
-    // 2. Try Private Collection if user is logged in
-    if (user) {
+    // 2. Try Private Collection Direct Path if UID is provided
+    if (uid) {
       try {
-        const privateRef = doc(db, 'artifacts', appId, 'users', user.uid, 'deals', id);
+        const privateRef = doc(db, 'artifacts', appId, 'users', uid, 'deals', id);
         const privateSnap = await getDoc(privateRef);
         if (privateSnap.exists()) {
           return { id: privateSnap.id, ...privateSnap.data(), isPublic: false };
         }
       } catch (e) {
-        console.warn("Private fetch failed", e);
+        console.warn("Private direct fetch failed", e);
       }
+    }
+
+    // 3. Try Private Collection using collectionGroup query (Fallback)
+    try {
+      const q = query(collectionGroup(db, 'deals'), where('__name__', '==', id));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const docSnap = snap.docs[0];
+        return { id: docSnap.id, ...docSnap.data(), isPublic: false };
+      }
+    } catch (e) {
+      console.warn("Private fetch (group) failed", e);
     }
 
     return null;

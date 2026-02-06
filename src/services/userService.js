@@ -17,10 +17,12 @@ export const decrementUserCredits = async (uid) => {
     if (!snap.exists()) return false;
     
     const data = snap.data();
-    // Allow if Pro (unlimited) or if credits > 0
-    if ((data.subscriptionTier === 'pro' || data.subscriptionTier === 'agency') || (data.credits && data.credits > 0)) {
-        // Only decrement if NOT pro
-        if (data.subscriptionTier !== 'pro' && data.subscriptionTier !== 'agency') {
+    const isUnlimited = ['pro', 'agency', 'business'].includes(data.subscriptionTier);
+
+    // Allow if Pro/Business (unlimited) or if credits > 0
+    if (isUnlimited || (data.credits && data.credits > 0)) {
+        // Only decrement if NOT unlimited
+        if (!isUnlimited) {
             await updateDoc(userRef, { credits: increment(-1) });
         }
         return true;

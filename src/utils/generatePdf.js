@@ -39,13 +39,15 @@ export const generateDealReport = async (deal, userProfile = null, overriddenHer
 
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const margin = 15;
-  const contentWidth = doc.internal.pageSize.getWidth() - 2 * margin;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const contentWidth = pageWidth - 2 * margin;
   let y = 15;
 
   // Colors
   const slate = [15, 23, 42];
-  const nextHomeOrange = [227, 82, 5]; // #E35205
+  const nextHomeOrange = [227, 82, 5];
   const lightGray = [248, 250, 252];
+  const borderGray = [226, 232, 240];
 
   // --- HEADER ---
   if (userProfile?.logoUrl) {
@@ -56,49 +58,39 @@ export const generateDealReport = async (deal, userProfile = null, overriddenHer
         console.warn("Logo failed");
     }
   } else {
-    // Recreate NextHome Mission to Serve branding in PDF
-    const iconSize = 8;
-    const roundedness = 1;
-    
-    // Draw NextHome Orange Rounded Box
     doc.setFillColor(...nextHomeOrange);
-    doc.roundedRect(margin, y, iconSize, iconSize, roundedness, roundedness, 'F');
-    
-    // Simple minimalist D for Deker
+    doc.roundedRect(margin, y, 8, 8, 1, 1, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text('D', margin + 2, y + 6);
-
-    // Brand Text
     doc.setFontSize(16);
-    doc.setFont('times', 'bold'); // Serif feel for PDF
+    doc.setFont('times', 'bold');
     doc.setTextColor(...slate);
     doc.text('NextHome Mission to Serve', margin + 11, y + 6);
-    
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(150, 150, 150);
-    doc.text('AT NEXTHOME', margin + 11, y + 9);
   }
   
-  
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100);
-  // Date line removed per user request to clear up unwanted text
-  // doc.text(`Report Date: ${new Date().toLocaleDateString()}`, doc.internal.pageSize.getWidth() - margin, y + 6, { align: 'right' });
-  y += 20;
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(160, 160, 160);
+  doc.text('PROPERTY ANALYSIS REPORT', pageWidth - margin, y + 6, { align: 'right' });
+  y += 18;
 
-  // --- TITLE ---
-  doc.setFontSize(20);
+  // --- TITLE & ADDRESS ---
+  const mainAddress = (deal.address || 'Unknown Property').split('\n')[0];
+  const subAddress = (deal.address || '').split('\n').slice(1).join(' ') || (deal.city ? `${deal.city}, ${deal.state || ''}` : '');
+  
+  doc.setFontSize(22);
   doc.setFont('times', 'bold');
   doc.setTextColor(...slate);
-  // Ensure we only take the primary address part if it's multi-line or contains extra data
-  const mainAddress = (deal.address || 'Unknown Property').split('\n')[0].split(',')[0] + (deal.address?.includes(',') ? ',' : '') + (deal.address?.split(',')[1] || '');
-  const splitAddress = doc.splitTextToSize(mainAddress, contentWidth);
-  doc.text(splitAddress, margin, y);
-  y += (splitAddress.length * 8) + 2;
+  doc.text(mainAddress, margin, y);
+  y += 8;
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text(subAddress, margin, y);
+  y += 8;
 
   // --- HERO IMAGE ---
   const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=800x600&location=${encodeURIComponent(deal.address)}&key=${GOOGLE_MAPS_API_KEY}`;
@@ -106,54 +98,47 @@ export const generateDealReport = async (deal, userProfile = null, overriddenHer
 
   try {
       const heroData = await getImageData(primaryImageUrl);
-      doc.addImage(heroData, 'JPEG', margin, y, contentWidth, 80, undefined, 'FAST');
+      doc.addImage(heroData, 'JPEG', margin, y, contentWidth, 75, undefined, 'FAST');
   } catch (err) {
-      console.warn("Failed to load hero image for PDF:", err);
-      try {
-          // Attempt fallback to a generic house image
-          const fallbackUrl = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=800&auto=format&fit=crop";
-          const fallbackData = await getImageData(fallbackUrl);
-          doc.addImage(fallbackData, 'JPEG', margin, y, contentWidth, 80, undefined, 'FAST');
-      } catch {
-          // Final fallback if even the generic image fails
-          doc.setFillColor(240);
-          doc.rect(margin, y, contentWidth, 80, 'F');
-          doc.text("Image Unavailable", margin + contentWidth/2, y + 40, { align: 'center' });
-      }
+      doc.setFillColor(245, 247, 250);
+      doc.rect(margin, y, contentWidth, 75, 'F');
+      doc.setTextColor(150);
+      doc.text("Image Unavailable", margin + contentWidth/2, y + 37, { align: 'center' });
   }
-  y += 85;
+  y += 80;
 
-  // --- PROPERTY SPECS ---
+  // --- PROPERTY SPECS (Pill Style) ---
   const specs = [
-      { label: 'Bedrooms', val: deal.bedrooms || '-' },
-      { label: 'Bathrooms', val: deal.bathrooms || '-' },
-      { label: 'Sqft', val: deal.sqft ? `${deal.sqft} sqft` : '-' },
-      { label: 'Year Built', val: deal.yearBuilt || '-' },
-      { label: 'Prop Type', val: deal.propertyType || 'Single Family' }
+      { label: 'BEDS', val: deal.bedrooms || '-' },
+      { label: 'BATHS', val: deal.bathrooms || '-' },
+      { label: 'SQFT', val: deal.sqft ? `${deal.sqft.toLocaleString()}` : '-' },
+      { label: 'YEAR', val: deal.yearBuilt || '-' },
+      { label: 'TYPE', val: (deal.propertyType || 'Single Family').split(' ')[0] }
   ];
   
   const specWidth = contentWidth / specs.length;
   specs.forEach((spec, i) => {
-      doc.setFillColor(...lightGray);
-      doc.rect(margin + (i * specWidth), y, specWidth - 2, 15, 'F');
-      
       doc.setFontSize(7);
-      doc.setTextColor(120);
-      doc.text(spec.label.toUpperCase(), margin + (i * specWidth) + (specWidth/2), y + 5, { align: 'center' });
-      
-      doc.setFontSize(10);
-      doc.setTextColor(...slate);
+      doc.setTextColor(148, 163, 184);
       doc.setFont('helvetica', 'bold');
-      doc.text(spec.val.toString(), margin + (i * specWidth) + (specWidth/2), y + 11, { align: 'center' });
+      doc.text(spec.label, margin + (i * specWidth) + (specWidth/2), y + 2, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.setTextColor(...slate);
+      doc.text(spec.val.toString(), margin + (i * specWidth) + (specWidth/2), y + 8, { align: 'center' });
   });
-  y += 22;
+  
+  y += 15;
+  doc.setDrawColor(...borderGray);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 10;
 
-  // --- FINANCIAL BREAKDOWN TABLE ---
-  doc.setFontSize(12);
+  // --- FINANCIAL BREAKDOWN ---
+  doc.setFontSize(14);
   doc.setFont('times', 'bold');
   doc.setTextColor(...slate);
-  doc.text("Financial Breakdown", margin, y);
-  y += 2;
+  doc.text("Executive Financial Summary", margin, y);
+  y += 5;
 
   const price = parseFloat(deal.price) || 0;
   const rehab = parseFloat(deal.rehab) || 0;
@@ -168,145 +153,114 @@ export const generateDealReport = async (deal, userProfile = null, overriddenHer
   const financeData = [
       ['Purchase Price', `$${price.toLocaleString()}`],
       ['Estimated Rehab', `$${rehab.toLocaleString()}`],
-      ['Closing Costs & Fees', `$${(closingCosts + assignment).toLocaleString()}`],
-      ['TOTAL PROJECT COST', `$${totalCost.toLocaleString()}`],
-      ['After Repair Value (ARV)', `$${arv.toLocaleString()}`],
-      ['PROJECTED NET PROFIT', `$${projectedProfit.toLocaleString()}`],
+      ['Closing & Fees', `$${(closingCosts + assignment).toLocaleString()}`],
+      ['TOTAL INVESTMENT', `$${totalCost.toLocaleString()}`],
+      ['After Repair Value', `$${arv.toLocaleString()}`],
+      ['PROJECTED PROFIT', `$${projectedProfit.toLocaleString()}`],
       ['ESTIMATED ROI', `${roi.toFixed(1)}%`]
   ];
 
   autoTable(doc, {
-    startY: y + 4,
-    head: [['Item', 'Amount']],
+    startY: y,
     body: financeData,
-    theme: 'striped',
-    headStyles: { fillColor: nextHomeOrange, textColor: 255, fontStyle: 'bold' },
-    styles: { fontSize: 10, cellPadding: 3 },
+    theme: 'plain',
+    styles: { fontSize: 11, cellPadding: 4, textColor: [51, 65, 85] },
     columnStyles: {
-        0: { cellWidth: 'auto', fontStyle: 'bold' },
-        1: { cellWidth: 50, halign: 'right' }
+        0: { fontStyle: 'bold', cellWidth: 'auto' },
+        1: { halign: 'right', fontStyle: 'bold', textColor: slate }
     },
     didParseCell: function (data) {
-        if (data.row.index === 3 || data.row.index === 5) {
-            data.cell.styles.fontStyle = 'bold';
-            data.cell.styles.textColor = slate;
-            data.cell.styles.fillColor = [226, 232, 240];
+        if (data.row.index === 3 || data.row.index === 5 || data.row.index === 6) {
+            data.cell.styles.fillColor = [241, 245, 249];
+            if (data.row.index === 5) data.cell.styles.textColor = nextHomeOrange;
         }
     }
   });
 
-  y = doc.lastAutoTable.finalY + 10;
+  // Footer Page 1
+  doc.setFontSize(8);
+  doc.setTextColor(180);
+  doc.text(`Page 1 of 2`, pageWidth / 2, 285, { align: 'center' });
+
+  // --- PAGE 2 ---
+  doc.addPage();
+  y = 20;
 
   // --- DEAL NOTES ---
   if (deal.notes) {
-      doc.setFontSize(12);
+      doc.setFontSize(14);
       doc.setFont('times', 'bold');
       doc.setTextColor(...slate);
-      doc.text("Deal Notes", margin, y);
+      doc.text("Underwriter Notes", margin, y);
       y += 6;
 
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(60, 60, 60);
+      doc.setTextColor(71, 85, 105);
       
       const splitNotes = doc.splitTextToSize(deal.notes, contentWidth);
-      // Check if notes fit on current page, if not, move to a new page or just print what fits
-      if (y + (splitNotes.length * 5) > 280) {
-          doc.addPage();
-          y = 20;
-          doc.setFontSize(12);
-          doc.setFont('times', 'bold');
-          doc.text("Deal Notes (Continued)", margin, y);
-          y += 8;
-          doc.setFontSize(10);
-          doc.setFont('helvetica', 'normal');
-      }
-      doc.text(splitNotes, margin, y);
-      y += (splitNotes.length * 5) + 10;
+      const notesHeight = Math.min(splitNotes.length * 5, 60); // Limit notes area height
+      doc.text(splitNotes.slice(0, 12), margin, y);
+      y += notesHeight + 10;
   }
 
-  // --- MARKET ANALYSIS & COMPS (Page 2) ---
-  doc.addPage();
-  y = 20; // Reset Y for new page
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
+  // --- MARKET COMPS ---
+  doc.setFontSize(14);
+  doc.setFont('times', 'bold');
   doc.setTextColor(...slate);
-  doc.text("Market Analysis & Comps", margin, y);
-  
-  y += 10;
+  doc.text("Comparable Sales Analysis", margin, y);
+  y += 6;
 
-  // Filter sold comps or use existing
-  let comps = deal.comps || [];
-  if (deal.aiAnalysis?.market?.comps) {
-      comps = [...comps, ...deal.aiAnalysis.market.comps];
-  }
-  // Dedup and sort
-  comps = comps.filter((v,i,a)=>a.findIndex(t=>(t.address === v.address))===i);
+  let comps = [...(deal.comps || []), ...(deal.aiAnalysis?.market?.comps || [])]
+      .filter((v,i,a)=>a.findIndex(t=>(t.address === v.address))===i);
 
-  const compData = comps.slice(0, 10).map(c => {
-      // Robust date formatting
-      let displayDate = '-';
-      if (c.date) {
-          try {
-              const dateObj = new Date(c.date);
-              if (!isNaN(dateObj)) {
-                  displayDate = dateObj.toLocaleDateString('en-US');
-              }
-          } catch {
-              displayDate = c.date.toString().split(' ')[0];
-          }
-      }
+  const compData = comps.slice(0, 6).map(c => [
+      (c.address || '').split(',').slice(0, 2).join(','),
+      c.status || 'Sold',
+      `$${Number(c.price || c.soldPrice || 0).toLocaleString()}`,
+      c.date ? new Date(c.date).toLocaleDateString() : 'N/A'
+  ]);
 
-      return [
-          // Take only the primary address part (before the second comma or newline)
-          (c.address || '').split('\n')[0].split(',').slice(0, 2).join(','),
-          c.status || 'Sold',
-          `$${Number(c.price || c.soldPrice || 0).toLocaleString()}`,
-          displayDate
-      ];
+  autoTable(doc, {
+    startY: y,
+    head: [['Address', 'Status', 'Price', 'Date']],
+    body: compData,
+    theme: 'striped',
+    headStyles: { fillColor: slate, textColor: 255, fontSize: 9 },
+    styles: { fontSize: 8, cellPadding: 3 },
   });
+  
+  y = doc.lastAutoTable.finalY + 15;
 
-  if (compData.length > 0) {
-      autoTable(doc, {
-        startY: y,
-        head: [['Address', 'Status', 'Price', 'Date']],
-        body: compData,
-        theme: 'grid',
-        headStyles: { fillColor: slate, textColor: 255 },
-        styles: { fontSize: 8 },
-      });
-      y = doc.lastAutoTable.finalY + 15;
-  } else {
-      doc.setFontSize(10);
-      doc.text("No comparable sales data available.", margin, y + 5);
-      y += 15;
-  }
+  // --- PHOTO GALLERY (Bottom of Page 2) ---
+  const galleryImages = (deal.imageUrls || []).filter(u => !u.includes('picsum') && u !== primaryImageUrl).slice(0, 4);
+  if (galleryImages.length > 0) {
+      doc.setFontSize(14);
+      doc.setFont('times', 'bold');
+      doc.setTextColor(...slate);
+      doc.text("Property Gallery", margin, y);
+      y += 6;
 
-  // --- PHOTO GALLERY (Page 2) ---
-  if (deal.imageUrls && deal.imageUrls.length > 1) {
-      doc.addPage();
-      let gy = 20;
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.text("Property Photos", margin, gy);
-      gy += 10;
-
-      const galleryImages = deal.imageUrls.filter(u => !u.includes('picsum')).slice(0, 6);
-      const imgW = (contentWidth - 10) / 2;
-      const imgH = 60;
+      const imgW = (contentWidth - 6) / 2;
+      const imgH = 45;
 
       for (let i = 0; i < galleryImages.length; i++) {
           try {
               const imgData = await getImageData(galleryImages[i]);
-              const xPos = margin + (i % 2 === 0 ? 0 : imgW + 10);
-              const yPos = gy + (Math.floor(i / 2) * (imgH + 10));
+              const xPos = margin + (i % 2 === 0 ? 0 : imgW + 6);
+              const yPos = y + (Math.floor(i / 2) * (imgH + 6));
               doc.addImage(imgData, 'JPEG', xPos, yPos, imgW, imgH, undefined, 'FAST');
           } catch (e) {
-              console.warn(`Failed to load gallery image ${i}:`, e);
+              console.warn("Gallery img failed");
           }
       }
   }
 
+  // Footer Page 2
+  doc.setFontSize(8);
+  doc.setTextColor(180);
+  doc.text(`Page 2 of 2`, pageWidth / 2, 285, { align: 'center' });
+
   // Save
-  doc.save(`DealReport_${deal.address.substring(0, 10)}.pdf`);
+  doc.save(`DealReport_${mainAddress.replace(/\s+/g, '_')}.pdf`);
 };

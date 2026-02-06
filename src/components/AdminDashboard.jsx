@@ -15,6 +15,8 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({ users: 0, deals: 0 });
   const [pendingDeals, setPendingDeals] = useState([]);
 
+  const [users, setUsers] = useState([]);
+
   useEffect(() => {
     const checkAdmin = async () => {
       if (!user) {
@@ -30,6 +32,7 @@ const AdminDashboard = () => {
            setIsAdmin(true);
            fetchStats();
            fetchPendingDeals();
+           fetchUsers();
         } else {
            navigate('/dashboard');
         }
@@ -42,6 +45,32 @@ const AdminDashboard = () => {
     };
     checkAdmin();
   }, [user, navigate]);
+
+  const fetchUsers = async () => {
+    try {
+        const usersSnap = await getDocs(collection(db, 'artifacts', appId, 'profiles'));
+        const publicDealsSnap = await getDocs(collection(db, 'artifacts', appId, 'publicDeals'));
+        
+        // Count deals per user
+        const dealCounts = {};
+        publicDealsSnap.forEach(doc => {
+            const data = doc.data();
+            const uid = data.createdBy || data.sellerId;
+            if (uid) {
+                dealCounts[uid] = (dealCounts[uid] || 0) + 1;
+            }
+        });
+
+        const usersList = usersSnap.docs.map(doc => ({ 
+            id: doc.id, 
+            ...doc.data(),
+            dealCount: dealCounts[doc.id] || 0
+        }));
+        setUsers(usersList);
+    } catch (e) {
+        console.error("Error fetching users:", e);
+    }
+  };
 
   const fetchStats = async () => {
       // Note: This is expensive in Firestore (reads all docs). 
@@ -99,6 +128,40 @@ const AdminDashboard = () => {
           setPendingDeals(prev => prev.filter(d => d.id !== dealId));
       } catch (e) {
           console.error("Rejection failed:", e);
+      }
+  };
+
+  const updateUserTier = async (userId, currentTier) => {
+      const tiers = ['free', 'lite', 'pro', 'business', 'agency'];
+      const newTier = prompt(`Current Tier: ${currentTier}\nAvailable: ${tiers.join(', ')}\nEnter new tier:`, currentTier);
+      
+      if (!newTier || !tiers.includes(newTier.toLowerCase())) return;
+
+      try {
+          const userRef = doc(db, 'artifacts', appId, 'profiles', userId);
+          await updateDoc(userRef, { subscriptionTier: newTier.toLowerCase() });
+          setUsers(prev => prev.map(u => u.id === userId ? { ...u, subscriptionTier: newTier.toLowerCase() } : u));
+          alert("Tier updated successfully!");
+      } catch (e) {
+          console.error("Error updating tier:", e);
+          alert("Failed to update tier.");
+      }
+  };
+
+  const updateUserCredits = async (userId, currentCredits) => {
+      const input = prompt(`Current Credits: ${currentCredits ?? '∞'}\nEnter new credit amount (or 'null' for unlimited):`, currentCredits);
+      if (input === null) return;
+      
+      const newCredits = input.toLowerCase() === 'null' ? null : parseInt(input);
+
+      try {
+          const userRef = doc(db, 'artifacts', appId, 'profiles', userId);
+          await updateDoc(userRef, { credits: newCredits });
+          setUsers(prev => prev.map(u => u.id === userId ? { ...u, credits: newCredits } : u));
+          alert("Credits updated successfully!");
+      } catch (e) {
+          console.error("Error updating credits:", e);
+          alert("Failed to update credits.");
       }
   };
 
@@ -188,6 +251,88 @@ const AdminDashboard = () => {
                     ))}
                 </div>
             )}
+        </div>
+
+        {/* User Directory */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 mb-8">
+            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <Users className="text-blue-500" /> User Directory
+                <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-black">
+                    {users.length} Total
+                </span>
+            </h3>
+
+            <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="border-b border-slate-800 text-slate-500 text-sm uppercase tracking-widest font-black">
+                            <th className="py-4 px-4">User</th>
+                            <th className="py-4 px-4">Role</th>
+                            <th className="py-4 px-4">Tier</th>
+                            <th className="py-4 px-4 text-center">Deals</th>
+                            <th className="py-4 px-4 text-center">Credits</th>
+                            <th className="py-4 px-4 text-right">Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {users.map(u => (
+                            <tr key={u.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+                                <td className="py-4 px-4">
+                                    <div className="flex items-center gap-3">
+                                        <img 
+                                            src={u.photoURL || `https://api.dicebear.com/9.x/initials/svg?seed=${u.displayName || u.email || 'User'}`} 
+                                            alt="" 
+                                            className="w-8 h-8 rounded-full bg-slate-800"
+                                        />
+                                        <div>
+                                            <div className="font-bold">{u.displayName || 'Unnamed User'}</div>
+                                            <div className="text-xs text-slate-500 font-mono">{u.email || u.id.substring(0, 8)}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="py-4 px-4">
+                                    <span className={`text-[10px] uppercase font-black px-2 py-1 rounded-md ${
+                                        u.role === 'admin' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
+                                        u.role === 'agent' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' :
+                                        'bg-slate-800 text-slate-400'
+                                    }`}>
+                                        {u.role || 'investor'}
+                                    </span>
+                                </td>
+                                <td className="py-4 px-4">
+                                    <button 
+                                        onClick={() => updateUserTier(u.id, u.subscriptionTier || 'free')}
+                                        className={`text-[10px] uppercase font-black px-2 py-1 rounded-md transition-transform hover:scale-105 ${
+                                            u.subscriptionTier === 'pro' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
+                                            u.subscriptionTier === 'agency' ? 'bg-purple-500/10 text-purple-500 border border-purple-500/20' :
+                                            u.subscriptionTier === 'business' ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20' :
+                                            'bg-slate-800 text-slate-400'
+                                        }`}
+                                    >
+                                        {u.subscriptionTier || 'free'}
+                                    </button>
+                                </td>
+                                <td className="py-4 px-4 text-center">
+                                    <span className="font-bold text-slate-300">
+                                        {u.dealCount}
+                                    </span>
+                                </td>
+                                <td className="py-4 px-4 text-center">
+                                    <button 
+                                        onClick={() => updateUserCredits(u.id, u.credits)}
+                                        className={`font-black transition-transform hover:scale-110 ${u.credits === 0 ? 'text-red-500' : 'text-white'}`}
+                                    >
+                                        {u.credits ?? '∞'}
+                                    </button>
+                                </td>
+                                <td className="py-4 px-4 text-right text-xs text-slate-500">
+                                    {u.joinedAt?.toDate ? u.joinedAt.toDate().toLocaleDateString() : 'N/A'}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center opacity-50">

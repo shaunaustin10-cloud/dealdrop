@@ -37,8 +37,13 @@ service cloud.firestore {
 
     // --- Private Deals Collection (New Internal Tool) ---
     match /artifacts/{appId}/users/{userId}/deals/{dealId} {
-      allow read: if request.auth.uid == userId || resource.data.publiclyVisible == true;
+      allow read: if request.auth.uid == userId || resource.data.shareable == true || resource.data.publiclyVisible == true;
       allow write: if request.auth.uid == userId;
+    }
+
+    // Support collectionGroup queries for shared deals
+    match /{path=**}/deals/{dealId} {
+      allow read: if resource.data.shareable == true || (request.auth != null && request.auth.uid == resource.data.createdBy);
     }
     
     // --- Property Cache Collection ---

@@ -19,6 +19,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/marketplace" element={<MarketplacePage />} />
+            <Route path="/deal/:uid/:id" element={<PublicDealPage />} />
             <Route path="/deal/:id" element={<PublicDealPage />} />
             <Route path="/dashboard/*" element={
               <ProtectedRoute>
