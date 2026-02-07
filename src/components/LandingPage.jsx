@@ -418,6 +418,9 @@ const LandingPage = () => {
               <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs leading-relaxed font-medium">
                 Powered by the data you trust.
               </p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-tight max-w-xs pt-4 border-t border-slate-100 dark:border-slate-800/50 mt-4 italic">
+                REI Deal Drop is a real estate data platform. The principal of this platform is a licensed real estate professional in the Commonwealth of Virginia. This platform does not provide brokerage services. Equal Housing Opportunity.
+              </p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-12 text-sm">
                 <div className="space-y-4">

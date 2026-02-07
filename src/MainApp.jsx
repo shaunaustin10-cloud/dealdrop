@@ -343,6 +343,9 @@ export default function MainApp() {
                   <span className="block mt-1 normal-case font-normal text-[9px] opacity-70">
                     All properties are offered as equitable interest via assignment of contract or owned by the respective parties. Agents: add commission to sales price.
                   </span>
+                  <span className="block mt-1 normal-case font-normal text-[9px] opacity-70 italic">
+                    REI Deal Drop is a real estate data platform. The principal of this platform is a licensed real estate professional in the Commonwealth of Virginia. This platform does not provide brokerage services. Equal Housing Opportunity.
+                  </span>
                 </p>
             </div>
             <div className="flex gap-6 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-600">
