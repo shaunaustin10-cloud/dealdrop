@@ -387,7 +387,7 @@ export default function MainApp() {
             <OnboardingModal />
       
             {/* Mobile Bottom Navigation */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-50 px-4 py-3 flex justify-around items-center backdrop-blur-md bg-white/80 dark:bg-slate-900/80">
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-midnight border-t border-slate-200 dark:border-slate-800 z-50 px-4 py-3 flex justify-around items-center backdrop-blur-md bg-white/80 dark:bg-midnight/80">
                <Link 
                  to="/" 
                  className={`flex flex-col items-center gap-1 ${location.pathname === '/' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
