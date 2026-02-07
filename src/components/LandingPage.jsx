@@ -416,7 +416,7 @@ const LandingPage = () => {
                 <span className="font-serif text-2xl text-slate-900 dark:text-white tracking-tight">REI Deal <span className="text-primary italic">Drop</span></span>
               </div>
               <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs leading-relaxed font-medium">
-                Elite real estate investment and brokerage services. Powered by the data you trust.
+                Powered by the data you trust.
               </p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-12 text-sm">
