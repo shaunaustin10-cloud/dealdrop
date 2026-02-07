@@ -62,10 +62,10 @@ export default function PricingModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm">
-      <div className="relative w-full max-w-6xl bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-midnight/90 backdrop-blur-sm">
+      <div className="relative w-full max-w-6xl bg-midnight rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
         {/* Header */}
-        <div className="p-6 md:p-8 text-center border-b border-slate-800 bg-slate-900 flex-shrink-0 relative">
+        <div className="p-6 md:p-8 text-center border-b border-slate-800 bg-midnight flex-shrink-0 relative">
           <button 
             onClick={onClose}
             className="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors"

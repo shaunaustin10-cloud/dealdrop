@@ -74,8 +74,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 flex items-center justify-center p-4">
-      <div className="max-w-md w-full p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl">
+    <div className="min-h-screen bg-midnight text-slate-200 flex items-center justify-center p-4">
+      <div className="max-w-md w-full p-8 bg-midnight border border-slate-800 rounded-2xl shadow-2xl">
         <div className="flex justify-center mb-6">
            <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
               <LayoutGrid className="text-white" size={24} />

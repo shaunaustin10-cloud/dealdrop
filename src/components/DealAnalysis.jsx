@@ -184,7 +184,7 @@ const DealAnalysis = ({ deal }) => {
             </div>
             
             <div className="space-y-4">
-                <div className="bg-white dark:bg-slate-950/50 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+                <div className="bg-white dark:bg-midnight/50 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
                     <p className="text-slate-700 dark:text-slate-300 italic text-sm">&quot;{deal.aiAnalysis.gemini.summary}&quot;</p>
                 </div>
 

@@ -90,7 +90,7 @@ const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
         </button>
       )}
       
-      <div className="h-48 bg-slate-100 dark:bg-slate-800 relative overflow-hidden">
+      <div className="h-40 bg-slate-100 dark:bg-slate-800 relative overflow-hidden">
         <img 
           src={displayImage} 
           alt={deal.address} 
@@ -103,121 +103,79 @@ const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
             }
           }}
         />
+        {/* Deal Score Floating Badge */}
+        <div className={`absolute top-8 right-2 z-20 w-10 h-10 rounded-full flex flex-col items-center justify-center border-2 bg-slate-900/90 backdrop-blur-sm shadow-lg ${(verdictColor || 'text-slate-400').replace('text-', 'border-')}`}>
+            <span className={`text-[12px] font-black leading-none ${(verdictColor || 'text-white')}`}>{officialScore}</span>
+            <span className="text-[6px] font-bold text-white uppercase tracking-tighter mt-0.5">Score</span>
+        </div>
+
         {/* Status Overlays */}
         {deal.status === 'Under Contract' && (
-            <div className="absolute top-0 left-0 w-full bg-emerald-600/90 text-white text-[10px] font-black uppercase py-1 text-center tracking-widest z-20 shadow-lg">
+            <div className="absolute top-0 left-0 w-full bg-emerald-600/90 text-white text-[9px] font-black uppercase py-0.5 text-center tracking-widest z-20 shadow-lg">
                 Under Contract
             </div>
         )}
         {deal.status === 'Closed' && (
-            <div className="absolute top-0 left-0 w-full bg-indigo-600/90 text-white text-[10px] font-black uppercase py-1 text-center tracking-widest z-20 shadow-lg">
+            <div className="absolute top-0 left-0 w-full bg-indigo-600/90 text-white text-[9px] font-black uppercase py-0.5 text-center tracking-widest z-20 shadow-lg">
                 Sold / Closed
             </div>
         )}
 
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent h-24"></div>
-        <div className="absolute bottom-3 left-4 right-4">
-           <div className="flex justify-between items-end">
-               <div>
-                   <div className="flex flex-wrap gap-2">
-                       <span className={`${verdictColor} bg-white/90 dark:bg-slate-950/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 text-[10px] font-black uppercase px-2 py-1 rounded inline-block tracking-wider`}>
-                         {verdict}
-                       </span>
-                       {isFirstLook && (
-                           <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-white backdrop-blur-md border border-white/20 text-[10px] font-black uppercase px-2 py-1 rounded inline-block tracking-wider shadow-lg">
-                             VIP FIRST LOOK
-                           </span>
-                       )}
-                       {deal.hasValidContract && (
-                           <span className="bg-indigo-600 text-white backdrop-blur-md border border-indigo-400/50 text-[10px] font-black uppercase px-2 py-1 rounded inline-block tracking-wider shadow-lg">
-                             WHOLESALE
-                           </span>
-                       )}
-                       {deal.status === 'Under Contract' && (
-                           <span className="bg-emerald-600 text-white backdrop-blur-md border border-white/20 text-[10px] font-black uppercase px-2 py-1 rounded inline-block tracking-wider shadow-lg animate-pulse-slow">
-                             UNDER CONTRACT
-                           </span>
-                       )}
-                       {soldVerdict && (
-                           <span className={`${soldVerdict.color} text-white backdrop-blur-md border border-white/20 text-[10px] font-black uppercase px-2 py-1 rounded inline-block tracking-wider shadow-lg animate-pulse`}>
-                             SOLD: {soldVerdict.label}
-                           </span>
-                       )}
-                       {(deal.hasPool === true || deal.hasPool === 'true') && (
-                           <span className="bg-blue-500/90 backdrop-blur-md border border-blue-400/50 text-white text-[10px] font-black uppercase px-2 py-1 rounded inline-block tracking-wider">
-                             Pool
-                           </span>
-                       )}
-                   </div>
-               </div>
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent h-16"></div>
+        <div className="absolute bottom-2 left-3 right-3">
+           <div className="flex flex-wrap gap-1.5">
+               <span className={`${verdictColor} bg-white/95 dark:bg-midnight/90 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wider shadow-sm`}>
+                 {verdict}
+               </span>
+               {isFirstLook && (
+                   <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-white backdrop-blur-md border border-white/20 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wider shadow-lg">
+                     VIP
+                   </span>
+               )}
+               {deal.hasValidContract && (
+                   <span className="bg-indigo-600 text-white backdrop-blur-md border border-indigo-400/50 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wider shadow-sm">
+                     WHOLESALE
+                   </span>
+               )}
            </div>
         </div>
       </div>
       
-      <div className="p-4 flex-1 flex flex-col">
-        <div className="mb-4">
-            <h3 className={`text-slate-900 dark:text-white font-bold text-sm leading-tight flex items-start gap-1.5 line-clamp-2 mb-0.5 ${isLocked ? 'select-none' : ''}`}>
-                {isLocked && <Lock size={12} className="text-amber-500 mt-0.5 shrink-0" />}
+      <div className="p-3 flex-1 flex flex-col">
+        {/* Primary Financials */}
+        <div className="flex justify-between items-end mb-1">
+            <div className="flex items-baseline gap-1">
+                <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight">${price.toLocaleString()}</span>
+                {rehab > 0 && (
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 rounded">
+                        +${(rehab/1000).toFixed(0)}k rehab
+                    </span>
+                )}
+            </div>
+        </div>
+
+        {/* Property Stats - Zillow Style Single Line */}
+        <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 text-xs font-bold mb-2">
+            <span>{deal.bedrooms || '-'} bds</span>
+            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <span>{deal.bathrooms || '-'} ba</span>
+            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <span>{deal.sqft ? Number(deal.sqft).toLocaleString() : '-'} sqft</span>
+            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <span className="text-slate-400 font-medium truncate">{deal.propertyType || 'House'}</span>
+        </div>
+
+        {/* Address & Location */}
+        <div className="mb-3">
+            <h3 className={`text-slate-500 dark:text-slate-400 text-[11px] leading-tight flex items-start gap-1 line-clamp-1 font-medium ${isLocked ? 'select-none' : ''}`}>
+                {isLocked && <Lock size={10} className="text-amber-500 mt-0.5 shrink-0" />}
                 {isLocked ? shortDesc : deal.address}
             </h3>
-            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">
-                {deal.propertyType || 'Single Family'}
-            </p>
         </div>
 
-        <div className="flex justify-between items-center mb-4 px-2">
-          <div>
-             <p className="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold tracking-wider">Buy Price</p>
-             <p className="text-slate-900 dark:text-white font-mono font-bold text-lg">${price.toLocaleString()}</p>
-          </div>
-          <div className="text-right">
-             <p className="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold tracking-wider">Est. Rehab</p>
-             <p className="text-emerald-600 dark:text-emerald-400 font-mono font-bold text-lg">${rehab.toLocaleString()}</p>
-          </div>
-        </div>
-
-        <div className="flex justify-between items-center px-2 mb-4 py-2 border-y border-slate-50 dark:border-slate-800/50">
-            <div className="text-center">
-                <p className="text-[9px] uppercase text-slate-400 font-bold">Beds</p>
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{deal.bedrooms || '-'}</p>
-            </div>
-            <div className="w-px h-4 bg-slate-100 dark:bg-slate-800"></div>
-            <div className="text-center">
-                <p className="text-[9px] uppercase text-slate-400 font-bold">Baths</p>
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{deal.bathrooms || '-'}</p>
-            </div>
-            <div className="w-px h-4 bg-slate-100 dark:bg-slate-800"></div>
-            <div className="text-center">
-                <p className="text-[9px] uppercase text-slate-400 font-bold">Sqft</p>
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{deal.sqft ? Number(deal.sqft).toLocaleString() : '-'}</p>
-            </div>
-            <div className="w-px h-4 bg-slate-100 dark:bg-slate-800"></div>
-            <div className="text-center">
-                <p className="text-[9px] uppercase text-slate-400 font-bold">Built</p>
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{deal.yearBuilt || '-'}</p>
-            </div>
-        </div>
-
-        <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-           <div className="flex items-center gap-3">
-               <div className="relative w-12 h-12 flex items-center justify-center">
-                  <svg className="w-full h-full transform -rotate-90">
-                    <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-slate-200 dark:text-slate-800" />
-                    <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" 
-                        strokeDasharray={125} 
-                        strokeDashoffset={125 - (125 * officialScore) / 100} 
-                        className={verdictColor} 
-                    />
-                  </svg>
-                  <span className={`absolute text-sm font-black ${verdictColor}`}>{officialScore}</span>
-               </div>
-               <div className="flex flex-col">
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Deal Score</span>
-                  <div className="flex items-center gap-1 text-xs font-bold text-slate-700 dark:text-white">
-                    {officialScore >= 84 ? <TrendingUp size={12} className="text-emerald-500 dark:text-emerald-400" /> : null}
-                    {officialScore}/100
-                  </div>
-               </div>
+        <div className="mt-auto pt-3 border-t border-slate-50 dark:border-slate-800 flex justify-between items-center">
+           <div className="flex items-center gap-1 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              {deal.status || 'Active'}
            </div>
 
            <div className="flex gap-2">
@@ -225,22 +183,22 @@ const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
                <button 
                  onClick={handleBuyNow}
                  disabled={buying}
-                 className="bg-primary hover:bg-orange-600 text-white px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1 shadow-lg shadow-primary/20"
+                 className="bg-primary hover:bg-orange-600 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors flex items-center gap-1 shadow-sm"
                >
-                 {buying ? <Loader2 size={12} className="animate-spin" /> : <DollarSign size={12} />}
-                 Buy Now
+                 {buying ? <Loader2 size={10} className="animate-spin" /> : <DollarSign size={10} />}
+                 Buy
                </button>
              )}
              {(!isLocked || (deal.status !== 'Under Contract' && deal.status !== 'Closed')) ? (
                  <button 
                    onClick={() => onClick(deal)}
-                   className={`bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1 group-hover:bg-primary dark:group-hover:bg-primary group-hover:text-white dark:group-hover:text-white ${isLocked ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : ''}`}
+                   className={`bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors flex items-center gap-1 group-hover:bg-primary group-hover:text-white ${isLocked ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20' : ''}`}
                  >
-                   {isLocked ? 'Unlock Details' : 'Analyze'} <ChevronRight size={12} />
+                   {isLocked ? 'Unlock' : 'Analyze'} <ChevronRight size={10} />
                  </button>
              ) : (
-                 <div className="text-[10px] text-slate-500 font-bold uppercase py-2 px-3 italic">
-                     Acquisition Closed
+                 <div className="text-[9px] text-slate-400 font-bold uppercase italic">
+                     Closed
                  </div>
              )}
            </div>

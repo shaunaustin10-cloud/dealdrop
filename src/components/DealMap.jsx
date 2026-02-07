@@ -34,7 +34,7 @@ const darkMapStyle = [
   {
     featureType: "poi.park",
     elementType: "geometry",
-    stylers: [{ color: "#0f172a" }], // slate-900
+    stylers: [{ color: "#020617" }], // midnight
   },
   {
     featureType: "poi.park",
@@ -84,7 +84,7 @@ const darkMapStyle = [
   {
     featureType: "water",
     elementType: "geometry",
-    stylers: [{ color: "#0f172a" }], // slate-900 (Dark water)
+    stylers: [{ color: "#020617" }], // midnight (Dark water)
   },
   {
     featureType: "water",
@@ -94,7 +94,7 @@ const darkMapStyle = [
   {
     featureType: "water",
     elementType: "labels.text.stroke",
-    stylers: [{ color: "#0f172a" }],
+    stylers: [{ color: "#020617" }],
   },
 ];
 

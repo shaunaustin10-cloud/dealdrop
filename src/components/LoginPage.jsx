@@ -42,8 +42,8 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 flex items-center justify-center">
-      <div className="max-w-md w-full p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl">
+    <div className="min-h-screen bg-midnight text-slate-200 flex items-center justify-center">
+      <div className="max-w-md w-full p-8 bg-midnight border border-slate-800 rounded-2xl shadow-2xl">
         <h1 className="text-3xl font-bold text-center text-white mb-8">Login to Your Account</h1>
         <form onSubmit={handleLogin} className="space-y-6">
           <div>

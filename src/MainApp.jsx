@@ -121,10 +121,10 @@ export default function MainApp() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0f172a] text-slate-900 dark:text-slate-200 font-sans selection:bg-emerald-500/30 pb-20 transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 dark:bg-midnight text-slate-900 dark:text-slate-200 font-sans selection:bg-emerald-500/30 pb-20 transition-colors duration-300">
       <Toast toast={toast} setToast={setToast} />
       
-      <nav className="border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-[#0f172a]/80 backdrop-blur-md sticky top-0 z-40 transition-colors duration-300">
+      <nav className="border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-midnight/80 backdrop-blur-md sticky top-0 z-40 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <Link to="/dashboard/pipeline" className="flex items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => setSelectedDeal(null)}>
             <div className="bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg">
@@ -332,7 +332,7 @@ export default function MainApp() {
         </Routes>
       </main>
       
-      <footer className="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-900 py-12 mt-auto">
+      <footer className="bg-white dark:bg-midnight border-t border-slate-200 dark:border-slate-900 py-12 mt-auto">
          <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-start gap-8">
             <div className="space-y-3">
                 <div className="flex items-center gap-2">

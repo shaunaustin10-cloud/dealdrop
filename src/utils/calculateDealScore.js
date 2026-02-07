@@ -52,6 +52,7 @@ export const calculateDealScore = ({ price, arv, rehab, rent, hasPool, soldPrice
         return {
             score: 0,
             verdict: "INCOMPLETE",
+            verdictColor: "text-slate-400",
             metrics: {}
         };
     }

@@ -172,7 +172,7 @@ const AdminDashboard = () => {
   if (!isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-4 md:p-8 transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-midnight text-slate-900 dark:text-white p-4 md:p-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-black mb-8 flex items-center gap-3">
             <ShieldAlert className="text-red-500" /> Admin Dashboard
@@ -219,7 +219,7 @@ const AdminDashboard = () => {
             ) : (
                 <div className="space-y-4">
                     {pendingDeals.map(deal => (
-                        <div key={deal.id} className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-4 rounded-xl flex flex-col md:flex-row justify-between gap-4">
+                        <div key={deal.id} className="bg-slate-50 dark:bg-midnight border border-slate-200 dark:border-slate-800 p-4 rounded-xl flex flex-col md:flex-row justify-between gap-4">
                             <div>
                                 <h4 className="font-bold text-lg text-slate-900 dark:text-white">{deal.address}</h4>
                                 <div className="flex gap-4 text-sm text-slate-500 dark:text-slate-400 mt-1">

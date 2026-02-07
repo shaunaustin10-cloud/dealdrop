@@ -15,6 +15,7 @@ export default {
         grey: '#999999', // NextHome Grey
         'bg-cream': '#FFF8F4', 
         'bg-cream-dark': '#F5EDE8',
+        'midnight': '#020617', // Slate 950
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'], // Fallback for Gordita

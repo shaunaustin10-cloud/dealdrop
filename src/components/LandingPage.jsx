@@ -71,10 +71,10 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-200 font-sans selection:bg-emerald-500/30 transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-midnight text-slate-900 dark:text-slate-200 font-sans selection:bg-emerald-500/30 transition-colors duration-300">
       
       {/* Navigation */}
-      <nav className="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md sticky top-0 z-50">
+      <nav className="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-midnight/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg">
@@ -161,7 +161,7 @@ const LandingPage = () => {
       </div>
 
       {/* Social Proof / Trusted By */}
-      <div className="py-12 border-y border-slate-200 dark:border-slate-900 bg-slate-50/50 dark:bg-slate-950/50">
+      <div className="py-12 border-y border-slate-200 dark:border-slate-900 bg-slate-50/50 dark:bg-midnight/50">
         <div className="max-w-7xl mx-auto px-6 text-center">
             <p className="text-slate-400 dark:text-slate-500 text-xs font-black uppercase tracking-widest mb-8">Trusted by Top Agents & Investors</p>
             <div className="flex flex-wrap justify-center gap-12 opacity-60 dark:opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
@@ -182,7 +182,7 @@ const LandingPage = () => {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-8 rounded-2xl hover:border-blue-500/50 transition-colors group shadow-sm hover:shadow-md">
+            <div className="bg-slate-50 dark:bg-midnight border border-slate-200 dark:border-slate-800 p-8 rounded-2xl hover:border-blue-500/50 transition-colors group shadow-sm hover:shadow-md">
               <div className="bg-blue-500/10 dark:bg-blue-900/20 w-12 h-12 flex items-center justify-center rounded-xl text-blue-600 dark:text-blue-400 mb-6 group-hover:scale-110 transition-transform">
                 <TrendingUp size={24} />
               </div>
@@ -190,7 +190,7 @@ const LandingPage = () => {
               <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">Stop relying on Zestimates. Get a professional-grade valuation based on real-time comps, rental rates, and local market trends.</p>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-8 rounded-2xl hover:border-emerald-500/50 transition-colors group shadow-sm hover:shadow-md">
+            <div className="bg-slate-50 dark:bg-midnight border border-slate-200 dark:border-slate-800 p-8 rounded-2xl hover:border-emerald-500/50 transition-colors group shadow-sm hover:shadow-md">
               <div className="bg-emerald-500/10 dark:bg-emerald-900/20 w-12 h-12 flex items-center justify-center rounded-xl text-emerald-600 dark:text-emerald-400 mb-6 group-hover:scale-110 transition-transform">
                 <Target size={24} />
               </div>
@@ -198,7 +198,7 @@ const LandingPage = () => {
               <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">Generate beautiful, branded PDF reports in one click. Impress sellers at the listing appointment or send clean packets to investors.</p>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-8 rounded-2xl hover:border-purple-500/50 transition-colors group shadow-sm hover:shadow-md">
+            <div className="bg-slate-50 dark:bg-midnight border border-slate-200 dark:border-slate-800 p-8 rounded-2xl hover:border-purple-500/50 transition-colors group shadow-sm hover:shadow-md">
               <div className="bg-purple-500/10 dark:bg-purple-900/20 w-12 h-12 flex items-center justify-center rounded-xl text-purple-600 dark:text-purple-400 mb-6 group-hover:scale-110 transition-transform">
                 <ShieldCheck size={24} />
               </div>
@@ -250,7 +250,7 @@ const LandingPage = () => {
                <div className="relative z-10">
                   <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-6">Start Analyzing Today</h3>
                   <div className="space-y-4">
-                     <div className="bg-white dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-4 shadow-sm">
+                     <div className="bg-white dark:bg-midnight p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-4 shadow-sm">
                         <div className="bg-emerald-500/10 dark:bg-emerald-500/20 p-2 rounded-full text-emerald-600 dark:text-emerald-400">
                             <Activity size={20} />
                         </div>
@@ -260,7 +260,7 @@ const LandingPage = () => {
                         </div>
                         <span className="ml-auto text-xs text-slate-400">Just now</span>
                      </div>
-                     <div className="bg-white dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-4 shadow-sm">
+                     <div className="bg-white dark:bg-midnight p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-4 shadow-sm">
                         <div className="bg-blue-500/10 dark:bg-blue-500/20 p-2 rounded-full text-blue-600 dark:text-blue-400">
                             <FileText size={20} />
                         </div>
@@ -289,7 +289,7 @@ const LandingPage = () => {
 
            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
               {/* Founding Member Tier */}
-              <div className={`border-2 rounded-2xl p-6 flex flex-col relative transition-all duration-500 ${foundingCount < 100 ? 'bg-amber-500/5 border-amber-500 shadow-2xl shadow-amber-900/10' : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 opacity-60'}`}>
+              <div className={`border-2 rounded-2xl p-6 flex flex-col relative transition-all duration-500 ${foundingCount < 100 ? 'bg-amber-500/5 border-amber-500 shadow-2xl shadow-amber-900/10' : 'bg-white dark:bg-midnight border-slate-200 dark:border-slate-800 opacity-60'}`}>
                  {foundingCount < 100 && (
                      <div className="absolute top-0 right-6 -translate-y-1/2 bg-amber-500 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-lg">
                         Limited Offer
@@ -329,7 +329,7 @@ const LandingPage = () => {
               </div>
 
               {/* Lite Tier */}
-              <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col hover:border-slate-300 dark:hover:border-slate-700 transition-colors shadow-sm">
+              <div className="bg-white dark:bg-midnight border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col hover:border-slate-300 dark:hover:border-slate-700 transition-colors shadow-sm">
                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Lite Investor</h3>
                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">For weekend warriors</p>
                  <div className="text-3xl font-black text-slate-900 dark:text-white mb-4">$19<span className="text-sm text-slate-400 font-normal">/mo</span></div>
@@ -377,7 +377,7 @@ const LandingPage = () => {
               </div>
 
               {/* Business Tier */}
-              <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col hover:border-blue-300 dark:hover:border-blue-500/50 transition-colors shadow-sm">
+              <div className="bg-white dark:bg-midnight border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col hover:border-blue-300 dark:hover:border-blue-500/50 transition-colors shadow-sm">
                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Business</h3>
                  <p className="text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-widest mb-4">For scaling teams</p>
                  <div className="text-3xl font-black text-slate-900 dark:text-white mb-4">$149<span className="text-sm text-slate-400 font-normal">/mo</span></div>
@@ -404,7 +404,7 @@ const LandingPage = () => {
       </div>
 
       {/* Footer */}
-      <footer className="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-900 py-20 transition-colors duration-300">
+      <footer className="bg-white dark:bg-midnight border-t border-slate-200 dark:border-slate-900 py-20 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-16">
             <div className="space-y-4">
