@@ -5,6 +5,7 @@ import {
   Bed, 
   Bath, 
   Square, 
+  Calendar,
   DollarSign, 
   TrendingUp,
   FileText,
@@ -467,21 +468,26 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade, isPublic }) => 
              </div>
           )}
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-4 gap-3">
              <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 p-3 rounded-xl flex flex-col items-center">
                <Bed className="text-emerald-500 dark:text-emerald-400 mb-1" size={18} />
-               <span className="text-lg font-bold text-slate-900 dark:text-white">{deal.bedrooms}</span>
+               <span className="text-lg font-bold text-slate-900 dark:text-white">{deal.bedrooms || '-'}</span>
                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Beds</span>
              </div>
              <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 p-3 rounded-xl flex flex-col items-center">
                <Bath className="text-emerald-500 dark:text-emerald-400 mb-1" size={18} />
-               <span className="text-lg font-bold text-slate-900 dark:text-white">{deal.bathrooms}</span>
+               <span className="text-lg font-bold text-slate-900 dark:text-white">{deal.bathrooms || '-'}</span>
                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Baths</span>
              </div>
              <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 p-3 rounded-xl flex flex-col items-center">
                <Square className="text-emerald-500 dark:text-emerald-400 mb-1" size={18} />
-               <span className="text-lg font-bold text-slate-900 dark:text-white">{deal.sqft}</span>
+               <span className="text-lg font-bold text-slate-900 dark:text-white">{deal.sqft || '-'}</span>
                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Sq Ft</span>
+             </div>
+             <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 p-3 rounded-xl flex flex-col items-center">
+               <Calendar className="text-emerald-500 dark:text-emerald-400 mb-1" size={18} />
+               <span className="text-lg font-bold text-slate-900 dark:text-white">{deal.yearBuilt || '-'}</span>
+               <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Built</span>
              </div>
           </div>
         </div>
