@@ -76,11 +76,9 @@ const LandingPage = () => {
       {/* Navigation */}
       <nav className="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-midnight/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg">
-               <LayoutGrid className="text-primary" size={20} />
-            </div>
-            <span className="font-serif text-xl text-slate-900 dark:text-white tracking-tight">REI Deal <span className="text-primary italic">Drop</span></span>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <LayoutGrid className="text-primary" size={18} />
+            <span className="font-serif text-base md:text-xl text-slate-900 dark:text-white tracking-tight whitespace-nowrap">REI Deal <span className="text-primary italic">Drop</span></span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-500 dark:text-slate-400">
             <Link to="/marketplace" className="text-slate-900 dark:text-white font-black hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Marketplace <span className="text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full ml-1">LIVE</span></Link>

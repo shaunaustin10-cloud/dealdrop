@@ -46,11 +46,9 @@ export default function PublicDealPage() {
              >
                 <ArrowLeft size={20} />
              </button>
-             <div className="flex items-center gap-2">
-                <div className="bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg">
-                   <LayoutGrid size={20} className="text-primary" />
-                </div>
-                <Link to="/" className="font-serif text-lg md:text-xl text-slate-900 dark:text-white tracking-tight whitespace-nowrap">REI Deal <span className="text-primary italic">Drop</span></Link>
+             <div className="flex items-center gap-1.5 flex-shrink-0">
+                <LayoutGrid size={18} className="text-primary" />
+                <Link to="/" className="font-serif text-base md:text-xl text-slate-900 dark:text-white tracking-tight whitespace-nowrap">REI Deal <span className="text-primary italic">Drop</span></Link>
              </div>
           </div>
           

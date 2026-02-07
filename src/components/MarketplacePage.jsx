@@ -26,11 +26,9 @@ export default function MarketplacePage() {
              <Link to="/" className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                 <ArrowLeft size={20} />
              </Link>
-             <div className="flex items-center gap-2">
-                <div className="bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg">
-                   <LayoutGrid size={20} className="text-primary" />
-                </div>
-                <span className="font-serif text-lg md:text-xl text-slate-900 dark:text-white tracking-tight whitespace-nowrap">REI Deal <span className="text-primary italic">Drop</span></span>
+             <div className="flex items-center gap-1.5 flex-shrink-0">
+                <LayoutGrid size={18} className="text-primary" />
+                <span className="font-serif text-base md:text-xl text-slate-900 dark:text-white tracking-tight whitespace-nowrap">REI Deal <span className="text-primary italic">Drop</span></span>
              </div>
           </div>
           

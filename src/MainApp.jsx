@@ -126,11 +126,9 @@ export default function MainApp() {
       
       <nav className="border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-midnight/80 backdrop-blur-md sticky top-0 z-40 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <Link to="/dashboard/pipeline" className="flex items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => setSelectedDeal(null)}>
-            <div className="bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg">
-               <LayoutGrid className="text-primary" size={20} />
-            </div>
-            <span className="font-serif text-lg md:text-xl text-slate-900 dark:text-white tracking-tight whitespace-nowrap">REI Deal <span className="text-primary italic">Drop</span></span>
+          <Link to="/dashboard/pipeline" className="flex items-center gap-1.5 cursor-pointer flex-shrink-0" onClick={() => setSelectedDeal(null)}>
+            <LayoutGrid className="text-primary shrink-0" size={18} />
+            <span className="font-serif text-base md:text-xl text-slate-900 dark:text-white tracking-tight whitespace-nowrap">REI Deal <span className="text-primary italic">Drop</span></span>
           </Link>
 
           {/* Desktop Navigation */}
