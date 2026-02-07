@@ -492,17 +492,21 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
 
     if (postToMarketplace) {
         // VIP Check (Score >= 84)
-        // Use the calculated score if AI score is missing, or prefer calculated for consistency
         const scoreToCheck = calculatedScore || formData.aiAnalysis?.gemini?.score || 0;
         
+        // If status is a "draft" style status, we should elevate it to a marketplace status
+        const isDraftStatus = ['New Lead', 'Analyzing', 'Analyzing...', 'Offer Made', 'Draft'].includes(formData.status);
+
         if (scoreToCheck >= 84) {
             if (!proofFile && !initialData?.proofOfContractPath) {
                 alert(`VIP Deals (Score ${scoreToCheck} >= 84) require Proof of Contract to be posted to the Marketplace.`);
                 return;
             }
-            finalStatus = 'Pending Verification';
+            // Elevate to Pending if it's a draft, otherwise keep current status (Under Contract / Closed)
+            if (isDraftStatus) finalStatus = 'Pending Verification';
         } else {
-            finalStatus = 'Available'; // Auto-publish standard deals
+            // Elevate to Available if it's a draft, otherwise keep current status
+            if (isDraftStatus) finalStatus = 'Available';
         }
 
         // Upload Proof if provided

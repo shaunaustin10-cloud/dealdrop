@@ -31,7 +31,7 @@ export default function MarketplacePage() {
                 <div className="bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg">
                    <LayoutGrid size={20} className="text-primary" />
                 </div>
-                <span className="font-serif text-xl text-slate-900 dark:text-white tracking-tight">REI Deal <span className="text-primary italic">Drop</span></span>
+                <span className="font-serif text-lg md:text-xl text-slate-900 dark:text-white tracking-tight whitespace-nowrap">REI Deal <span className="text-primary italic">Drop</span></span>
              </div>
           </div>
           
@@ -62,14 +62,14 @@ export default function MarketplacePage() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-4 md:py-8">
         {!selectedDeal ? (
             <>
-                <div className="mb-8 text-center max-w-2xl mx-auto">
-                <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-4">
+                <div className="mb-4 md:mb-8 text-center max-w-2xl mx-auto">
+                <h1 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white mb-2 md:mb-4">
                     Verified Off-Market Deals
                 </h1>
-                <p className="text-slate-500 dark:text-slate-400 text-lg font-medium">
+                <p className="hidden md:block text-slate-500 dark:text-slate-400 text-lg font-medium">
                     Browse exclusive inventory from top wholesalers. All contracts are verified before posting.
                 </p>
                 </div>
@@ -78,6 +78,19 @@ export default function MarketplacePage() {
                     onSelectDeal={handleSelectDeal}
                     isPublic={true}
                 />
+
+                {/* Compliance Disclosure */}
+                <div className="mt-12 p-4 md:p-6 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 border-dashed">
+                    <div className="max-w-2xl mx-auto text-center">
+                        <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Marketplace Disclosure</h3>
+                        <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 leading-relaxed italic">
+                            REI Deal Drop is a marketplace for off-market property deals. All properties offered are either owned by the respective poster, 
+                            under contract and selling equitable interest via assignment of contract, or offered in conjunction with a business associate. 
+                            <strong> Real Estate Agents:</strong> please add your desired commission to the sales price, to be paid by the buyer at closing. 
+                            Users are encouraged to perform their own due diligence before entering into any contract.
+                        </p>
+                    </div>
+                </div>
             </>
         ) : (
             <DealDetail 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { LayoutGrid, Search, SlidersHorizontal, Map as MapIcon, List, TrendingUp } from 'lucide-react'; 
-import DealCard from './DealCard'; 
+import { LayoutGrid, Search, SlidersHorizontal, Map as MapIcon, List, TrendingUp } from 'lucide-react';
+import DealCard from './DealCard';
 import DealMap from './DealMap';
 import { useFetchDeals } from '../hooks/useDeals';
 
@@ -25,13 +25,14 @@ const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
   const [sortBy, setSortBy] = useState(isPublic ? 'publishedAt' : 'createdAt');
   const [filterAddress, setFilterAddress] = useState('');
   const [filterSource, setFilterSource] = useState('All');
-  const [viewMode, setViewMode] = useState('list'); // 'map', 'list'
+  const [filterStatus, setFilterStatus] = useState(isPublic ? 'Available' : 'All');
+  const [viewMode, setViewMode] = useState('list');
   const [hoveredDealId, setHoveredDealId] = useState(null);
   const [vipOnly, setVipOnly] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   const { deals: allDeals, loading, error } = useFetchDeals(isPublic, sortBy);
 
-  // Initialize filter from Buy Box if available
   useEffect(() => {
     if (buyBox && buyBox.locations && buyBox.locations.length > 0) {
         setFilterAddress(buyBox.locations[0]);
@@ -58,6 +59,15 @@ const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
         });
     }
 
+    if (filterStatus === 'Available') {
+        result = result.filter(deal => {
+            const status = deal.status || 'New Lead';
+            return status === 'New Lead' || status === 'Available' || status === 'Contacted' || status === 'Under Contract' || status === 'Closed';
+        });
+    } else if (filterStatus !== 'All') {
+        result = result.filter(deal => (deal.status || 'New Lead') === filterStatus);
+    }
+
     if (vipOnly) {
         result = result.filter(deal => (deal.dealScore || 0) >= 84);
     }
@@ -71,7 +81,6 @@ const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
         });
     }
 
-    // Client-side Sort (Fix for "Highest Score" not working if Firestore sort fails or fields missing)
     if (sortBy === 'dealScore') {
         result.sort((a, b) => (b.dealScore || 0) - (a.dealScore || 0));
     } else if (sortBy === 'price') {
@@ -84,8 +93,14 @@ const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
         });
     }
 
+    result.sort((a, b) => {
+        const scoreA = (a.status === 'Closed' ? 2 : (a.status === 'Under Contract' ? 1 : 0));
+        const scoreB = (b.status === 'Closed' ? 2 : (b.status === 'Under Contract' ? 1 : 0));
+        return scoreA - scoreB;
+    });
+
     return result;
-  }, [allDeals, filterAddress, isPublic, buyBox, sortBy, vipOnly]);
+  }, [allDeals, filterAddress, isPublic, buyBox, sortBy, vipOnly, filterSource, filterStatus]);
 
   if (loading) {
     return (
@@ -108,68 +123,115 @@ const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Search & Filters Bar */}
-      <div className="flex-shrink-0 flex flex-col md:flex-row justify-between items-center gap-3 bg-white/50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800 backdrop-blur-sm mb-3">
-        <div className="relative w-full md:w-80">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search size={16} className="text-slate-400 dark:text-slate-500" />
-          </div>
-          <input
-            type="text"
-            placeholder="Search properties..."
-            value={filterAddress}
-            onChange={(e) => setFilterAddress(e.target.value)}
-            className="block w-full pl-9 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg leading-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-xs transition-all hover:bg-slate-50 dark:hover:bg-slate-750"
-          />
+      <div className="flex-shrink-0 space-y-2 mb-4">
+        <div className="flex flex-col md:flex-row gap-2">
+            <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search size={16} className="text-slate-400 dark:text-slate-500" />
+                </div>
+                <input
+                    type="text"
+                    placeholder="Search properties..."
+                    value={filterAddress}
+                    onChange={(e) => setFilterAddress(e.target.value)}
+                    className="block w-full pl-9 pr-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm shadow-sm"
+                />
+            </div>
+
+            <div className="flex items-center gap-2">
+                <button 
+                    onClick={() => setVipOnly(!vipOnly)}
+                    className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border transition-all text-[10px] font-black uppercase tracking-wider shadow-sm ${vipOnly ? 'bg-amber-500 border-amber-600 text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'}`}
+                >
+                    <TrendingUp size={14} />
+                    <span className={isPublic ? "hidden sm:inline" : ""}>VIP</span>
+                </button>
+
+                <button 
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`md:hidden flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border transition-all text-[10px] font-black uppercase tracking-wider shadow-sm ${showFilters ? 'bg-slate-900 text-white border-slate-900' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500'}`}
+                >
+                    <SlidersHorizontal size={14} />
+                    Filters
+                </button>
+
+                <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm ml-auto md:ml-0">
+                    <button 
+                        onClick={() => setViewMode('list')}
+                        className={`p-2 px-2.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                    >
+                        <List size={18} />
+                    </button>
+                    <button 
+                        onClick={() => setViewMode('map')}
+                        className={`p-2 px-2.5 rounded-lg transition-all ${viewMode === 'map' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                    >
+                        <MapIcon size={18} />
+                    </button>
+                    <button 
+                        onClick={() => setViewMode('hybrid')}
+                        className={`hidden md:block p-2 px-2.5 rounded-lg transition-all ${viewMode === 'hybrid' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                    >
+                        <LayoutGrid size={18} />
+                    </button>
+                </div>
+            </div>
         </div>
-        
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <button 
-            onClick={() => setVipOnly(!vipOnly)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-[10px] md:text-xs font-bold ${vipOnly ? 'bg-amber-500 border-amber-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'}`}
-          >
-            <TrendingUp size={14} />
-            VIP Only
-          </button>
 
-          <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-700 w-full md:w-auto">
-            <span className="text-[10px] uppercase font-black text-slate-400 dark:text-slate-500 whitespace-nowrap">Source</span>
-            <select
-              value={filterSource}
-              onChange={(e) => setFilterSource(e.target.value)}
-              className="bg-transparent border-none text-slate-700 dark:text-slate-300 text-[10px] md:text-xs font-bold focus:ring-0 cursor-pointer w-full outline-none"
-            >
-              <option value="All" className="text-slate-900">All Sources</option>
-              <option value="Off-Market" className="text-slate-900">Off-Market</option>
-              <option value="MLS/Listed" className="text-slate-900">MLS / Listed</option>
-              <option value="Wholesaler" className="text-slate-900">Wholesaler</option>
-              <option value="Direct Mail" className="text-slate-900">Direct Mail</option>
-              <option value="Referral" className="text-slate-900">Referral</option>
-              <option value="Other" className="text-slate-900">Other</option>
-            </select>
-          </div>
+        <div className={`${showFilters ? 'grid' : 'hidden'} md:grid grid-cols-2 md:grid-cols-4 gap-2`}>
+            {!isPublic && (
+                <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                    <span className="text-[10px] uppercase font-black text-slate-400 dark:text-slate-500 whitespace-nowrap hidden sm:inline">Source</span>
+                    <select
+                        value={filterSource}
+                        onChange={(e) => setFilterSource(e.target.value)}
+                        className="bg-transparent border-none text-slate-700 dark:text-slate-300 text-xs font-bold focus:ring-0 cursor-pointer w-full outline-none py-1"
+                    >
+                        <option value="All" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">All Sources</option>
+                        <option value="Off-Market" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Off-Market</option>
+                        <option value="MLS/Listed" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">MLS / Listed</option>
+                        <option value="Wholesaler" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Wholesaler</option>
+                        <option value="Direct Mail" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Direct Mail</option>
+                        <option value="Referral" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Referral</option>
+                        <option value="Other" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Other</option>
+                    </select>
+                </div>
+            )}
 
-          <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-700 w-full md:w-auto">
-            <SlidersHorizontal size={14} className="text-slate-400" />
-            <select
-              id="sort-by"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="bg-transparent border-none text-slate-700 dark:text-slate-300 text-[10px] md:text-xs font-bold focus:ring-0 cursor-pointer w-full outline-none"
-            >
-              <option value={isPublic ? 'publishedAt' : 'createdAt'} className="text-slate-900">Newest Listed</option>
-              <option value="dealScore" className="text-slate-900">Highest Score</option>
-              <option value="price" className="text-slate-900">Lowest Price</option>
-            </select>
-          </div>
+            <div className={`${isPublic ? 'col-span-1' : ''} flex items-center gap-2 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden`}>
+                <span className="text-[10px] uppercase font-black text-slate-400 dark:text-slate-500 whitespace-nowrap hidden sm:inline">Status</span>
+                <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="bg-transparent border-none text-slate-700 dark:text-slate-300 text-xs font-bold focus:ring-0 cursor-pointer w-full outline-none py-1"
+                >
+                    <option value="All" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">All Status</option>
+                    <option value="Available" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Available</option>
+                    <option value="Under Contract" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Under Contract</option>
+                    <option value="Closed" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Closed / Sold</option>
+                </select>
+            </div>
+
+            <div className={`${isPublic ? 'col-span-1 md:col-span-3 md:flex md:justify-end' : 'col-span-2 md:col-span-2'}`}>
+                <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 border border-slate-200 dark:border-slate-700 shadow-sm w-full md:w-auto overflow-hidden">
+                    <SlidersHorizontal size={14} className="text-slate-400 flex-shrink-0" />
+                    <select
+                        id="sort-by"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="bg-transparent border-none text-slate-700 dark:text-slate-300 text-xs font-bold focus:ring-0 cursor-pointer w-full outline-none py-1"
+                    >
+                        <option value={isPublic ? 'publishedAt' : 'createdAt'} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Newest Listed</option>
+                        <option value="dealScore" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Highest Score</option>
+                        <option value="price" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Lowest Price</option>
+                    </select>
+                </div>
+            </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
       <div className="relative flex-1 min-h-0">
         <div className={`flex flex-col lg:flex-row gap-6 h-full ${viewMode === 'hybrid' ? 'lg:h-[calc(100vh-180px)]' : 'lg:h-[calc(100vh-180px)]'}`}>
-          
-          {/* List View Component */}
           {(viewMode === 'list' || viewMode === 'hybrid') && (
               <div className={`${viewMode === 'hybrid' ? 'lg:w-1/2' : 'w-full'} h-full lg:overflow-y-auto pr-2 custom-scrollbar`}>
                   {filteredDeals.length > 0 ? (
@@ -205,34 +267,11 @@ const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
               </div>
           )}
 
-          {/* Map View Component */}
           {(viewMode === 'map' || viewMode === 'hybrid') && (
               <div className={`${viewMode === 'hybrid' ? 'lg:w-1/2' : 'w-full'} h-[500px] lg:h-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 relative bg-slate-100 dark:bg-slate-900 shadow-inner`}>
                   <DealMap deals={filteredDeals} onSelectDeal={onSelectDeal} hoveredDealId={hoveredDealId} />
               </div>
           )}
-        </div>
-
-        {/* View Mode Toggle Controls */}
-        <div className="fixed lg:absolute bottom-24 lg:bottom-6 left-1/2 -translate-x-1/2 z-50 flex bg-slate-900/90 dark:bg-slate-800/90 backdrop-blur-md p-1 rounded-full shadow-2xl border border-slate-700/50">
-            <button 
-                onClick={() => setViewMode('list')}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${viewMode === 'list' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-            >
-                <List size={16} /> <span className="hidden sm:inline">List</span>
-            </button>
-            <button 
-                onClick={() => setViewMode('hybrid')}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${viewMode === 'hybrid' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-            >
-                <LayoutGrid size={16} /> <span className="hidden sm:inline">Hybrid</span>
-            </button>
-            <button 
-                onClick={() => setViewMode('map')}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${viewMode === 'map' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-            >
-                <MapIcon size={16} /> <span className="hidden sm:inline">Map</span>
-            </button>
         </div>
       </div>
     </div>

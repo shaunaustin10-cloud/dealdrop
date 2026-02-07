@@ -51,7 +51,7 @@ export default function PublicDealPage() {
                 <div className="bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg">
                    <LayoutGrid size={20} className="text-primary" />
                 </div>
-                <Link to="/" className="font-serif text-xl text-slate-900 dark:text-white tracking-tight">REI Deal <span className="text-primary italic">Drop</span></Link>
+                <Link to="/" className="font-serif text-lg md:text-xl text-slate-900 dark:text-white tracking-tight whitespace-nowrap">REI Deal <span className="text-primary italic">Drop</span></Link>
              </div>
           </div>
           

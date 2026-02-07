@@ -50,8 +50,7 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade, isPublic }) => 
   const isLocked = (isFirstLook && !isVIP && !user?.isVerified) || !user;
   const isOwner = user && (deal.sellerId === user.uid || deal.createdBy === user.uid);
 
-  const shortLocation = deal.city ? `${deal.city}, ${deal.state || ''}`.replace(/,\s*$/, '') : getShortAddress(deal.address);
-  const shortDesc = `${shortLocation} • ${deal.propertyType || 'Single Family'}`;
+  const shortDesc = deal.city ? `${deal.city}, ${deal.state || ''}`.replace(/,\s*$/, '') : getShortAddress(deal.address);
 
   // Sold Performance Calculation
   const isSold = deal.status === 'Closed' && parseFloat(deal.soldPrice) > 0;
@@ -343,20 +342,20 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade, isPublic }) => 
             </h1>
           </div>
           
-          <div className="flex gap-2 md:gap-8 bg-slate-50 dark:bg-slate-800/50 p-3 md:p-4 rounded-2xl border border-slate-200 dark:border-slate-700/50 backdrop-blur-sm">
-            <div className="text-center md:text-left min-w-[60px]">
-              <p className="text-slate-500 text-[9px] md:text-[10px] uppercase font-black tracking-widest mb-1">Deal Score</p>
-              <div className="text-lg md:text-2xl font-black text-emerald-500 dark:text-emerald-400">{deal.dealScore}</div>
+          <div className="flex gap-2 md:gap-6 bg-slate-50 dark:bg-slate-800/50 p-2 md:p-3 rounded-2xl border border-slate-200 dark:border-slate-700/50 backdrop-blur-sm">
+            <div className="text-center md:text-left min-w-[50px]">
+              <p className="text-slate-500 text-[8px] md:text-[9px] uppercase font-black tracking-widest mb-1">Deal Score</p>
+              <div className="text-lg md:text-xl font-black text-emerald-500 dark:text-emerald-400">{deal.dealScore}</div>
             </div>
-            <div className="w-px h-10 bg-slate-200 dark:bg-slate-700"></div>
-            <div className="text-center md:text-left min-w-[80px]">
-              <p className="text-slate-500 text-[9px] md:text-[10px] uppercase font-black tracking-widest mb-1">Target ARV</p>
-              <div className="text-lg md:text-2xl font-black text-slate-900 dark:text-white">{formatMoney(arv)}</div>
+            <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 my-auto"></div>
+            <div className="text-center md:text-left min-w-[70px]">
+              <p className="text-slate-500 text-[8px] md:text-[9px] uppercase font-black tracking-widest mb-1">Target ARV</p>
+              <div className="text-lg md:text-xl font-black text-slate-900 dark:text-white">{formatMoney(arv)}</div>
             </div>
-            <div className="w-px h-10 bg-slate-200 dark:bg-slate-700"></div>
-            <div className="text-center md:text-left min-w-[80px]">
-              <p className="text-slate-500 text-[9px] md:text-[10px] uppercase font-black tracking-widest mb-1">Target Rent</p>
-              <div className="text-lg md:text-2xl font-black text-slate-900 dark:text-white">{formatMoney(rent)}</div>
+            <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 my-auto"></div>
+            <div className="text-center md:text-left min-w-[70px]">
+              <p className="text-slate-500 text-[8px] md:text-[9px] uppercase font-black tracking-widest mb-1">Target Rent</p>
+              <div className="text-lg md:text-xl font-black text-slate-900 dark:text-white">{formatMoney(rent)}</div>
             </div>
           </div>
         </div>
@@ -370,24 +369,29 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade, isPublic }) => 
                     </div>
                     <div>
                         <h3 className={`text-lg font-black ${isLocked ? 'text-slate-600 dark:text-slate-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                            {isLocked ? 'VIP EXCLUSIVE ACCESS' : 'VIP FIRST LOOK OPPORTUNITY'}
+                            {(deal.status === 'Under Contract' || deal.status === 'Closed') ? 'VIP ARCHIVED DEAL' : (isLocked ? 'VIP EXCLUSIVE ACCESS' : 'VIP FIRST LOOK OPPORTUNITY')}
                         </h3>
                         <p className="text-sm text-slate-600 dark:text-slate-300">
-                            {isLocked 
-                                ? 'This high-scoring deal is currently restricted to Pro & Business members.' 
-                                : <>This deal scores <span className="font-bold">{deal.dealScore}/100</span>. Secure it now before it hits the open market.</>
+                            {(deal.status === 'Under Contract' || deal.status === 'Closed')
+                                ? `This deal scored ${deal.dealScore}/100 and is currently ${deal.status.toLowerCase()}.`
+                                : (isLocked 
+                                    ? 'This high-scoring deal is currently restricted to Pro & Business members.' 
+                                    : <>This deal scores <span className="font-bold">{deal.dealScore}/100</span>. Secure it now before it hits the open market.</>
+                                )
                             }
                         </p>
                     </div>
                 </div>
-                <button 
-                    onClick={handleBuyNow}
-                    disabled={buying}
-                    className={`bg-gradient-to-r ${isLocked ? 'from-slate-700 to-slate-800' : 'from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'} text-white px-6 py-3 rounded-xl font-bold uppercase tracking-wider shadow-xl transform hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center gap-2`}
-                >
-                    {buying ? <Loader2 size={18} className="animate-spin" /> : (isLocked ? <ShieldCheck size={18} /> : <DollarSign size={18} />)}
-                    {buying ? 'Processing...' : (isLocked ? 'Upgrade to Unlock' : 'Buy It Now')}
-                </button>
+                {deal.status !== 'Under Contract' && deal.status !== 'Closed' && (
+                    <button 
+                        onClick={handleBuyNow}
+                        disabled={buying}
+                        className={`bg-gradient-to-r ${isLocked ? 'from-slate-700 to-slate-800' : 'from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'} text-white px-6 py-3 rounded-xl font-bold uppercase tracking-wider shadow-xl transform hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center gap-2`}
+                    >
+                        {buying ? <Loader2 size={18} className="animate-spin" /> : (isLocked ? <ShieldCheck size={18} /> : <DollarSign size={18} />)}
+                        {buying ? 'Processing...' : (isLocked ? 'Upgrade to Unlock' : 'Buy It Now')}
+                    </button>
+                )}
             </div>
         )}
 
@@ -772,6 +776,16 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade, isPublic }) => 
                <p className="text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-wrap text-sm">{deal.notes}</p>
             </div>
           )}
+
+          {/* Legal / Wholesale Disclosure */}
+          <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 border-dashed">
+             <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Wholesale Disclosure</h4>
+             <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                This property is offered as an off-market deal. The seller is either the owner of record or holds a valid, equitable interest in the property via a purchase contract. 
+                This is an assignment of contract sale. 
+                <span className="font-bold text-slate-700 dark:text-slate-300"> Agents:</span> Please add your commission to the sales price to be paid by the buyer.
+             </p>
+          </div>
         </div>
       </div>
     </div>

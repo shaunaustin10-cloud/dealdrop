@@ -130,7 +130,7 @@ export default function MainApp() {
             <div className="bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg">
                <LayoutGrid className="text-primary" size={20} />
             </div>
-            <span className="font-serif text-xl text-slate-900 dark:text-white tracking-tight">REI Deal <span className="text-primary italic">Drop</span></span>
+            <span className="font-serif text-lg md:text-xl text-slate-900 dark:text-white tracking-tight whitespace-nowrap">REI Deal <span className="text-primary italic">Drop</span></span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -342,7 +342,10 @@ export default function MainApp() {
                    <span className="font-serif text-lg text-slate-900 dark:text-white">REI Deal <span className="text-primary italic">Drop</span></span>
                 </div>
                 <p className="text-slate-500 dark:text-slate-600 text-[10px] leading-relaxed max-w-2xl uppercase tracking-wider font-medium">
-                  &copy; {new Date().getFullYear()} REI Deal Drop. All rights reserved.
+                  &copy; {new Date().getFullYear()} REI Deal Drop. All rights reserved. 
+                  <span className="block mt-1 normal-case font-normal text-[9px] opacity-70">
+                    All properties are offered as equitable interest via assignment of contract or owned by the respective parties. Agents: add commission to sales price.
+                  </span>
                 </p>
             </div>
             <div className="flex gap-6 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-600">

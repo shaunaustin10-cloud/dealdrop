@@ -18,25 +18,20 @@ const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
   const { user } = useAuth();
   const { isVIP } = useSubscription();
   const [buying, setBuying] = useState(false);
-  // Quick calc for display
+  
   const price = parseFloat(deal.price);
   const arv = parseFloat(deal.arv);
   const rehab = parseFloat(deal.rehab);
   const rent = parseFloat(deal.rent);
   
-  // Use the shared utility to get the official "Deal Score"
-  // Note: calculateDealScore now might use soldPrice if we passed it, but here we usually display the projected score
   const { score, verdict, verdictColor } = calculateDealScore({ price, arv, rehab, rent, hasPool: deal.hasPool });
 
-  // VIP Gating Logic - Prefer the saved score for badges/gating consistency
   const officialScore = deal.dealScore || score;
   const isFirstLook = officialScore >= 84;
   const isLocked = isPublic && ((isFirstLook && !isVIP && !user?.isVerified) || !user);
 
-  const shortLocation = deal.city ? `${deal.city}, ${deal.state || ''}`.replace(/,\s*$/, '') : getShortAddress(deal.address);
-  const shortDesc = `${shortLocation} • ${deal.propertyType || 'Single Family'}`;
+  const shortDesc = deal.city ? `${deal.city}, ${deal.state || ''}`.replace(/,\s*$/, '') : getShortAddress(deal.address);
 
-  // Calculate Realized Performance if Sold
   let soldVerdict = null;
   if (deal.status === 'Closed' && deal.soldPrice) {
       const sp = parseFloat(deal.soldPrice);
@@ -124,7 +119,7 @@ const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
         <div className="absolute bottom-3 left-4 right-4">
            <div className="flex justify-between items-end">
                <div>
-                   <div className="flex gap-2 mb-2">
+                   <div className="flex flex-wrap gap-2">
                        <span className={`${verdictColor} bg-white/90 dark:bg-slate-950/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 text-[10px] font-black uppercase px-2 py-1 rounded inline-block tracking-wider`}>
                          {verdict}
                        </span>
@@ -154,27 +149,22 @@ const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
                            </span>
                        )}
                    </div>
-                   <h3 className={`text-white font-bold truncate text-lg leading-tight drop-shadow-md flex items-center gap-2 ${isLocked ? 'select-none' : ''}`}>
-                      {isLocked && <Lock size={16} className="text-amber-400" />}
-                      {isLocked ? shortDesc : deal.address}
-                   </h3>
-                   <div className="flex items-center gap-2 text-slate-200 text-xs truncate opacity-90 mt-0.5">
-                      {isLocked ? (
-                          <span className="text-amber-400 font-bold uppercase tracking-wider text-[10px]">Login for Full Address</span>
-                      ) : (
-                          <>
-                            <span>{deal.propertyType || 'Single Family'}</span>
-                            <span>•</span>
-                            <span>{deal.city || 'Location Details'}</span>
-                          </>
-                      )}
-                   </div>
                </div>
            </div>
         </div>
       </div>
       
-      <div className="p-4 flex-1 flex flex-col justify-between">
+      <div className="p-4 flex-1 flex flex-col">
+        <div className="mb-4">
+            <h3 className={`text-slate-900 dark:text-white font-bold text-sm leading-tight flex items-start gap-1.5 line-clamp-2 mb-0.5 ${isLocked ? 'select-none' : ''}`}>
+                {isLocked && <Lock size={12} className="text-amber-500 mt-0.5 shrink-0" />}
+                {isLocked ? shortDesc : deal.address}
+            </h3>
+            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">
+                {deal.propertyType || 'Single Family'}
+            </p>
+        </div>
+
         <div className="flex justify-between items-center mb-4 px-2">
           <div>
              <p className="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold tracking-wider">Buy Price</p>
@@ -186,7 +176,6 @@ const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
           </div>
         </div>
 
-        {/* Property Specs Row */}
         <div className="flex justify-between items-center px-2 mb-4 py-2 border-y border-slate-50 dark:border-slate-800/50">
             <div className="text-center">
                 <p className="text-[9px] uppercase text-slate-400 font-bold">Beds</p>
@@ -210,8 +199,6 @@ const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
         </div>
 
         <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-           
-           {/* Enhanced Deal Score Display */}
            <div className="flex items-center gap-3">
                <div className="relative w-12 h-12 flex items-center justify-center">
                   <svg className="w-full h-full transform -rotate-90">
@@ -234,7 +221,7 @@ const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
            </div>
 
            <div className="flex gap-2">
-             {isPublic && isFirstLook && !isLocked && (
+             {isPublic && isFirstLook && !isLocked && deal.status !== 'Under Contract' && deal.status !== 'Closed' && (
                <button 
                  onClick={handleBuyNow}
                  disabled={buying}
@@ -244,12 +231,18 @@ const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
                  Buy Now
                </button>
              )}
-             <button 
-               onClick={() => onClick(deal)}
-               className={`bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1 group-hover:bg-primary dark:group-hover:bg-primary group-hover:text-white dark:group-hover:text-white ${isLocked ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : ''}`}
-             >
-               {isLocked ? 'Unlock Details' : 'Analyze'} <ChevronRight size={12} />
-             </button>
+             {(!isLocked || (deal.status !== 'Under Contract' && deal.status !== 'Closed')) ? (
+                 <button 
+                   onClick={() => onClick(deal)}
+                   className={`bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1 group-hover:bg-primary dark:group-hover:bg-primary group-hover:text-white dark:group-hover:text-white ${isLocked ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : ''}`}
+                 >
+                   {isLocked ? 'Unlock Details' : 'Analyze'} <ChevronRight size={12} />
+                 </button>
+             ) : (
+                 <div className="text-[10px] text-slate-500 font-bold uppercase py-2 px-3 italic">
+                     Acquisition Closed
+                 </div>
+             )}
            </div>
         </div>
       </div>
@@ -268,6 +261,7 @@ DealCard.propTypes = {
     imageUrls: PropTypes.array,
     imageUrl: PropTypes.string,
     city: PropTypes.string,
+    state: PropTypes.string,
     projectedResult: PropTypes.any,
     hasPool: PropTypes.any,
     propertyType: PropTypes.string,
@@ -278,6 +272,7 @@ DealCard.propTypes = {
     bathrooms: PropTypes.any,
     sqft: PropTypes.any,
     yearBuilt: PropTypes.any,
+    dealScore: PropTypes.number,
   }).isRequired,
   onClick: PropTypes.func.isRequired,
   onDelete: PropTypes.func,
