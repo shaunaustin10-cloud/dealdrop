@@ -81,7 +81,10 @@ const LandingPage = () => {
             <span className="font-serif text-base md:text-xl text-slate-900 dark:text-white tracking-tight whitespace-nowrap">REI Deal <span className="text-primary italic">Drop</span></span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-500 dark:text-slate-400">
-            <Link to="/marketplace" className="text-slate-900 dark:text-white font-black hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Marketplace <span className="text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full ml-1">LIVE</span></Link>
+            <Link to="/marketplace" className="text-slate-900 dark:text-white font-black hover:text-amber-500 transition-colors flex items-center gap-2">
+              Marketplace 
+              <span className="text-[10px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full">LIVE</span>
+            </Link>
             <a href="#features" className="hover:text-slate-900 dark:hover:text-white transition-colors">Features</a>
             <a href="#audiences" className="hover:text-slate-900 dark:hover:text-white transition-colors">Who It&apos;s For</a>
             <a href="#pricing" className="hover:text-slate-900 dark:hover:text-white transition-colors">Pricing</a>
@@ -107,8 +110,8 @@ const LandingPage = () => {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-emerald-500/10 dark:bg-emerald-500/20 rounded-full blur-[120px] pointer-events-none"></div>
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
           <div className="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-1.5 mb-8 backdrop-blur-sm hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">Marketplace Now Live</span>
+            <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+            <span className="text-xs font-bold text-amber-500 uppercase tracking-wide">Marketplace Now Live</span>
           </div>
           <h1 className="text-5xl md:text-8xl font-serif text-slate-900 dark:text-white tracking-tight mb-8 leading-none">
             Find Your Next <br/>

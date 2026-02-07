@@ -299,10 +299,9 @@ export default function MainApp() {
                   <div className="relative overflow-hidden rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 px-4 py-3 md:px-6 md:py-4 shadow-sm mb-4">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
                     <div className="relative z-10">
-                        <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-tight">
-                          Live <span className="text-blue-500 dark:text-blue-400">Marketplace</span>
-                        </h1>
-                        <p className="text-slate-500 dark:text-slate-400 text-[10px] md:text-xs font-medium">
+                                        <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-tight">
+                                          Live <span className="text-amber-500">Marketplace</span>
+                                        </h1>                        <p className="text-slate-500 dark:text-slate-400 text-[10px] md:text-xs font-medium">
                           Verified off-market deals from top wholesalers.
                         </p>
                     </div>
