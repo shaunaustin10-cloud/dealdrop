@@ -1,12 +1,15 @@
+import 'dotenv/config';
 import admin from 'firebase-admin';
 import fs from 'fs';
 import path from 'path';
 
 // Production vs Emulator Logic
-if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+if (process.env.FIREBASE_SERVICE_ACCOUNT || fs.existsSync('./service-account.json')) {
     // GitHub Actions / Production environment
     console.log("Using Service Account for Production upload...");
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT 
+        ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+        : JSON.parse(fs.readFileSync('./service-account.json', 'utf8'));
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
         projectId: serviceAccount.project_id

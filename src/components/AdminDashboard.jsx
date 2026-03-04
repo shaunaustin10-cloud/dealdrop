@@ -3,8 +3,9 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { doc, getDoc, collection, getDocs, query, where, orderBy, updateDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-import { ShieldAlert, Users, LayoutGrid, DollarSign, CheckCircle, XCircle, FileText, ExternalLink } from 'lucide-react';
+import { ShieldAlert, Users, LayoutGrid, DollarSign, CheckCircle, XCircle, FileText, ExternalLink, Database } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ForeclosureLeads from './ForeclosureLeads';
 
 const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
 
@@ -16,6 +17,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ users: 0, deals: 0 });
   const [pendingDeals, setPendingDeals] = useState([]);
+  const [activeTab, setActiveTab] = useState('leads'); // Default to leads
 
   const [users, setUsers] = useState([]);
 
@@ -90,9 +92,8 @@ const AdminDashboard = () => {
   const fetchPendingDeals = async () => {
       try {
           const dealsRef = collection(db, 'artifacts', appId, 'publicDeals');
-          // Query for Pending Verification deals
-          // Note: Ensure you have an index for 'status'
-          const q = query(dealsRef, where('status', '==', 'Pending Verification'), orderBy('createdAt', 'desc'));
+          // Query for ANY deals that are pending, regardless of score
+          const q = query(dealsRef, where('adminVerificationStatus', '==', 'pending'), orderBy('publishedAt', 'desc'));
           const snapshot = await getDocs(q);
           const deals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           setPendingDeals(deals);
@@ -106,7 +107,7 @@ const AdminDashboard = () => {
       try {
           const dealRef = doc(db, 'artifacts', appId, 'publicDeals', dealId);
           await updateDoc(dealRef, {
-              status: 'Available', // or 'Active'
+              adminVerificationStatus: 'approved',
               isVipApproved: true,
               approvedAt: new Date()
           });
@@ -203,139 +204,167 @@ const AdminDashboard = () => {
             </div>
         </div>
 
-        {/* Verification Queue */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 mb-8 shadow-sm">
-            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <FileText className="text-amber-500" /> Verification Queue
+        {/* Tab Switcher */}
+        <div className="flex border-b border-slate-200 dark:border-slate-800 mb-8 overflow-x-auto text-nowrap">
+            <button 
+                onClick={() => setActiveTab('leads')}
+                className={`flex items-center gap-2 px-6 py-4 font-bold text-sm transition-all border-b-2 ${activeTab === 'leads' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
+            >
+                <Database size={18} /> Foreclosure Leads
+            </button>
+            <button 
+                onClick={() => setActiveTab('queue')}
+                className={`flex items-center gap-2 px-6 py-4 font-bold text-sm transition-all border-b-2 ${activeTab === 'queue' ? 'border-amber-500 text-amber-600' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
+            >
+                <FileText size={18} /> Verification Queue
                 {pendingDeals.length > 0 && (
-                    <span className="bg-amber-500 text-slate-900 text-xs px-2 py-1 rounded-full font-black">
-                        {pendingDeals.length} Pending
+                    <span className="bg-amber-500 text-slate-900 text-[10px] px-1.5 py-0.5 rounded-full font-black">
+                        {pendingDeals.length}
                     </span>
                 )}
-            </h3>
-
-            {pendingDeals.length === 0 ? (
-                <p className="text-slate-500 italic">No deals pending verification.</p>
-            ) : (
-                <div className="space-y-4">
-                    {pendingDeals.map(deal => (
-                        <div key={deal.id} className="bg-slate-50 dark:bg-midnight border border-slate-200 dark:border-slate-800 p-4 rounded-xl flex flex-col md:flex-row justify-between gap-4">
-                            <div>
-                                <h4 className="font-bold text-lg text-slate-900 dark:text-white">{deal.address}</h4>
-                                <div className="flex gap-4 text-sm text-slate-500 dark:text-slate-400 mt-1">
-                                    <span>Score: <strong className={deal.dealScore > 84 ? "text-emerald-500" : "text-slate-700 dark:text-white"}>{deal.dealScore}</strong></span>
-                                    <span>Price: ${Number(deal.price).toLocaleString()}</span>
-                                    <span>User: {deal.sellerContactEmail || deal.createdBy}</span>
-                                </div>
-                                {deal.proofOfContractPath ? (
-                                    <a href={deal.proofOfContractPath} target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 text-xs flex items-center gap-1 mt-2 hover:underline">
-                                        <ExternalLink size={12} /> View Contract Proof
-                                    </a>
-                                ) : (
-                                    <span className="text-red-500 text-xs mt-2 block">No Proof Uploaded</span>
-                                )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button 
-                                    onClick={() => handleReject(deal.id)}
-                                    className="bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 shadow-sm"
-                                >
-                                    <XCircle size={16} /> Reject
-                                </button>
-                                <button 
-                                    onClick={() => handleApprove(deal.id)}
-                                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 shadow-lg shadow-emerald-900/20"
-                                >
-                                    <CheckCircle size={16} /> Approve & Post
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+            </button>
+            <button 
+                onClick={() => setActiveTab('users')}
+                className={`flex items-center gap-2 px-6 py-4 font-bold text-sm transition-all border-b-2 ${activeTab === 'users' ? 'border-blue-500 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
+            >
+                <Users size={18} /> User Directory
+            </button>
         </div>
 
-        {/* User Directory */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 mb-8 shadow-sm">
-            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <Users className="text-blue-500" /> User Directory
-                <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-black">
-                    {users.length} Total
-                </span>
-            </h3>
+        {activeTab === 'leads' && (
+            <ForeclosureLeads />
+        )}
 
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 text-sm uppercase tracking-widest font-black">
-                            <th className="py-4 px-4">User</th>
-                            <th className="py-4 px-4">Role</th>
-                            <th className="py-4 px-4">Tier</th>
-                            <th className="py-4 px-4 text-center">Deals</th>
-                            <th className="py-4 px-4 text-center">Credits</th>
-                            <th className="py-4 px-4 text-right">Joined</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {users.map(u => (
-                            <tr key={u.id} className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors">
-                                <td className="py-4 px-4">
-                                    <div className="flex items-center gap-3">
-                                        <img 
-                                            src={u.photoURL || `https://api.dicebear.com/9.x/initials/svg?seed=${u.displayName || u.email || 'User'}`} 
-                                            alt="" 
-                                            className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800"
-                                        />
-                                        <div>
-                                            <div className="font-bold text-slate-900 dark:text-white">{u.displayName || 'Unnamed User'}</div>
-                                            <div className="text-xs text-slate-400 font-mono">{u.email || u.id.substring(0, 8)}</div>
-                                        </div>
+        {activeTab === 'queue' && (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 mb-8 shadow-sm">
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                    <FileText className="text-amber-500" /> Verification Queue
+                </h3>
+
+                {pendingDeals.length === 0 ? (
+                    <p className="text-slate-500 italic">No deals pending verification.</p>
+                ) : (
+                    <div className="space-y-4">
+                        {pendingDeals.map(deal => (
+                            <div key={deal.id} className="bg-slate-50 dark:bg-midnight border border-slate-200 dark:border-slate-800 p-4 rounded-xl flex flex-col md:flex-row justify-between gap-4">
+                                <div>
+                                    <h4 className="font-bold text-lg text-slate-900 dark:text-white">{deal.address}</h4>
+                                    <div className="flex gap-4 text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                        <span>Score: <strong className={deal.dealScore > 84 ? "text-emerald-500" : "text-slate-700 dark:text-white"}>{deal.dealScore}</strong></span>
+                                        <span>Price: ${Number(deal.price).toLocaleString()}</span>
+                                        <span>User: {deal.sellerContactEmail || deal.createdBy}</span>
                                     </div>
-                                </td>
-                                <td className="py-4 px-4">
-                                    <span className={`text-[10px] uppercase font-black px-2 py-1 rounded-md transition-all ${
-                                        u.role === 'admin' ? 'bg-red-500/10 text-red-600 dark:text-red-500 border border-red-500/20' :
-                                        u.role === 'agent' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-500/20' :
-                                        'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-                                    }`}>
-                                        {u.role || 'investor'}
-                                    </span>
-                                </td>
-                                <td className="py-4 px-4">
+                                    {deal.proofOfContractPath ? (
+                                        <a href={deal.proofOfContractPath} target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 text-xs flex items-center gap-1 mt-2 hover:underline">
+                                            <ExternalLink size={12} /> View Contract Proof
+                                        </a>
+                                    ) : (
+                                        <span className="text-red-500 text-xs mt-2 block">No Proof Uploaded</span>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2">
                                     <button 
-                                        onClick={() => updateUserTier(u.id, u.subscriptionTier || 'free')}
-                                        className={`text-[10px] uppercase font-black px-2 py-1 rounded-md transition-transform hover:scale-105 ${
-                                            u.subscriptionTier === 'pro' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border border-emerald-500/20' :
-                                            u.subscriptionTier === 'agency' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-500 border border-purple-500/20' :
-                                            u.subscriptionTier === 'business' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-500 border border-blue-500/20' :
-                                            'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-                                        }`}
+                                        onClick={() => handleReject(deal.id)}
+                                        className="bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 shadow-sm"
                                     >
-                                        {u.subscriptionTier || 'free'}
+                                        <XCircle size={16} /> Reject
                                     </button>
-                                </td>
-                                <td className="py-4 px-4 text-center">
-                                    <span className="font-bold text-slate-600 dark:text-slate-300">
-                                        {u.dealCount}
-                                    </span>
-                                </td>
-                                <td className="py-4 px-4 text-center">
                                     <button 
-                                        onClick={() => updateUserCredits(u.id, u.credits)}
-                                        className={`font-black transition-transform hover:scale-110 ${u.credits === 0 ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}
+                                        onClick={() => handleApprove(deal.id)}
+                                        className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 shadow-lg shadow-emerald-900/20"
                                     >
-                                        {u.credits ?? '∞'}
+                                        <CheckCircle size={16} /> Approve & Post
                                     </button>
-                                </td>
-                                <td className="py-4 px-4 text-right text-xs text-slate-400">
-                                    {u.joinedAt?.toDate ? u.joinedAt.toDate().toLocaleDateString() : 'N/A'}
-                                </td>
-                            </tr>
+                                </div>
+                            </div>
                         ))}
-                    </tbody>
-                </table>
+                    </div>
+                )}
             </div>
-        </div>
+        )}
+
+        {activeTab === 'users' && (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 mb-8 shadow-sm">
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                    <Users className="text-blue-500" /> User Directory
+                    <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-black">
+                        {users.length} Total
+                    </span>
+                </h3>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 text-sm uppercase tracking-widest font-black">
+                                <th className="py-4 px-4">User</th>
+                                <th className="py-4 px-4">Role</th>
+                                <th className="py-4 px-4">Tier</th>
+                                <th className="py-4 px-4 text-center">Deals</th>
+                                <th className="py-4 px-4 text-center">Credits</th>
+                                <th className="py-4 px-4 text-right">Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {users.map(u => (
+                                <tr key={u.id} className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors">
+                                    <td className="py-4 px-4">
+                                        <div className="flex items-center gap-3">
+                                            <img 
+                                                src={u.photoURL || `https://api.dicebear.com/9.x/initials/svg?seed=${u.displayName || u.email || 'User'}`} 
+                                                alt="" 
+                                                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800"
+                                            />
+                                            <div>
+                                                <div className="font-bold text-slate-900 dark:text-white">{u.displayName || 'Unnamed User'}</div>
+                                                <div className="text-xs text-slate-400 font-mono">{u.email || u.id.substring(0, 8)}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="py-4 px-4">
+                                        <span className={`text-[10px] uppercase font-black px-2 py-1 rounded-md transition-all ${
+                                            u.role === 'admin' ? 'bg-red-500/10 text-red-600 dark:text-red-500 border border-red-500/20' :
+                                            u.role === 'agent' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-500/20' :
+                                            'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                                        }`}>
+                                            {u.role || 'investor'}
+                                        </span>
+                                    </td>
+                                    <td className="py-4 px-4">
+                                        <button 
+                                            onClick={() => updateUserTier(u.id, u.subscriptionTier || 'free')}
+                                            className={`text-[10px] uppercase font-black px-2 py-1 rounded-md transition-transform hover:scale-105 ${
+                                                u.subscriptionTier === 'pro' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border border-emerald-500/20' :
+                                                u.subscriptionTier === 'agency' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-500 border border-purple-500/20' :
+                                                u.subscriptionTier === 'business' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-500 border border-blue-500/20' :
+                                                'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                                            }`}
+                                        >
+                                            {u.subscriptionTier || 'free'}
+                                        </button>
+                                    </td>
+                                    <td className="py-4 px-4 text-center">
+                                        <span className="font-bold text-slate-600 dark:text-slate-300">
+                                            {u.dealCount}
+                                        </span>
+                                    </td>
+                                    <td className="py-4 px-4 text-center">
+                                        <button 
+                                            onClick={() => updateUserCredits(u.id, u.credits)}
+                                            className={`font-black transition-transform hover:scale-110 ${u.credits === 0 ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}
+                                        >
+                                            {u.credits ?? '∞'}
+                                        </button>
+                                    </td>
+                                    <td className="py-4 px-4 text-right text-xs text-slate-400">
+                                        {u.joinedAt?.toDate ? u.joinedAt.toDate().toLocaleDateString() : 'N/A'}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        )}
 
         <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center opacity-50 transition-all">
             <h3 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">User Management</h3>

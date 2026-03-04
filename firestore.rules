@@ -7,24 +7,31 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Helper to check if the user is the owner of the document
-    function isOwner(resource) {
-      return resource.data.createdBy == request.auth.uid;
-    }
-
     // --- Marketplace Deals Collection ---
     match /artifacts/{appId}/publicDeals/{dealId} {
       allow read: if true; // Publicly readable
       allow create: if request.auth != null; // Allow any logged in user to post
-      allow update, delete: if request.auth != null && (
+      
+      // Allow specific partial updates for social/gatekeeper features
+      allow update: if request.auth != null && (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount', 'savedBy', 'unlockedBy']) ||
         request.auth.uid == resource.data.sellerId || 
-        !('sellerId' in resource.data) || 
+        get(/databases/$(database)/documents/artifacts/$(appId)/profiles/$(request.auth.uid)).data.role == 'admin'
+      );
+      
+      allow delete: if request.auth != null && (
+        request.auth.uid == resource.data.sellerId || 
         get(/databases/$(database)/documents/artifacts/$(appId)/profiles/$(request.auth.uid)).data.role == 'admin'
       );
     }
     
+    // --- Foreclosure Leads Collection ---
+    match /artifacts/{appId}/foreclosureLeads/{leadId} {
+      allow read, write: if request.auth != null && 
+        get(/databases/$(database)/documents/artifacts/$(appId)/profiles/$(request.auth.uid)).data.role == 'admin';
+    }
+
     // --- User Profiles Collection ---
-    // Allow public read, but only the user can write their own profile
     match /artifacts/{appId}/profiles/{userId} {
       allow read: if true;
       allow write: if request.auth.uid == userId;
@@ -35,7 +42,7 @@ service cloud.firestore {
       allow read, write: if request.auth.uid == userId;
     }
 
-    // --- Private Deals Collection (New Internal Tool) ---
+    // --- Private Deals Collection ---
     match /artifacts/{appId}/users/{userId}/deals/{dealId} {
       allow read: if request.auth.uid == userId || resource.data.shareable == true || resource.data.publiclyVisible == true;
       allow write: if request.auth.uid == userId;
@@ -56,30 +63,18 @@ service cloud.firestore {
       allow read: if true;
     }
     
-    // --- Stripe Extensions Collections (Standard Rules) ---
+    // --- Stripe Extensions Collections ---
     match /customers/{uid} {
       allow read: if request.auth.uid == uid;
-
-      match /checkout_sessions/{id} {
-        allow read, write: if request.auth.uid == uid;
-      }
-      match /subscriptions/{id} {
-        allow read: if request.auth.uid == uid;
-      }
-      match /payments/{id} {
-        allow read: if request.auth.uid == uid;
-      }
+      match /checkout_sessions/{id} { allow read, write: if request.auth.uid == uid; }
+      match /subscriptions/{id} { allow read: if request.auth.uid == uid; }
+      match /payments/{id} { allow read: if request.auth.uid == uid; }
     }
 
     match /products/{id} {
       allow read: if true;
-
-      match /prices/{id} {
-        allow read: if true;
-      }
-      match /tax_rates/{id} {
-        allow read: if true;
-      }
+      match /prices/{id} { allow read: if true; }
+      match /tax_rates/{id} { allow read: if true; }
     }
   }
 }
