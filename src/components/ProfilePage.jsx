@@ -11,7 +11,7 @@ import Toast from './Toast';
 import PricingModal from './PricingModal';
 import imageCompression from 'browser-image-compression';
 
-const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
+const appId = import.meta.env.VITE_APP_ID || 'dealdrop-prod';
 
 const ProfilePage = () => {
   const { user } = useAuth();

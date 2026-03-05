@@ -15,7 +15,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const appId = process.env.VITE_APP_ID || 'default-app-id';
+const appId = process.env.VITE_APP_ID || 'dealdrop-prod';
 
 async function checkDeals() {
   console.log(`Checking LIVE deals in artifacts/${appId}/publicDeals...`);

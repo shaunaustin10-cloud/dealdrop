@@ -36,7 +36,7 @@ async function checkCollection(appId) {
 }
 
 async function main() {
-    await checkCollection('default-app-id');
+    await checkCollection('dealdrop-prod');
     await checkCollection('dealdrop-prod');
 }
 

@@ -6,7 +6,7 @@ const firebaseConfig = { apiKey: process.env.VITE_FIREBASE_API_KEY, authDomain: 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 async function run() {
-  const snapshot = await getDocs(query(collection(db, 'artifacts', 'default-app-id', 'publicDeals'), limit(1)));
+  const snapshot = await getDocs(query(collection(db, 'artifacts', 'dealdrop-prod', 'publicDeals'), limit(1)));
   snapshot.forEach(doc => console.log(JSON.stringify(doc.data(), null, 2)));
 }
 run().catch(console.error);

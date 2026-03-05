@@ -16,7 +16,7 @@ admin.initializeApp({
 
 const db = admin.firestore();
 const auth = admin.auth();
-const appId = 'default-app-id';
+const appId = 'dealdrop-prod';
 
 async function makeAdmin(email) {
   try {

@@ -22,7 +22,7 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
-const appId = 'default-app-id';
+const appId = 'dealdrop-prod';
 
 async function uploadLeads() {
     const leads = JSON.parse(fs.readFileSync('./foreclosures.json', 'utf8'));

@@ -21,7 +21,7 @@ async function audit() {
 
     console.log("\n=== 2. LISTING ALL DEALS (Firestore) ===");
     // Check both potential App IDs just in case
-    const appIds = ['dealdrop-prod', 'default-app-id'];
+    const appIds = ['dealdrop-prod', 'dealdrop-prod'];
     
     for (const appId of appIds) {
         console.log(`\nChecking App ID: ${appId}`);

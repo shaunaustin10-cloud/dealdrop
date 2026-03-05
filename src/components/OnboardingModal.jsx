@@ -5,7 +5,7 @@ import { ArrowRight, LayoutGrid, FileText, CheckCircle2, User, DollarSign, Build
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 
-const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
+const appId = import.meta.env.VITE_APP_ID || 'dealdrop-prod';
 
 const OnboardingModal = () => {
   const { user } = useAuth();

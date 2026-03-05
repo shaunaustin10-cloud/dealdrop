@@ -6,8 +6,8 @@ admin.initializeApp({ projectId: 'web-app-30504' });
 const db = admin.firestore();
 
 async function checkLeads() {
-    const leads = await db.collection('artifacts').doc('default-app-id').collection('foreclosureLeads').limit(5).get();
-    console.log(`Found ${leads.size} leads in default-app-id.`);
+    const leads = await db.collection('artifacts').doc('dealdrop-prod').collection('foreclosureLeads').limit(5).get();
+    console.log(`Found ${leads.size} leads in dealdrop-prod.`);
 }
 
 checkLeads().catch(console.error);

@@ -21,7 +21,7 @@ import { db } from '../firebaseConfig';
 import { calculateDealScore } from '../utils/calculateDealScore';
 import { useAuth } from '../context/AuthContext';
 
-const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
+const appId = import.meta.env.VITE_APP_ID || 'dealdrop-prod';
 
 export const useFetchDeals = (isPublic = false, sortBy = 'createdAt') => {
   const { user, logout } = useAuth();

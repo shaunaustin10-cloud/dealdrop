@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 
-const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
+const appId = import.meta.env.VITE_APP_ID || 'dealdrop-prod';
 
 // PRICE IDS
 const FOUNDING_PRICE_ID = 'price_1SoZ0KKhuaxmxrluGuHVwAsB';
