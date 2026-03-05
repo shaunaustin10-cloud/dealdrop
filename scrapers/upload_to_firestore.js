@@ -5,17 +5,25 @@ import path from 'path';
 
 // Production vs Emulator Logic
 if (process.env.FIREBASE_SERVICE_ACCOUNT || fs.existsSync('./service-account.json')) {
-    // GitHub Actions / Production environment
     console.log("Using Service Account for Production upload...");
-    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT 
-        ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
-        : JSON.parse(fs.readFileSync('./service-account.json', 'utf8'));
+    let serviceAccount;
+    
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } else {
+        serviceAccount = JSON.parse(fs.readFileSync('./service-account.json', 'utf8'));
+    }
+
+    // CRITICAL: Fix for private key newlines in GitHub Secrets
+    if (serviceAccount.private_key) {
+        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+    }
+
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
         projectId: serviceAccount.project_id
     });
 } else if (process.env.FIRESTORE_EMULATOR_HOST) {
-    // Local Emulator environment
     console.log(`Using Firestore Emulator: ${process.env.FIRESTORE_EMULATOR_HOST}`);
     admin.initializeApp({ projectId: 'web-app-30504' });
 } else {
@@ -34,7 +42,7 @@ async function uploadLeads() {
     }
 
     const leads = JSON.parse(fs.readFileSync(leadsPath, 'utf8'));
-    console.log(`Uploading ${leads.length} leads to Firestore...`);
+    console.log(`Uploading ${leads.length} leads to [artifacts/${appId}/foreclosureLeads]...`);
 
     const leadsRef = db.collection('artifacts').doc(appId).collection('foreclosureLeads');
     
@@ -47,8 +55,6 @@ async function uploadLeads() {
         await docRef.set({
             ...lead,
             status: lead.status || 'new',
-            // Only set dateAdded if it's a new document
-            dateAdded: admin.firestore.Timestamp.now(), 
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
         
@@ -56,7 +62,7 @@ async function uploadLeads() {
         if (count % 10 === 0) console.log(`Processed ${count}/${leads.length}...`);
     }
 
-    console.log("Upload complete!");
+    console.log(`✅ ${count} leads uploaded successfully to live database!`);
 }
 
 uploadLeads().catch(err => {
