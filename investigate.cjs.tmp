@@ -1,8 +1,5 @@
-
-import admin from 'firebase-admin';
-import fs from 'fs';
-
-const serviceAccount = {
+const admin = require('firebase-admin');
+const sa = {
   "type": "service_account",
   "project_id": "web-app-30504",
   "private_key_id": "0116c1349e151a0b7a5130dbb40e87e28d4f6e73",
@@ -17,39 +14,31 @@ const serviceAccount = {
 };
 
 admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    projectId: serviceAccount.project_id
+  credential: admin.credential.cert(sa),
+  projectId: sa.project_id
 });
 
 const db = admin.firestore();
-const appId = 'web-app-30504';
+const auth = admin.auth();
 
-async function uploadLeads() {
-    const leads = JSON.parse(fs.readFileSync('./foreclosures.json', 'utf8'));
-    console.log(`Uploading ${leads.length} leads to Firestore...`);
-
-    const leadsRef = db.collection('artifacts').doc(appId).collection('foreclosureLeads');
+async function run() {
+  try {
+    const user = await auth.getUserByEmail('test@gmail.com');
+    console.log(`UID: ${user.uid}`);
     
-    let count = 0;
-    for (const lead of leads) {
-        const docId = lead.address.toLowerCase().replace(/[^a-z0-9]/g, '_');
-        const docRef = leadsRef.doc(docId);
-        
-        await docRef.set({
-            ...lead,
-            status: lead.status || 'new',
-            dateAdded: admin.firestore.Timestamp.now(), 
-            updatedAt: admin.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-        
-        count++;
-        if (count % 10 === 0) console.log(`Processed ${count}/${leads.length}...`);
+    // Check ALL artifacts
+    const collections = ['default-app-id', 'default-app-id', 'web-app-30504'];
+    for (const id of collections) {
+      console.log(`\n--- Checking ID: ${id} ---`);
+      const profile = await db.collection('artifacts').doc(id).collection('profiles').doc(user.uid).get();
+      if (profile.exists()) {
+        console.log(`Profile:`, JSON.stringify(profile.data()));
+      }
+      const deals = await db.collection('artifacts').doc(id).collection('users').doc(user.uid).collection('deals').get();
+      console.log(`Deals: ${deals.size}`);
     }
-
-    console.log("Upload complete!");
+  } catch (e) {
+    console.error(e);
+  }
 }
-
-uploadLeads().catch(err => {
-    console.error("Upload Error:", err);
-    process.exit(1);
-});
+run();

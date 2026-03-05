@@ -12,11 +12,11 @@ const db = getFirestore(app);
 // In Node.js, we need to tell it where the emulator is
 process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8081';
 
-const appId = 'dealdrop-prod';
+const appId = 'default-app-id';
 
 async function checkProfiles() {
   console.log("--------------------------------------------------");
-  console.log("Checking profiles in 'artifacts/dealdrop-prod/profiles'...");
+  console.log("Checking profiles in 'artifacts/default-app-id/profiles'...");
   console.log("--------------------------------------------------");
   const profilesCol = collection(db, 'artifacts', appId, 'profiles');
   const snapshot = await getDocs(profilesCol);

@@ -31,4 +31,4 @@ jobs:
           node index.js
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          VITE_APP_ID: "dealdrop-prod"
+          VITE_APP_ID: "default-app-id"

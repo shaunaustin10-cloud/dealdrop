@@ -198,7 +198,7 @@ const DealDetail = ({ deal, onBack, onEdit, onDelete, onUpgrade, isPublic }) => 
 
     setDownloading(true);
     try {
-      const appId = import.meta.env.VITE_APP_ID || 'dealdrop-prod';
+      const appId = 'default-app-id';
       const userRef = doc(db, 'artifacts', appId, 'profiles', user.uid);
       const userSnap = await getDoc(userRef);
       const profileData = userSnap.exists() ? userSnap.data() : null;

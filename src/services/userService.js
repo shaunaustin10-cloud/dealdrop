@@ -1,7 +1,7 @@
 import { doc, setDoc, getDoc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 
-const appId = import.meta.env.VITE_APP_ID || 'dealdrop-prod';
+const appId = 'default-app-id';
 
 /**
  * Decrements the user's credit count by 1.

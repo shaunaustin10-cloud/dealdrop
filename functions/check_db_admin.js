@@ -8,10 +8,10 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
-const appId = 'dealdrop-prod';
+const appId = 'default-app-id';
 
 async function checkProfiles() {
-  console.log("Checking profiles in 'artifacts/dealdrop-prod/profiles'...");
+  console.log("Checking profiles in 'artifacts/default-app-id/profiles'...");
   const profilesCol = db.collection('artifacts').doc(appId).collection('profiles');
   const snapshot = await profilesCol.get();
   

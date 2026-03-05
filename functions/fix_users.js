@@ -8,7 +8,7 @@ const db = admin.firestore();
 const auth = admin.auth();
 
 async function fixAllUsers() {
-  const appId = 'dealdrop-prod';
+  const appId = 'default-app-id';
   const { users } = await auth.listUsers();
   
   for (const user of users) {

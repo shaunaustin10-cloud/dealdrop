@@ -32,7 +32,7 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT || fs.existsSync('./service-account.jso
 }
 
 const db = admin.firestore();
-const appId = process.env.VITE_APP_ID || 'dealdrop-prod';
+const appId = process.env.VITE_APP_ID || 'web-app-30504';
 
 async function uploadLeads() {
     const leadsPath = path.join(process.cwd(), 'foreclosures.json');

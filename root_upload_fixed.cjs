@@ -51,7 +51,7 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
-const appId = 'dealdrop-prod';
+const appId = 'default-app-id';
 const leads = JSON.parse(fs.readFileSync('scrapers/foreclosures.json', 'utf8'));
 
 console.log(`Uploading ${leads.length} leads...`);

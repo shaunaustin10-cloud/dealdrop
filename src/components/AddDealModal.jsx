@@ -23,7 +23,7 @@ const REHAB_LEVELS = {
 };
 
 const libraries = ['places'];
-const appId = import.meta.env.VITE_APP_ID || 'dealdrop-prod';
+const appId = 'default-app-id';
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 // Helper function to get Google Static Map URL (Satellite/Hybrid)

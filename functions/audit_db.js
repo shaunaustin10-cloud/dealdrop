@@ -3,7 +3,7 @@ const admin = require('firebase-admin');
 process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8081';
 process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
 
-admin.initializeApp({ projectId: 'dealdrop-prod' });
+admin.initializeApp({ projectId: 'default-app-id' });
 
 const db = admin.firestore();
 const auth = admin.auth();
@@ -21,7 +21,7 @@ async function audit() {
 
     console.log("\n=== 2. LISTING ALL DEALS (Firestore) ===");
     // Check both potential App IDs just in case
-    const appIds = ['dealdrop-prod', 'dealdrop-prod'];
+    const appIds = ['default-app-id', 'default-app-id'];
     
     for (const appId of appIds) {
         console.log(`\nChecking App ID: ${appId}`);

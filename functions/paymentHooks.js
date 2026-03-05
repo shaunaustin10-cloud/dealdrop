@@ -36,8 +36,8 @@ exports.onPaymentSuccess = onDocumentCreated("customers/{uid}/payments/{id}", as
 
     // 3. Update Deal Status in Firestore
     const db = getFirestore();
-    // Assuming 'dealdrop-prod' for MVP. In production, pass appId in metadata.
-    const appId = 'dealdrop-prod'; 
+    // Assuming 'default-app-id' for MVP. In production, pass appId in metadata.
+    const appId = 'default-app-id'; 
     const dealRef = db.collection('artifacts').doc(appId).collection('publicDeals').doc(dealId);
 
     try {

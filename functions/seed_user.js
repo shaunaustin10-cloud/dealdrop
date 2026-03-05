@@ -25,7 +25,7 @@ async function seedUser() {
 
             // Also Create Profile in Firestore
             const db = admin.firestore();
-            await db.collection('artifacts').doc('dealdrop-prod').collection('profiles').doc(newUser.uid).set({
+            await db.collection('artifacts').doc('default-app-id').collection('profiles').doc(newUser.uid).set({
                 email: "demo@example.com",
                 displayName: "Demo User",
                 role: "investor",

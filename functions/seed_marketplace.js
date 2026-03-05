@@ -3,11 +3,11 @@ const admin = require('firebase-admin');
 process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8081';
 
 admin.initializeApp({
-  projectId: 'dealdrop-prod'
+  projectId: 'default-app-id'
 });
 
 const db = admin.firestore();
-const appId = 'dealdrop-prod'; // Matching .env
+const appId = 'default-app-id'; // Matching .env
 
 async function seed() {
   const dealData = {

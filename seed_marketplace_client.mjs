@@ -114,7 +114,7 @@ const deals = [
 ];
 
 async function seed() {
-    const appId = process.env.VITE_APP_ID || 'dealdrop-prod'; // Fallback
+    const appId = process.env.VITE_APP_ID || 'default-app-id'; // Fallback
     console.log(`Seeding deals for App ID: ${appId}`);
     
     // We add to a subcollection "deals" under the app artifact or root collection depending on your structure.

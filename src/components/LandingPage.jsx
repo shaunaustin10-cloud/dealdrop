@@ -6,7 +6,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useTheme } from '../context/ThemeContext';
 
-const appId = import.meta.env.VITE_APP_ID || 'dealdrop-prod';
+const appId = 'default-app-id';
 
 const LandingPage = () => {
   const [foundingCount, setFoundingCount] = useState(42);

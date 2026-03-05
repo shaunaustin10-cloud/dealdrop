@@ -4,7 +4,7 @@ const admin = require('firebase-admin');
 // It initializes the counter for the Founding Member offer.
 
 const projectId = "web-app-30504";
-const appId = "dealdrop-prod";
+const appId = "default-app-id";
 
 admin.initializeApp({
   projectId: projectId

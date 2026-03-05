@@ -5,7 +5,7 @@ process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8081';
 
 // Use a dummy project ID that matches the emulator default usually, or just 'demo-project'
 admin.initializeApp({
-  projectId: 'dealdrop-prod' 
+  projectId: 'default-app-id' 
 });
 
 const db = admin.firestore();
@@ -36,8 +36,8 @@ async function checkCollection(appId) {
 }
 
 async function main() {
-    await checkCollection('dealdrop-prod');
-    await checkCollection('dealdrop-prod');
+    await checkCollection('default-app-id');
+    await checkCollection('default-app-id');
 }
 
 main().catch(console.error);

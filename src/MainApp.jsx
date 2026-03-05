@@ -36,7 +36,7 @@ export default function MainApp() {
         return;
       }
       try {
-        const appId = import.meta.env.VITE_APP_ID || 'dealdrop-prod';
+        const appId = 'default-app-id';
         const docRef = doc(db, 'artifacts', appId, 'profiles', user.uid);
         const snap = await getDoc(docRef);
         if (snap.exists() && snap.data().role === 'admin') {
