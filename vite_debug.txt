@@ -1,0 +1,173 @@
+
+  VITE v5.4.21  ready in 178 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://10.0.10.17:5173/
+8:04:57 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:04:57 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:04:57 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:04:57 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:04:58 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:04:59 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:05:01 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:05:03 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:05:08 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:05:18 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:05:27 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:05:36 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:05:39 PM [vite] hmr update /src/MainApp.jsx, /src/index.css
+8:05:41 PM [vite] hmr update /src/MainApp.jsx, /src/index.css
+8:05:45 PM [vite] hmr update /src/components/LandingPage.jsx, /src/index.css
+8:05:46 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:05:47 PM [vite] hmr update /src/components/LandingPage.jsx, /src/index.css
+8:05:50 PM [vite] hmr update /src/components/RegisterPage.jsx, /src/index.css
+8:05:52 PM [vite] hmr update /src/components/LoginPage.jsx, /src/index.css
+8:05:55 PM [vite] hmr update /src/components/PublicDealPage.jsx, /src/index.css
+8:05:57 PM [vite] hmr update /src/components/OnboardingModal.jsx, /src/index.css
+8:05:59 PM [vite] hmr update /src/components/MarketplacePage.jsx, /src/index.css
+8:06:06 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:06:08 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:06:08 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:06:08 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:06:08 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:06:09 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:06:12 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:06:14 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:06:18 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:06:25 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:06:37 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:06:38 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:06:49 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:07:02 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:07:37 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:07:39 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:07:57 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:08:29 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:09:26 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:09:40 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:10:47 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:25:52 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:25:52 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:25:52 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:25:52 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:25:53 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:25:55 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:25:58 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:26:01 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:26:06 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:26:13 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:26:22 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:26:26 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:26:46 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:27:05 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:27:23 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:27:46 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:29:02 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:29:24 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+8:30:30 PM [vite] http proxy error: /securetoken.googleapis.com/v1/token?key=AIzaSyC2g7fiZBjixZyXXqRJu3dvx_9EZzHqi4Y
+Error: connect ECONNREFUSED 127.0.0.1:9099
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)

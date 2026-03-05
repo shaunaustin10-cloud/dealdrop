@@ -1,0 +1,95 @@
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+Aggregator Server running on port 3001
+[7:21:35 PM] Starting [7:21:37 PM] GET /
+[ERROR] GET / returned status 404
+[7:22:20 PM] HEAD /api/market/pulse
+[7:22:20 PM] HEAD /api/scan/status
+[7:24:45 PM] GET /api/market/pulse
+[7:25:36 PM] GET /api/scan/status
+[7:25:39 PM] GET /api/scan/status
+[7:25:43 PM] GET /api/market/pulse
+[7:25:44 PM] GET /api/market/pulse
+[7:25:47 PM] GET /api/scan/status
+[7:25:50 PM] GET /api/scan/status
+[7:25:53 PM] GET /api/scan/status
+[7:25:56 PM] GET /api/scan/status
+[7:25:59 PM] GET /api/scan/status
+[7:26:02 PM] GET /api/scan/status
+[7:26:05 PM] GET /api/scan/status
+[7:26:08 PM] GET /api/scan/status
+[7:26:11 PM] GET /api/scan/status
+[7:26:15 PM] GET /api/scan/status
+[7:26:17 PM] GET /api/scan/status
+[7:26:20 PM] GET /api/scan/status
+[7:26:23 PM] GET /api/scan/status
+[7:26:26 PM] GET /api/scan/status
+[7:26:27 PM] Starting Aggregated Market Scan...
+[7:26:29 PM] GET /api/scan/status
+[7:26:32 PM] GET /api/scan/status
+[7:26:35 PM] GET /api/scan/status
+[7:26:38 PM] GET /api/scan/status
+[7:26:41 PM] GET /api/scan/status
+[7:26:44 PM] GET /api/market/pulse
+[7:26:45 PM] GET /api/scan/status
+[7:27:01 PM] GET /api/scan/status
+[7:27:44 PM] GET /api/market/pulse
+[7:28:01 PM] GET /api/scan/status
+[7:28:23 PM] GET /api/market/pulse
+[7:28:24 PM] GET /api/market/pulse
+[7:28:26 PM] GET /api/scan/status
+[7:28:30 PM] GET /api/scan/status
+[7:28:32 PM] GET /api/scan/status
+[7:28:35 PM] GET /api/scan/status
+[7:28:38 PM] GET /api/scan/status
+[7:28:41 PM] GET /api/scan/status
+[7:28:44 PM] GET /api/scan/status
+[7:28:47 PM] GET /api/scan/status
+[7:28:50 PM] GET /api/scan/status
+[7:28:53 PM] GET /api/scan/status
+[7:28:56 PM] GET /api/scan/status
+[7:28:59 PM] GET /api/scan/status
+[7:29:02 PM] GET /api/scan/status
+[7:29:05 PM] GET /api/scan/status
+[7:29:08 PM] GET /api/scan/status
+[7:29:11 PM] GET /api/scan/status
+[7:29:14 PM] GET /api/market/pulse
+[7:29:18 PM] GET /api/scan/status
+[7:29:21 PM] GET /api/scan/status
+[7:29:24 PM] GET /api/scan/status
+[7:29:27 PM] GET /api/scan/status
+[7:29:30 PM] GET /api/scan/status
+[7:29:54 PM] GET /api/market/pulse
+[7:29:54 PM] GET /api/market/pulse
+[7:29:57 PM] GET /api/scan/status
+[7:30:00 PM] GET /api/scan/status
+[7:30:03 PM] GET /api/scan/status
+[7:30:06 PM] GET /api/scan/status
+[7:30:09 PM] GET /api/scan/status
+[7:30:12 PM] GET /api/scan/status
+[7:30:15 PM] GET /api/scan/status
+[7:30:18 PM] GET /api/scan/status
+[7:30:21 PM] GET /api/scan/status
+[7:30:24 PM] GET /api/scan/status
+[7:30:27 PM] GET /api/scan/status
+[7:30:30 PM] GET /api/scan/status
+[7:30:33 PM] GET /api/scan/status
+[7:30:36 PM] GET /api/scan/status
+[7:30:39 PM] GET /api/scan/status
+[7:30:42 PM] GET /api/scan/status
+[7:30:45 PM] GET /api/scan/status
+[7:30:48 PM] GET /api/scan/status
+[7:30:54 PM] GET /api/market/pulse
+[7:31:00 PM] GET /api/scan/status
+[7:31:27 PM] Starting Aggregated Market Scan...
+[7:31:54 PM] GET /api/market/pulse
+[7:32:00 PM] GET /api/scan/status
+[7:32:54 PM] GET /api/market/pulse
+[7:33:00 PM] GET /api/scan/status
+[7:33:15 PM] GET /api/scan/status
+[7:33:40 PM] GET /api/sports/matches
+[ERROR] GET /api/sports/matches returned status 404
+[7:34:05 PM] GET /api/sports/matches
+[ERROR] GET /api/sports/matches returned status 404
+[7:34:42 PM] GET /api/sports/matches
+[ERROR] GET /api/sports/matches returned status 404
+Killed

@@ -50,9 +50,10 @@ export const generateDealReport = async (deal, userProfile = null, overriddenHer
   const borderGray = [226, 232, 240];
 
   // --- HEADER ---
-  if (userProfile?.logoUrl) {
+  const logoToUse = userProfile?.logoURL || userProfile?.logoUrl;
+  if (logoToUse) {
     try {
-      const logoData = await getImageData(userProfile.logoUrl);
+      const logoData = await getImageData(logoToUse);
       doc.addImage(logoData, 'PNG', margin, y, 25, 15, undefined, 'FAST');
     } catch { 
         console.warn("Logo failed");

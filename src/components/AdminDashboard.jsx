@@ -7,7 +7,7 @@ import { ShieldAlert, Users, LayoutGrid, DollarSign, CheckCircle, XCircle, FileT
 import { useNavigate } from 'react-router-dom';
 import ForeclosureLeads from './ForeclosureLeads';
 
-const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
+const appId = import.meta.env.VITE_APP_ID || 'dealdrop-prod';
 
 const AdminDashboard = () => {
   const { user } = useAuth();

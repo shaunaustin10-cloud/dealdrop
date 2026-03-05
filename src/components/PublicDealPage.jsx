@@ -47,8 +47,10 @@ export default function PublicDealPage() {
                 <ArrowLeft size={20} />
              </button>
              <div className="flex items-center gap-1.5 flex-shrink-0">
-                <LayoutGrid size={18} className="text-primary" />
-                <Link to="/" className="font-serif text-base md:text-xl text-slate-900 dark:text-white tracking-tight whitespace-nowrap">REI Deal <span className="text-primary italic">Drop</span></Link>
+                <Link to="/" className="flex items-center gap-1.5">
+                   <LayoutGrid className="text-primary" size={18} />
+                   <span className="font-serif text-base md:text-xl text-slate-900 dark:text-white tracking-tight whitespace-nowrap">REI <span className="text-primary italic">Deal Drop</span></span>
+                </Link>
              </div>
           </div>
           
@@ -71,7 +73,7 @@ export default function PublicDealPage() {
                         Login
                     </Link>
                     <Link to="/register" className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-sm font-bold transition-colors shadow-lg shadow-emerald-900/20">
-                        Join DealDrop
+                        Join <span className="italic">Deal Drop</span>
                     </Link>
                 </div>
              )}

@@ -42,7 +42,16 @@ const geocodeAddress = async (address) => {
   try {
     const getGeocode = httpsCallable(functions, 'getGeocode');
     const result = await getGeocode({ address });
-    return result.data;
+    
+    if (result.data) {
+        if (result.data.lat && result.data.lng) {
+            return result.data;
+        }
+        if (result.data.status === 'OVER_QUERY_LIMIT') {
+            console.error("Geocoding quota exceeded.");
+        }
+    }
+    return null;
   } catch (error) {
     console.error("Geocoding error:", error);
     return null;
@@ -523,8 +532,23 @@ const AddDealModal = ({ isOpen, onClose, onAdd, initialData, onUpdate, onUpgrade
         }
     }
 
+    // --- MANDATORY GEOCODING (ROUE PREVENTION) ---
+    let finalLat = formData.lat;
+    let finalLng = formData.lng;
+
+    if (!finalLat || !finalLng) {
+        console.log("Saving deal without coordinates. Attempting final geocode...");
+        const geoData = await geocodeAddress(formData.address);
+        if (geoData) {
+            finalLat = geoData.lat;
+            finalLng = geoData.lng;
+        }
+    }
+
     let finalFormData = { 
         ...formData, 
+        lat: finalLat,
+        lng: finalLng,
         comps,
         projectedResult,
         resultLabel,

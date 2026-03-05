@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Trash2, ChevronRight, TrendingUp, Lock, DollarSign, Loader2 } from 'lucide-react';
+import { Trash2, ChevronRight, TrendingUp, Lock, Heart, Eye, Loader2 } from 'lucide-react';
 import { calculateDealScore } from '../utils/calculateDealScore';
 import { getShortAddress } from '../utils/formatAddress';
 import { useSubscription } from '../hooks/useSubscription';
 import { useAuth } from '../context/AuthContext';
-import { createCheckoutSession } from '../services/stripeService';
+import { useDeals } from '../hooks/useDeals';
 
 const getGoogleStreetViewUrl = (address) => {
   const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -17,63 +17,57 @@ const getGoogleStreetViewUrl = (address) => {
 const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
   const { user } = useAuth();
   const { isVIP } = useSubscription();
-  const [buying, setBuying] = useState(false);
+  const { toggleSaveDeal } = useDeals();
+  const [isSaving, setIsSaving] = useState(false);
+
+  const isSaved = deal.savedBy?.includes(user?.uid);
+  const saveCount = deal.savedBy?.length || 0;
+  const viewCount = deal.viewCount || 0;
   
   const price = parseFloat(deal.price);
   const arv = parseFloat(deal.arv);
   const rehab = parseFloat(deal.rehab);
   const rent = parseFloat(deal.rent);
+
+  const handleToggleSave = async (e) => {
+    e.stopPropagation();
+    if (!user) {
+        alert("Please login to save deals.");
+        return;
+    }
+    setIsSaving(true);
+    try {
+        await toggleSaveDeal(deal.id, isSaved);
+    } catch (error) {
+        console.error("Save toggle failed:", error);
+    } finally {
+        setIsSaving(false);
+    }
+  };
   
   const { score, verdict, verdictColor } = calculateDealScore({ price, arv, rehab, rent, hasPool: deal.hasPool });
 
   const officialScore = deal.dealScore || score;
   const isFirstLook = officialScore >= 84;
-  const isLocked = isPublic && ((isFirstLook && !isVIP && !user?.isVerified) || !user);
+  const isArchived = deal.status === 'Under Contract' || deal.status === 'Closed';
+  const isOwner = user && (deal.sellerId === user.uid || deal.createdBy === user.uid);
+  const isUnlockedByMe = deal.unlockedBy?.includes(user?.uid);
+  
+  // A deal is locked if:
+  // 1. Not the owner AND
+  // 2. (It's archived OR (It's VIP AND user isn't Pro/Verified) OR (It's Standard AND hasn't been unlocked by NDA))
+  const isLocked = !isOwner && isPublic && (
+    isArchived || 
+    (isFirstLook ? (!isVIP && !user?.isVerified) : !isUnlockedByMe) || 
+    !user
+  );
 
   const shortDesc = deal.city ? `${deal.city}, ${deal.state || ''}`.replace(/,\s*$/, '') : getShortAddress(deal.address);
-
-  let soldVerdict = null;
-  if (deal.status === 'Closed' && deal.soldPrice) {
-      const sp = parseFloat(deal.soldPrice);
-      const cost = price + rehab;
-      const profit = sp - cost;
-      const roi = cost > 0 ? (profit / cost) * 100 : 0;
-      
-      if (roi >= 20) soldVerdict = { label: "HOMERUN", color: "bg-emerald-500", profit };
-      else if (roi > 0) soldVerdict = { label: "PROFIT", color: "bg-green-500", profit };
-      else soldVerdict = { label: "LOSS", color: "bg-red-500", profit };
-  }
-
-  const handleBuyNow = async (e) => {
-      e.stopPropagation();
-      if (!user) {
-          alert("Please login to secure this deal.");
-          return;
-      }
-      if (isLocked) {
-          alert("This VIP First Look deal requires a Pro or Business subscription.");
-          return;
-      }
-      if (!confirm("Secure this deal with a $500 refundable deposit? You will be redirected to Stripe.")) return;
-
-      setBuying(true);
-      try {
-          const priceId = import.meta.env.VITE_STRIPE_PRICE_ID_DEPOSIT || 'price_1Qf7e8KirdM61FvwVPReyz';
-          await createCheckoutSession(user.uid, priceId, 'payment', { dealId: deal.id });
-      } catch (error) {
-          console.error("Buy Now failed:", error);
-          alert("Failed to initiate payment.");
-      } finally {
-          setBuying(false);
-      }
-  };
 
   const streetViewUrl = getGoogleStreetViewUrl(deal.address);
   const displayImage = (deal.imageUrls && deal.imageUrls.length > 0 && !deal.imageUrls[0].includes('picsum')) 
     ? deal.imageUrls[0] 
     : streetViewUrl;
-
-  const isOwner = user && (deal.sellerId === user.uid || deal.createdBy === user.uid);
 
   return (
     <div 
@@ -94,7 +88,7 @@ const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
         <img 
           src={displayImage} 
           alt={deal.address} 
-          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${isLocked ? 'blur-md grayscale' : ''}`}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           onError={(e) => {
             if (e.target.src !== streetViewUrl) {
                 e.target.src = streetViewUrl;
@@ -103,6 +97,25 @@ const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
             }
           }}
         />
+
+        {/* Save/Heart Button */}
+        {isPublic && (
+            <button 
+                onClick={handleToggleSave}
+                disabled={isSaving}
+                className="absolute top-2.5 left-2.5 z-30 hover:scale-110 transition-all group/heart drop-shadow-md"
+            >
+                {isSaving ? (
+                    <Loader2 size={16} className="animate-spin text-white/70" />
+                ) : (
+                    <Heart 
+                        size={20} 
+                        className={isSaved ? "fill-primary text-primary" : "text-white group-hover/heart:text-primary transition-colors"} 
+                    />
+                )}
+            </button>
+        )}
+
         {/* Deal Score Floating Badge */}
         <div className={`absolute top-8 right-2 z-20 w-10 h-10 rounded-full flex flex-col items-center justify-center border-2 bg-slate-900/90 backdrop-blur-sm shadow-lg ${(verdictColor || 'text-slate-400').replace('text-', 'border-')}`}>
             <span className={`text-[12px] font-black leading-none ${(verdictColor || 'text-white')}`}>{officialScore}</span>
@@ -111,12 +124,12 @@ const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
 
         {/* Status Overlays */}
         {deal.status === 'Under Contract' && (
-            <div className="absolute top-0 left-0 w-full bg-emerald-600/90 text-white text-[9px] font-black uppercase py-0.5 text-center tracking-widest z-20 shadow-lg">
+            <div className="absolute top-0 left-0 w-full bg-amber-500/90 text-white text-[9px] font-black uppercase py-0.5 text-center tracking-widest z-20 shadow-lg">
                 Under Contract
             </div>
         )}
         {deal.status === 'Closed' && (
-            <div className="absolute top-0 left-0 w-full bg-indigo-600/90 text-white text-[9px] font-black uppercase py-0.5 text-center tracking-widest z-20 shadow-lg">
+            <div className="absolute top-0 left-0 w-full bg-slate-600/90 text-white text-[9px] font-black uppercase py-0.5 text-center tracking-widest z-20 shadow-lg">
                 Sold / Closed
             </div>
         )}
@@ -174,27 +187,29 @@ const DealCard = ({ deal, onClick, onDelete, isPublic }) => {
         </div>
 
         <div className="mt-auto pt-3 border-t border-slate-50 dark:border-slate-800 flex justify-between items-center">
-           <div className="flex items-center gap-1 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              {deal.status || 'Active'}
+           <div className="flex items-center gap-3">
+               <div className="flex items-center gap-1 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  {deal.status || 'Active'}
+               </div>
+               {isPublic && (
+                   <div className="flex items-center gap-2">
+                       <div className="flex items-center gap-0.5 text-[9px] font-bold text-slate-400">
+                           <Eye size={10} /> {viewCount}
+                       </div>
+                       <div className="flex items-center gap-0.5 text-[9px] font-bold text-slate-400">
+                           <Heart size={10} className={isSaved ? "fill-primary text-primary" : ""} /> {saveCount}
+                       </div>
+                   </div>
+               )}
            </div>
 
            <div className="flex gap-2">
-             {isPublic && isFirstLook && !isLocked && deal.status !== 'Under Contract' && deal.status !== 'Closed' && (
-               <button 
-                 onClick={handleBuyNow}
-                 disabled={buying}
-                 className="bg-primary hover:bg-orange-600 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors flex items-center gap-1 shadow-sm"
-               >
-                 {buying ? <Loader2 size={10} className="animate-spin" /> : <DollarSign size={10} />}
-                 Buy
-               </button>
-             )}
              {(!isLocked || (deal.status !== 'Under Contract' && deal.status !== 'Closed')) ? (
                  <button 
                    onClick={() => onClick(deal)}
                    className={`bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors flex items-center gap-1 group-hover:bg-primary group-hover:text-white ${isLocked ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20' : ''}`}
                  >
-                   {isLocked ? 'Unlock' : 'Analyze'} <ChevronRight size={10} />
+                   {isLocked ? 'Request Access' : 'Analyze'} <ChevronRight size={10} />
                  </button>
              ) : (
                  <div className="text-[9px] text-slate-400 font-bold uppercase italic">

@@ -12,7 +12,10 @@ import {
   getDocs,
   getDoc,
   setDoc,
-  collectionGroup
+  collectionGroup,
+  arrayUnion,
+  arrayRemove,
+  increment
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { calculateDealScore } from '../utils/calculateDealScore';
@@ -61,8 +64,15 @@ export const useFetchDeals = (isPublic = false, sortBy = 'createdAt') => {
       console.log(`[Fetch] Received ${snapshot.size} docs from ${collectionPath}`);
       let dealsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       
-      // Deduplicate by originalId (preferring the most recently updated version)
+      // Security Filter: Hide 'pending' deals from the public view
       if (isPublic) {
+          // Only show approved or auto-approved deals to the public
+          // Admins will still see them in the AdminDashboard because it uses its own query
+          dealsData = dealsData.filter(deal => 
+            deal.adminVerificationStatus === 'approved' || 
+            deal.adminVerificationStatus === 'auto-approved'
+          );
+
           const uniqueDeals = {};
           dealsData.forEach(deal => {
               const uid = deal.originalId || deal.id;
@@ -371,11 +381,33 @@ export const useDeals = () => {
       }
   };
 
+  const toggleSaveDeal = async (dealId, isSaved) => {
+    if (!user) throw new Error("User must be logged in to save a deal.");
+    const dealRef = doc(db, 'artifacts', appId, 'publicDeals', dealId);
+    
+    await updateDoc(dealRef, {
+      savedBy: isSaved ? arrayRemove(user.uid) : arrayUnion(user.uid)
+    });
+  };
+
+  const incrementViewCount = async (dealId) => {
+    try {
+      const dealRef = doc(db, 'artifacts', appId, 'publicDeals', dealId);
+      await updateDoc(dealRef, {
+        viewCount: increment(1)
+      });
+    } catch (e) {
+      console.warn("View count increment failed (probably a private deal)", e);
+    }
+  };
+
   return {
     addDeal,
     updateDeal,
     deleteDeal,
     getDealById,
-    publishDeal
+    publishDeal,
+    toggleSaveDeal,
+    incrementViewCount
   };
 };

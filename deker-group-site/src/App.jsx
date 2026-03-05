@@ -4,6 +4,8 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import Area from './pages/Area';
+import About from './pages/About';
+import Contact from './pages/Contact';
 
 import Buyer from './pages/Buyer';
 import Seller from './pages/Seller';
@@ -16,6 +18,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/area/:slug" element={<Area />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/buy" element={<Buyer />} />
           <Route path="/sell" element={<Seller />} />
         </Routes>

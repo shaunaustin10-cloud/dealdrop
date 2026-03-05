@@ -3,6 +3,17 @@
     "web-app-30504": "web-app-30504",
     "dealdrop19": "web-app-30504"
   },
-  "targets": {},
+  "targets": {
+    "web-app-30504": {
+      "hosting": {
+        "dealdrop": [
+          "web-app-30504"
+        ],
+        "deker-group": [
+          "deker-group"
+        ]
+      }
+    }
+  },
   "etags": {}
 }

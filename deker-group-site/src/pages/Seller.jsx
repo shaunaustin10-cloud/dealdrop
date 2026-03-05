@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import LeadGenWizard from '../components/LeadGenWizard';
 import { TrendingUp, CheckCircle, BarChart } from 'lucide-react';
+import SEO from '../components/SEO';
 
 const SELLER_QUESTIONS = [
   {
@@ -41,6 +42,21 @@ export default function Seller() {
 
   return (
     <div className="pt-20">
+      <SEO 
+        title="Sell Your Home in Hampton Roads | Free Valuation" 
+        description="Maximize your home's value with professional marketing, expert negotiation, and data-driven staging. Get your instant home valuation report in Norfolk, VA."
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Home Valuation & Selling Service",
+          "provider": {
+            "@type": "RealEstateAgent",
+            "name": "De'Shaun Austin | NextHome Mission to Serve"
+          },
+          "areaServed": "Hampton Roads, VA",
+          "description": "Strategic marketing and expert negotiation to sell your home for top dollar."
+        }}
+      />
       {/* Hero Section */}
       <section className="relative py-24 bg-midnight overflow-hidden min-h-[85vh] flex items-center">
         <div className="absolute inset-0 z-0">

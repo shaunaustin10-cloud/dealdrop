@@ -10,12 +10,14 @@ import {
   ChevronRight
 } from 'lucide-react';
 import LocalLogicWidget from '../components/LocalLogicWidget';
+import SEO from '../components/SEO';
+import MLSListings from '../components/MLSListings';
 
 const AREA_DATA = {
   'norfolk': {
     name: 'Norfolk',
-    description: 'A vibrant waterfront city with a rich naval history, diverse neighborhoods, and a thriving arts scene. Norfolk offers a blend of historic charm and modern urban living.',
-    image: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&q=80&w=1000',
+    description: 'A vibrant waterfront city with a rich naval history, diverse neighborhoods, and a thriving arts scene. Norfolk offers a blend of historic charm in Ghent and modern urban living downtown.',
+    image: '/images/locations/norfolk.webp',
     stats: {
       medianPrice: 325000,
       inventory: 145,
@@ -28,7 +30,7 @@ const AREA_DATA = {
   'virginia-beach': {
     name: 'Virginia Beach',
     description: 'The largest city in Virginia, known for its iconic boardwalk, beautiful beaches, and extensive park system. Perfect for families and outdoor enthusiasts alike.',
-    image: '/images/vabeach.jpg',
+    image: '/images/locations/va-beach.webp',
     stats: {
       medianPrice: 415000,
       inventory: 280,
@@ -41,7 +43,7 @@ const AREA_DATA = {
   'chesapeake': {
     name: 'Chesapeake',
     description: 'A sprawling city offering a mix of suburban developments and protected wetlands. Known for its excellent schools and family-oriented communities.',
-    image: '/images/chesapeake.jpg',
+    image: '/images/locations/chesapeake.webp',
     stats: {
       medianPrice: 385000,
       inventory: 110,
@@ -54,7 +56,7 @@ const AREA_DATA = {
   'portsmouth': {
     name: 'Portsmouth',
     description: 'A historic port city with a walkable Olde Towne district, featuring one of the largest collections of historic homes between Alexandria and Charleston.',
-    image: 'https://images.unsplash.com/photo-1541462608141-ad4d05ed4241?auto=format&fit=crop&q=80&w=1000',
+    image: '/images/locations/portsmouth.webp',
     stats: {
       medianPrice: 245000,
       inventory: 65,
@@ -63,38 +65,34 @@ const AREA_DATA = {
     },
     tags: ['Historic', 'Naval', 'Walkable', 'Olde Towne'],
     neighborhoods: ['Olde Towne', 'Park View', 'Churchland', 'Port Norfolk', 'Waterview']
+  },
+  'hampton': {
+    name: 'Hampton',
+    description: 'One of the oldest continuously settled English-speaking settlements in America, Hampton is a city of "Firsts," blending aerospace innovation at NASA Langley with a rich maritime heritage and scenic waterfront living.',
+    image: '/images/locations/hampton.webp',
+    stats: {
+      medianPrice: 275000,
+      inventory: 90,
+      avgDaysOnMarket: 22,
+      yearOverYear: '+4.1%'
+    },
+    tags: ['Maritime', 'Aerospace', 'Historic', 'Waterfront'],
+    neighborhoods: ['Buckroe Beach', 'Phoebus', 'Fox Hill', 'Wythe', 'Aberdeen Gardens']
+  },
+  'suffolk': {
+    name: 'Suffolk',
+    description: 'The largest city by land area in Virginia, Suffolk offers a unique blend of rural charm, growing suburban communities, and a high-tech center. Known for its agricultural roots and expansive natural beauty.',
+    image: '/images/locations/suffolk.webp',
+    stats: {
+      medianPrice: 355000,
+      inventory: 85,
+      avgDaysOnMarket: 30,
+      yearOverYear: '+5.6%'
+    },
+    tags: ['Rural', 'Expanding', 'Nature', 'Growing Suburban'],
+    neighborhoods: ['Northern Suffolk', 'Downtown Suffolk', 'Chuckatuck', 'Holland', 'Whaleyville']
   }
 };
-
-const MOCK_LISTINGS = [
-  {
-    id: 1,
-    address: "742 Evergreen Terrace",
-    price: 350000,
-    beds: 3,
-    baths: 2,
-    sqft: 1800,
-    image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=1000"
-  },
-  {
-    id: 2,
-    address: "123 Ocean View Ave",
-    price: 525000,
-    beds: 4,
-    baths: 3,
-    sqft: 2400,
-    image: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&q=80&w=1000"
-  },
-  {
-    id: 3,
-    address: "555 Historic Lane",
-    price: 295000,
-    beds: 2,
-    baths: 1.5,
-    sqft: 1400,
-    image: "https://images.unsplash.com/photo-1576941089067-2de3c901e126?auto=format&fit=crop&q=80&w=1000"
-  }
-];
 
 export default function Area() {
   const { slug } = useParams();
@@ -120,6 +118,23 @@ export default function Area() {
 
   return (
     <div className="bg-sand min-h-screen">
+      <SEO 
+        title={`${area.name} Real Estate & Homes for Sale`} 
+        description={`Explore the best homes for sale in ${area.name}. Get market statistics, neighborhood insights, and curated listings for ${area.name}, VA.`}
+        image={area.image}
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "Place",
+          "name": area.name,
+          "description": area.description,
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": area.name,
+            "addressRegion": "VA",
+            "addressCountry": "US"
+          }
+        }}
+      />
       {/* Hero Section */}
       <section className="relative h-[60vh] flex items-end overflow-hidden bg-midnight">
         <div className="absolute inset-0 z-0">
@@ -127,6 +142,8 @@ export default function Area() {
             src={area.image} 
             className="w-full h-full object-cover opacity-60 scale-105"
             alt={area.name}
+            width="612"
+            height="408"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-midnight via-midnight/20 to-transparent"></div>
         </div>
@@ -226,22 +243,7 @@ export default function Area() {
                   View All <ArrowUpRight size={14} />
                 </a>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {MOCK_LISTINGS.map(listing => (
-                  <div key={listing.id} className="group cursor-pointer">
-                    <div className="aspect-[4/5] rounded-2xl overflow-hidden mb-4 shadow-lg">
-                      <img src={listing.image} alt={listing.address} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                    </div>
-                    <p className="font-serif text-lg text-midnight">{listing.address}</p>
-                    <p className="text-primary font-sans font-light">${listing.price.toLocaleString()}</p>
-                    <div className="flex gap-3 text-[9px] font-luxury-caps text-slate-400 mt-2">
-                        <span>{listing.beds} BEDS</span>
-                        <span>•</span>
-                        <span>{listing.baths} BATHS</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <MLSListings city={area.name} limitCount={3} />
             </div>
           </div>
 

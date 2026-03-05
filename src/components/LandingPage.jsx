@@ -78,7 +78,7 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <LayoutGrid className="text-primary" size={18} />
-            <span className="font-serif text-base md:text-xl text-slate-900 dark:text-white tracking-tight whitespace-nowrap">REI Deal <span className="text-primary italic">Drop</span></span>
+            <span className="font-serif text-base md:text-xl text-slate-900 dark:text-white tracking-tight whitespace-nowrap">REI <span className="text-primary italic">Deal Drop</span></span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-500 dark:text-slate-400">
             <Link to="/marketplace" className="text-slate-900 dark:text-white font-black hover:text-amber-500 transition-colors flex items-center gap-2">
@@ -413,7 +413,7 @@ const LandingPage = () => {
                 <div className="bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
                   <LayoutGrid size={20} className="text-primary" />
                 </div>
-                <span className="font-serif text-2xl text-slate-900 dark:text-white tracking-tight">REI Deal <span className="text-primary italic">Drop</span></span>
+                <span className="font-serif text-2xl text-slate-900 dark:text-white tracking-tight">REI <span className="text-primary italic">Deal Drop</span></span>
               </div>
               <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs leading-relaxed font-medium">
                 Powered by the data you trust.

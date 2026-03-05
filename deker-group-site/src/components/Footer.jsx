@@ -28,24 +28,23 @@ export default function Footer() {
              </ul>
           </div>
 
-          {/* Legal / DPOR Compliance */}
-          <div className="space-y-4">
-             <h4 className="font-luxury-caps text-white tracking-widest">Compliance</h4>
+          {/* Minimal Legal Block */}
+          <div className="space-y-4 md:col-span-1">
              <div className="text-[10px] text-slate-500 leading-relaxed uppercase tracking-widest space-y-4">
                 <p>
                    <strong>De'Shaun Austin</strong><br/>
-                   Licensed Real Estate Professional<br/>
-                   <strong>NextHome Mission to Serve</strong><br/>
-                   Norfolk, VA<br/>
-                   Licensed in the Commonwealth of Virginia
+                   NextHome Mission to Serve<br/>
+                   Norfolk, VA • Licensed in VA
                 </p>
-                <p>
-                   &copy; 2026 Mission to Serve Realty LLC. Each office is independently owned and operated. NextHome and the NextHome Casita logo are registered trademarks of NextHome, Inc.
-                </p>
-                <div className="flex items-center gap-2 pt-2">
+                <div className="flex items-center gap-3 pt-1">
                    <span className="border border-slate-600 rounded-full w-4 h-4 flex items-center justify-center font-serif text-[8px] text-slate-400">=</span>
-                   <span>Equal Housing Opportunity</span>
+                   <span className="text-slate-400 font-bold">R</span>
+                   <span>EHO • REALTOR&reg;</span>
                 </div>
+                <p className="opacity-40 text-[8px]">
+                   &copy; 2026 Mission to Serve Realty LLC. <br/>
+                   Independently owned and operated.
+                </p>
              </div>
           </div>
        </div>

@@ -79,11 +79,23 @@ if (isDev) {
   if (emulatorHost === 'localhost' || emulatorHost === '127.0.0.1') {
       connectStorageEmulator(storage, '127.0.0.1', 9199);
   } else {
-      // Hack: Manually override internal properties to use HTTPS proxy
+      // Hack for Firebase SDK v10+ in Codespaces
       // This routes requests to https://<codespace-url>/v0/b/... -> Vite Proxy -> Emulator
-      storage._protocol = 'https';
-      storage._host = window.location.host; 
-      console.log("🔧 DEBUG: Applied Storage HTTPS Proxy Hack");
+      try {
+          // For Firebase v10, the properties are in the delegate's serviceInfo
+          if (storage._delegate && storage._delegate._serviceInfo) {
+              storage._delegate._serviceInfo.protocol = 'https';
+              storage._delegate._serviceInfo.host = window.location.host;
+              console.log("✅ DEBUG: Applied Storage HTTPS Proxy Hack (v10 style)");
+          } else {
+              // Fallback for other versions
+              storage._protocol = 'https';
+              storage._host = window.location.host;
+              console.log("✅ DEBUG: Applied Storage HTTPS Proxy Hack (Legacy style)");
+          }
+      } catch (err) {
+          console.error("❌ DEBUG: Failed to apply Storage Proxy Hack:", err);
+      }
   }
 
   // Functions:

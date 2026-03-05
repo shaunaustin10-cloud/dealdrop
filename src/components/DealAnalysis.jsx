@@ -1,13 +1,35 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { ShieldCheck, TrendingUp, DollarSign, Activity } from 'lucide-react';
+import { ShieldCheck, TrendingUp, DollarSign, Activity, Lock } from 'lucide-react';
 import { calculateDealScore } from '../utils/calculateDealScore';
+import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../hooks/useSubscription';
 
 const DealAnalysis = ({ deal }) => {
+  const { user } = useAuth();
+  const { isVIP } = useSubscription();
+
   // Calculate real-time metrics
   const { score, verdict, verdictColor, metrics } = calculateDealScore(deal);
   const market = deal.aiAnalysis?.market;
   const isAgent = deal.roleAtCreation === 'agent';
+
+  // Access Control
+  const isFirstLook = (deal.dealScore || 0) >= 84;
+  const isOwner = user && (deal.sellerId === user.uid || deal.createdBy === user.uid);
+  const isLocked = !isOwner && isFirstLook && !isVIP && !user?.isVerified;
+
+  const obscureAddress = (addr) => {
+    if (!addr) return 'N/A';
+    // Remove the street number and first part of street name if locked
+    const parts = addr.split(',');
+    const streetPart = parts[0].trim();
+    const cityStatePart = parts.slice(1).join(',').trim();
+    
+    // "123 Main St" -> "Main St Neighborhood"
+    const streetNameOnly = streetPart.replace(/^\d+\s*/, '');
+    return `${streetNameOnly} Neighborhood, ${cityStatePart}`;
+  };
 
   return (
     <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-emerald-500/30 rounded-2xl p-6 animate-fade-in relative overflow-hidden">
@@ -130,7 +152,10 @@ const DealAnalysis = ({ deal }) => {
                                         {allComps.map((comp, i) => (
                                             <div key={i} className="flex justify-between items-center text-xs bg-slate-50 dark:bg-slate-800/30 p-1.5 rounded border border-slate-100 dark:border-slate-700/30">
                                                 <div className="flex flex-col truncate max-w-[65%]">
-                                                    <span className="text-slate-700 dark:text-slate-300 truncate" title={comp.address}>{comp.address}</span>
+                                                    <span className="text-slate-700 dark:text-slate-300 truncate flex items-center gap-1" title={isLocked ? 'Address Hidden' : comp.address}>
+                                                        {isLocked && <Lock size={10} className="text-amber-500 shrink-0" />}
+                                                        {isLocked ? obscureAddress(comp.address) : comp.address}
+                                                    </span>
                                                     <span className="text-[10px] text-slate-400 dark:text-slate-500">
                                                         {comp.distance || 'Manual'} • {comp.date ? comp.date.split('T')[0] : 'N/A'}
                                                     </span>
@@ -152,7 +177,10 @@ const DealAnalysis = ({ deal }) => {
                                     {market.rentComps.map((comp, i) => (
                                         <div key={i} className="flex justify-between items-center text-xs bg-slate-50 dark:bg-slate-800/30 p-1.5 rounded border border-slate-100 dark:border-slate-700/30">
                                             <div className="flex flex-col truncate max-w-[65%]">
-                                                <span className="text-slate-700 dark:text-slate-300 truncate" title={comp.address}>{comp.address}</span>
+                                                <span className="text-slate-700 dark:text-slate-300 truncate flex items-center gap-1" title={isLocked ? 'Address Hidden' : comp.address}>
+                                                    {isLocked && <Lock size={10} className="text-amber-500 shrink-0" />}
+                                                    {isLocked ? obscureAddress(comp.address) : comp.address}
+                                                </span>
                                                 <span className="text-[10px] text-slate-400 dark:text-slate-500">{comp.distance} • {comp.daysOld ? `${comp.daysOld} days ago` : 'N/A'}</span>
                                             </div>
                                             <span className="font-mono text-blue-600 dark:text-blue-400/90">${comp.rent.toLocaleString()}</span>

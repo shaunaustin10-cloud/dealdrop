@@ -31,10 +31,10 @@ const ImageUploader = ({ imageUrls, onImageUrlsChange, onFilesUploaded, fallback
     let newFiles = [];
 
     const options = {
-      maxSizeMB: 1, // Max file size in MB
-      maxWidthOrHeight: 1920, // Max width/height
-      useWebWorker: true, // Use web worker for better performance
-      fileType: 'image/jpeg' // Output as JPEG
+      maxSizeMB: 0.5, // Reduced from 1MB to 0.5MB to save quota
+      maxWidthOrHeight: 1600, // Reduced from 1920 to 1600
+      useWebWorker: true,
+      fileType: 'image/jpeg'
     };
 
     try {

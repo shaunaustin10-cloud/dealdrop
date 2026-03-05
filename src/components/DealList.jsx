@@ -26,7 +26,7 @@ const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
   const [filterAddress, setFilterAddress] = useState('');
   const [filterSource, setFilterSource] = useState('All');
   const [filterStatus, setFilterStatus] = useState(isPublic ? 'Available' : 'All');
-  const [viewMode, setViewMode] = useState('list');
+  const [viewMode, setViewMode] = useState('hybrid');
   const [hoveredDealId, setHoveredDealId] = useState(null);
   const [vipOnly, setVipOnly] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -123,108 +123,131 @@ const DealList = ({ onDeleteDeal, onSelectDeal, isPublic, buyBox }) => {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-shrink-0 space-y-2 mb-4">
-        <div className="flex flex-col md:flex-row gap-2">
-            <div className="relative flex-1">
+      <div className="flex-shrink-0 mb-6 space-y-3">
+        {/* Top Control Bar */}
+        <div className="flex flex-col md:flex-row gap-3 items-center">
+            {/* Search Input */}
+            <div className="relative flex-1 w-full">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Search size={16} className="text-slate-400 dark:text-slate-500" />
                 </div>
                 <input
                     type="text"
-                    placeholder="Search properties..."
+                    placeholder="Search by city or address..."
                     value={filterAddress}
                     onChange={(e) => setFilterAddress(e.target.value)}
-                    className="block w-full pl-9 pr-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm shadow-sm"
+                    className="block w-full pl-9 pr-3 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm shadow-sm transition-all"
                 />
             </div>
 
-            <div className="flex items-center gap-2">
-                <button 
-                    onClick={() => setVipOnly(!vipOnly)}
-                    className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border transition-all text-[10px] font-black uppercase tracking-wider shadow-sm ${vipOnly ? 'bg-amber-500 border-amber-600 text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'}`}
-                >
-                    <TrendingUp size={14} />
-                    <span className={isPublic ? "hidden sm:inline" : ""}>VIP</span>
-                </button>
-
+            <div className="flex items-center gap-2 w-full md:w-auto">
+                {/* Advanced Filter Toggle */}
                 <button 
                     onClick={() => setShowFilters(!showFilters)}
-                    className={`md:hidden flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border transition-all text-[10px] font-black uppercase tracking-wider shadow-sm ${showFilters ? 'bg-slate-900 text-white border-slate-900' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500'}`}
+                    className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border transition-all text-[10px] font-black uppercase tracking-wider shadow-sm ${showFilters ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-slate-300'}`}
                 >
                     <SlidersHorizontal size={14} />
                     Filters
                 </button>
 
-                <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm ml-auto md:ml-0">
+                {/* VIP Toggle */}
+                <button 
+                    onClick={() => setVipOnly(!vipOnly)}
+                    className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border transition-all text-[10px] font-black uppercase tracking-wider shadow-sm ${vipOnly ? 'bg-amber-500 border-amber-600 text-white' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-slate-300'}`}
+                >
+                    <TrendingUp size={14} />
+                    VIP
+                </button>
+
+                <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-1 hidden md:block"></div>
+
+                {/* View Switcher */}
+                <div className="flex bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <button 
+                        onClick={() => setViewMode('hybrid')}
+                        className={`p-1.5 px-2 rounded-lg transition-all ${viewMode === 'hybrid' ? 'bg-primary text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        title="Split View"
+                    >
+                        <LayoutGrid size={16} />
+                    </button>
                     <button 
                         onClick={() => setViewMode('list')}
-                        className={`p-2 px-2.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        className={`p-1.5 px-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-primary text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        title="List View"
                     >
-                        <List size={18} />
+                        <List size={16} />
                     </button>
                     <button 
                         onClick={() => setViewMode('map')}
-                        className={`p-2 px-2.5 rounded-lg transition-all ${viewMode === 'map' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        className={`p-1.5 px-2 rounded-lg transition-all ${viewMode === 'map' ? 'bg-primary text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        title="Map View"
                     >
-                        <MapIcon size={18} />
-                    </button>
-                    <button 
-                        onClick={() => setViewMode('hybrid')}
-                        className={`hidden md:block p-2 px-2.5 rounded-lg transition-all ${viewMode === 'hybrid' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                    >
-                        <LayoutGrid size={18} />
+                        <MapIcon size={16} />
                     </button>
                 </div>
             </div>
         </div>
 
-        <div className={`${showFilters ? 'grid' : 'hidden'} md:grid grid-cols-2 md:grid-cols-4 gap-2`}>
-            {!isPublic && (
-                <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                    <span className="text-[10px] uppercase font-black text-slate-400 dark:text-slate-500 whitespace-nowrap hidden sm:inline">Source</span>
+        {/* Collapsible Filter Bar */}
+        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-40 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-inner">
+                {!isPublic && (
+                    <div className="flex flex-col gap-1">
+                        <label className="text-[9px] uppercase font-black text-slate-400 px-1">Source</label>
+                        <select
+                            value={filterSource}
+                            onChange={(e) => setFilterSource(e.target.value)}
+                            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 text-xs font-bold focus:ring-primary focus:border-primary outline-none py-2 px-2"
+                        >
+                            <option value="All">All Sources</option>
+                            <option value="Off-Market">Off-Market</option>
+                            <option value="MLS/Listed">MLS / Listed</option>
+                            <option value="Wholesaler">Wholesaler</option>
+                            <option value="Direct Mail">Direct Mail</option>
+                        </select>
+                    </div>
+                )}
+
+                <div className="flex flex-col gap-1">
+                    <label className="text-[9px] uppercase font-black text-slate-400 px-1">Deal Status</label>
                     <select
-                        value={filterSource}
-                        onChange={(e) => setFilterSource(e.target.value)}
-                        className="bg-transparent border-none text-slate-700 dark:text-slate-300 text-xs font-bold focus:ring-0 cursor-pointer w-full outline-none py-1"
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 text-xs font-bold focus:ring-primary focus:border-primary outline-none py-2 px-2"
                     >
-                        <option value="All" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">All Sources</option>
-                        <option value="Off-Market" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Off-Market</option>
-                        <option value="MLS/Listed" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">MLS / Listed</option>
-                        <option value="Wholesaler" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Wholesaler</option>
-                        <option value="Direct Mail" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Direct Mail</option>
-                        <option value="Referral" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Referral</option>
-                        <option value="Other" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Other</option>
+                        <option value="All">All Status</option>
+                        <option value="Available">Available</option>
+                        <option value="Under Contract">Under Contract</option>
+                        <option value="Closed">Closed / Sold</option>
                     </select>
                 </div>
-            )}
 
-            <div className={`${isPublic ? 'col-span-1' : ''} flex items-center gap-2 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden`}>
-                <span className="text-[10px] uppercase font-black text-slate-400 dark:text-slate-500 whitespace-nowrap hidden sm:inline">Status</span>
-                <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="bg-transparent border-none text-slate-700 dark:text-slate-300 text-xs font-bold focus:ring-0 cursor-pointer w-full outline-none py-1"
-                >
-                    <option value="All" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">All Status</option>
-                    <option value="Available" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Available</option>
-                    <option value="Under Contract" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Under Contract</option>
-                    <option value="Closed" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Closed / Sold</option>
-                </select>
-            </div>
-
-            <div className={`${isPublic ? 'col-span-1 md:col-span-3 md:flex md:justify-end' : 'col-span-2 md:col-span-2'}`}>
-                <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 border border-slate-200 dark:border-slate-700 shadow-sm w-full md:w-auto overflow-hidden">
-                    <SlidersHorizontal size={14} className="text-slate-400 flex-shrink-0" />
+                <div className="flex flex-col gap-1">
+                    <label className="text-[9px] uppercase font-black text-slate-400 px-1">Sort By</label>
                     <select
-                        id="sort-by"
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}
-                        className="bg-transparent border-none text-slate-700 dark:text-slate-300 text-xs font-bold focus:ring-0 cursor-pointer w-full outline-none py-1"
+                        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 text-xs font-bold focus:ring-primary focus:border-primary outline-none py-2 px-2"
                     >
-                        <option value={isPublic ? 'publishedAt' : 'createdAt'} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Newest Listed</option>
-                        <option value="dealScore" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Highest Score</option>
-                        <option value="price" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Lowest Price</option>
+                        <option value={isPublic ? 'publishedAt' : 'createdAt'}>Newest Listed</option>
+                        <option value="dealScore">Highest Score</option>
+                        <option value="price">Lowest Price</option>
                     </select>
+                </div>
+
+                <div className="flex items-end">
+                    <button 
+                        onClick={() => {
+                            setFilterAddress('');
+                            setFilterSource('All');
+                            setFilterStatus(isPublic ? 'Available' : 'All');
+                            setSortBy(isPublic ? 'publishedAt' : 'createdAt');
+                            setVipOnly(false);
+                        }}
+                        className="w-full py-2 text-[10px] font-black uppercase text-slate-400 hover:text-slate-600 transition-colors"
+                    >
+                        Reset All
+                    </button>
                 </div>
             </div>
         </div>

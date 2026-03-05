@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://deker-group.web.app/sitemap.xml

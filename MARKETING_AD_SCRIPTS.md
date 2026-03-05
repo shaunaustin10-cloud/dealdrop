@@ -42,6 +42,47 @@ Don't spend money immediately. Record these videos and post them as Reels/TikTok
 
 ---
 
+# 🚀 NEW: Marketplace Launch Campaigns
+
+## Ad Concept 4: The "Off-Market Zillow" (Target: Buyers)
+**Hook:** The "secret inventory" angle. 
+
+| Time | Visual | Audio (Script) |
+| :--- | :--- | :--- |
+| **0:00-0:03** | Screen recording: Scrolling through Zillow/Redfin, looking bored/frustrated. | "Sick of fighting over the same 3 overpriced listings on the MLS?" |
+| **0:03-0:07** | **Transition:** Fast cut to the **Deal Drop Map View** (the new Hybrid view). Green pins popping up. | "We just opened the Live Marketplace. These are verified off-market deals you can't find on Zillow." |
+| **0:07-0:12** | Hover over a pin -> "Score: 92" pops up. Click -> Deal Detail opens. | "We've already run the numbers. Rehab, ARV, Rent... it's all done for you." |
+| **0:12-0:15** | Face to camera. | "Stop analyzing trash. Browse pre-vetted deals right now." |
+| **Call to Action** | Text: "Browse Live Deals" | "Link in bio to see the inventory." |
+
+## Ad Concept 5: The "VIP First Look" (Target: FOMO)
+**Hook:** Exclusivity and Speed.
+
+| Time | Visual | Audio (Script) |
+| :--- | :--- | :--- |
+| **0:00-0:04** | Text overlay: **"SOLD in 4 Hours"**. Background is a blurred house photo. | "The best deals never even make it to your inbox. They get snatched up by the VIPs." |
+| **0:04-0:09** | Screen recording: Showing the "VIP" badge and the "First Look" countdown timer. | "With Deal Drop VIP, you get a 24-hour head start on every property with a score over 80." |
+| **0:09-0:12** | Showing a user clicking "Unlock Address" and signing the digital NDA. | "Instant access. Direct to seller. No daisy chains." |
+| **Call to Action** | Text: "Join the VIP List" | "Secure your spot. Only 100 Founding Memberships left." |
+
+---
+
+## Social Media "Go Live" Plan
+
+**Day 1: The Tease (Instagram Story / LinkedIn)**
+*   **Image:** A blurred screenshot of the Map View with many pins.
+*   **Text:** "Something big is dropping tomorrow... 🤫 #OffMarket #RealEstate"
+*   **Poll:** "Are you Buying or Selling right now?"
+
+**Day 2: The Launch (Reels / TikTok / LinkedIn Main Post)**
+*   **Content:** Use **Ad Concept 4** (The "Off-Market Zillow").
+*   **Caption:** "The Marketplace is OPEN. 🟢 Stop guessing. Start buying. We've aggregated the best off-market inventory and ran it through our AI underwriter. Link in bio to browse for free."
+
+**Day 3: Social Proof (Story / Post)**
+*   **Content:** Screenshot of a "High Score" deal (e.g., Score 92).
+*   **Text:** "Who is grabbing this one in Indianapolis? 15% equity spread on day one. 👀"
+*   **Link:** Direct link to that specific public deal page.
+
 ## Technical Setup for Ads
 
 ### 1. The Creative (Video)

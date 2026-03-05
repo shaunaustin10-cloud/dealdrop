@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { LayoutGrid, Sun, Moon } from 'lucide-react';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -10,6 +12,7 @@ const LoginPage = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (user) {
@@ -42,9 +45,22 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-midnight text-slate-200 flex items-center justify-center">
-      <div className="max-w-md w-full p-8 bg-midnight border border-slate-800 rounded-2xl shadow-2xl">
-        <h1 className="text-3xl font-bold text-center text-white mb-8">Login to Your Account</h1>
+    <div className="min-h-screen bg-gray-50 dark:bg-midnight text-slate-900 dark:text-slate-200 flex items-center justify-center relative">
+      <button
+        onClick={toggleTheme}
+        className="absolute top-6 right-6 p-3 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-primary transition-all shadow-sm"
+        aria-label="Toggle Theme"
+      >
+        {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+      </button>
+
+      <div className="max-w-md w-full p-8 bg-white dark:bg-midnight border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xl">
+        <div className="flex flex-col items-center justify-center mb-8">
+            <div className="bg-slate-100 dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+               <LayoutGrid className="text-primary" size={28} />
+            </div>
+            <h2 className="mt-4 text-3xl font-serif text-slate-900 dark:text-white tracking-tight">REI <span className="text-primary italic">Deal Drop</span></h2>
+        </div>
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label className="block text-slate-400 text-xs uppercase tracking-wider mb-1 font-semibold">Email</label>

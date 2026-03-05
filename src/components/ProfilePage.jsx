@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../hooks/useSubscription';
 import { db, storage } from '../firebaseConfig';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteField } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { User, Building, Phone, Globe, Camera, Save, Loader2, LayoutTemplate, Lock, Briefcase, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import InputField from './InputField';
 import Toast from './Toast';
 import PricingModal from './PricingModal';
+import imageCompression from 'browser-image-compression';
 
 const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
 
@@ -27,14 +28,33 @@ const ProfilePage = () => {
     phone: '',
     website: '',
     role: 'investor', // 'investor' or 'agent'
-    photoUrl: '',
-    logoUrl: ''
+    photoURL: '',
+    logoURL: ''
   });
 
   const [photoFile, setPhotoFile] = useState(null);
   const [logoFile, setLogoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState('');
+  const [logoPreview, setLogoPreview] = useState('');
 
-  const isBusinessTier = tier === 'agency';
+  const isBusinessTier = tier === 'agency' || tier === 'business';
+
+  // Manage previews and cleanup
+  useEffect(() => {
+    if (photoFile) {
+      const url = URL.createObjectURL(photoFile);
+      setPhotoPreview(url);
+      return () => URL.revokeObjectURL(url);
+    }
+  }, [photoFile]);
+
+  useEffect(() => {
+    if (logoFile) {
+      const url = URL.createObjectURL(logoFile);
+      setLogoPreview(url);
+      return () => URL.revokeObjectURL(url);
+    }
+  }, [logoFile]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -53,8 +73,8 @@ const ProfilePage = () => {
             phone: data.phone || '',
             website: data.website || '',
             role: data.role || 'investor',
-            photoUrl: data.photoUrl || '',
-            logoUrl: data.logoUrl || ''
+            photoURL: data.photoURL || data.photoUrl || user.photoURL || '',
+            logoURL: data.logoURL || data.logoUrl || ''
           }));
         }
       } catch (error) {
@@ -75,42 +95,88 @@ const ProfilePage = () => {
   };
 
   const uploadImage = async (file, path) => {
-    const storageRef = ref(storage, path);
-    await uploadBytes(storageRef, file);
-    return await getDownloadURL(storageRef);
+    try {
+      const options = {
+        maxSizeMB: 0.3, // Reduced from 1MB
+        maxWidthOrHeight: 800,
+        useWebWorker: true,
+        fileType: 'image/jpeg'
+      };
+      
+      const compressedFile = await imageCompression(file, options);
+      const storageRef = ref(storage, path);
+      
+      console.log(`🔧 DEBUG: Uploading image to ${path}...`);
+      const snapshot = await uploadBytes(storageRef, compressedFile);
+      console.log(`✅ DEBUG: Upload successful for ${path}`);
+      
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      return downloadURL;
+    } catch (err) {
+      console.error(`❌ DEBUG: Error in uploadImage for ${path}:`, err);
+      if (err.code === 'storage/quota-exceeded' || err.message?.includes('quota')) {
+          throw new Error("Storage quota exceeded. If you just upgraded to Blaze, please wait 15-30 minutes for Google to process the update.");
+      }
+      throw err;
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
-      let updates = { ...formData };
+      let updates = { 
+        ...formData,
+        updatedAt: new Date().toISOString()
+      };
 
       // Upload Images if changed
       if (photoFile) {
-        const url = await uploadImage(photoFile, `users/${user.uid}/branding/profile.jpg`);
-        updates.photoUrl = url;
+        console.log("🔧 DEBUG: Starting profile picture upload...");
+        try {
+          const path = `users/${user.uid}/branding/profile_${Date.now()}.jpg`;
+          const url = await uploadImage(photoFile, path);
+          console.log("✅ DEBUG: Profile picture uploaded, URL:", url);
+          updates.photoURL = url;
+          // Clean up old field if it exists in Firestore
+          updates.photoUrl = deleteField();
+        } catch (err) {
+          console.error("❌ DEBUG: Profile picture upload failed:", err);
+          throw new Error("Failed to upload profile picture: " + err.message);
+        }
       }
-      if (logoFile) {
-        // Double check server-side rules ideally, but client-side gate for now
-        if (isBusinessTier) {
-            const url = await uploadImage(logoFile, `users/${user.uid}/branding/logo.png`);
-            updates.logoUrl = url;
+      
+      if (logoFile && isBusinessTier) {
+        console.log("🔧 DEBUG: Starting logo upload...");
+        try {
+          const path = `users/${user.uid}/branding/logo_${Date.now()}.png`;
+          const url = await uploadImage(logoFile, path);
+          console.log("✅ DEBUG: Logo uploaded, URL:", url);
+          updates.logoURL = url;
+          // Clean up old field if it exists in Firestore
+          updates.logoUrl = deleteField();
+        } catch (err) {
+          console.error("❌ DEBUG: Logo upload failed:", err);
+          throw new Error("Failed to upload logo: " + err.message);
         }
       }
 
+      console.log("🔧 DEBUG: Saving profile updates to Firestore:", updates);
       const docRef = doc(db, 'artifacts', appId, 'profiles', user.uid);
       await setDoc(docRef, updates, { merge: true });
+      console.log("✅ DEBUG: Profile saved successfully");
       
       // Update local state to reflect new URLs immediately
       setFormData(updates);
       setPhotoFile(null);
       setLogoFile(null);
+      setPhotoPreview('');
+      setLogoPreview('');
       
       setToast({ show: true, message: "Profile updated successfully!", type: 'success' });
     } catch (error) {
       console.error("Error updating profile:", error);
-      setToast({ show: true, message: "Failed to save profile. " + error.message, type: 'error' });
+      setToast({ show: true, message: error.message || "Failed to save profile.", type: 'error' });
     } finally {
       setSaving(false);
     }
@@ -133,8 +199,8 @@ const ProfilePage = () => {
           </div>
           <span className="font-medium">Back to Pipeline</span>
         </Link>
-        <h1 className="text-3xl font-bold text-white mb-2">Profile & Branding</h1>
-        <p className="text-slate-400">Manage your personal details and branding for reports.</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Profile & Branding</h1>
+        <p className="text-slate-500 dark:text-slate-400">Manage your personal details and branding for reports.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -142,17 +208,17 @@ const ProfilePage = () => {
         {/* Left Col: Images */}
         <div className="space-y-6">
           {/* Headshot */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col items-center text-center">
-            <h3 className="text-white font-bold mb-4">Agent Headshot</h3>
-            <div className="relative w-32 h-32 rounded-full overflow-hidden bg-slate-800 border-2 border-slate-700 mb-4 group">
-               {(photoFile || formData.photoUrl || user.photoURL) ? (
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col items-center text-center shadow-sm">
+            <h3 className="text-slate-900 dark:text-white font-bold mb-4">Agent Headshot</h3>
+            <div className="relative w-32 h-32 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 mb-4 group">
+               {(photoPreview || formData.photoURL) ? (
                  <img 
-                    src={photoFile ? URL.createObjectURL(photoFile) : (formData.photoUrl || user.photoURL)} 
+                    src={photoPreview || formData.photoURL} 
                     alt="Profile" 
                     className="w-full h-full object-cover" 
                  />
                ) : (
-                 <User className="w-16 h-16 text-slate-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                 <User className="w-16 h-16 text-slate-400 dark:text-slate-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                )}
                <label htmlFor="photo-upload" className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
                   <Camera className="text-white" />
@@ -163,14 +229,14 @@ const ProfilePage = () => {
           </div>
 
           {/* Logo (Business Tier Gated) */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col items-center text-center relative overflow-hidden">
-            <h3 className="text-white font-bold mb-4">Brokerage / Company Logo</h3>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col items-center text-center relative overflow-hidden shadow-sm">
+            <h3 className="text-slate-900 dark:text-white font-bold mb-4">Brokerage / Company Logo</h3>
             
-            <div className={`relative w-full h-24 rounded-lg overflow-hidden bg-slate-800 border-2 border-slate-700 border-dashed mb-4 flex items-center justify-center ${!isBusinessTier ? 'opacity-20 pointer-events-none' : 'group'}`}>
-               {(logoFile ? URL.createObjectURL(logoFile) : formData.logoUrl) ? (
-                 <img src={logoFile ? URL.createObjectURL(logoFile) : formData.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain p-2" />
+            <div className={`relative w-full h-24 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 border-dashed mb-4 flex items-center justify-center ${!isBusinessTier ? 'opacity-20 pointer-events-none' : 'group'}`}>
+               {(logoPreview || formData.logoURL) ? (
+                 <img src={logoPreview || formData.logoURL} alt="Logo" className="max-h-full max-w-full object-contain p-2" />
                ) : (
-                 <Building className="w-10 h-10 text-slate-600" />
+                 <Building className="w-10 h-10 text-slate-400 dark:text-slate-600" />
                )}
                
                {isBusinessTier && (
@@ -186,12 +252,12 @@ const ProfilePage = () => {
                     <p className="text-xs text-slate-500">PNG with transparent background best.</p>
                 </>
             ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-[2px] z-10 p-4">
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-[2px] z-10 p-4">
                     <div className="bg-blue-500/20 p-3 rounded-full mb-3">
-                        <Briefcase size={24} className="text-blue-400" />
+                        <Briefcase size={24} className="text-blue-600 dark:text-blue-400" />
                     </div>
-                    <p className="text-white font-bold text-sm mb-1">Business Tier Only</p>
-                    <p className="text-slate-400 text-xs mb-3">Upload custom logos for reports</p>
+                    <p className="text-slate-900 dark:text-white font-bold text-sm mb-1">Business Tier Only</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs mb-3">Upload custom logos for reports</p>
                     <button 
                         type="button"
                         onClick={() => setShowPricing(true)}
@@ -206,26 +272,26 @@ const ProfilePage = () => {
 
         {/* Right Col: Form Fields */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8">
-            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
               <LayoutTemplate className="text-emerald-500" size={24} />
               Identity Settings
             </h3>
             
             <div className="mb-6">
-              <label className="block text-slate-400 text-xs uppercase tracking-wider mb-2 font-semibold">Primary Role</label>
+              <label className="block text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider mb-2 font-semibold">Primary Role</label>
               <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, role: 'investor'})}
-                  className={`py-3 px-4 rounded-xl border text-sm font-bold transition-all ${formData.role === 'investor' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600'}`}
+                  className={`py-3 px-4 rounded-xl border text-sm font-bold transition-all ${formData.role === 'investor' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'}`}
                 >
                   Investor / Wholesaler
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, role: 'agent'})}
-                  className={`py-3 px-4 rounded-xl border text-sm font-bold transition-all ${formData.role === 'agent' ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600'}`}
+                  className={`py-3 px-4 rounded-xl border text-sm font-bold transition-all ${formData.role === 'agent' ? 'bg-blue-500/10 border-blue-500 text-blue-600 dark:text-blue-400' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'}`}
                 >
                   Real Estate Agent
                 </button>
@@ -236,7 +302,7 @@ const ProfilePage = () => {
                   : "Optimizes dashboard for Off-Market Deals, Assignment Fees, and Cash Flow."}
               </p>
             </div>
-
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                <InputField 
                  label="Full Name" 
@@ -275,7 +341,7 @@ const ProfilePage = () => {
                </div>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-slate-800 flex justify-end">
+            <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                <button 
                  type="submit" 
                  disabled={saving}
@@ -288,33 +354,33 @@ const ProfilePage = () => {
           </div>
 
           {/* Team Management Section (Stub) */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 relative overflow-hidden">
-            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-              <User className="text-blue-400" size={24} />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-sm">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+              <User className="text-blue-500 dark:text-blue-400" size={24} />
               Team Management
             </h3>
 
             {isBusinessTier ? (
               <div className="space-y-6">
-                <div className="flex justify-between items-center bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
                    <div>
-                      <p className="text-white font-bold">Team Slots</p>
-                      <p className="text-slate-400 text-xs">You have used 0 of 3 available seats.</p>
+                      <p className="text-slate-900 dark:text-white font-bold">Team Slots</p>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs">You have used 0 of 3 available seats.</p>
                    </div>
                    <div className="flex gap-1">
                       {[1, 2, 3].map(i => (
-                        <div key={i} className="w-3 h-3 rounded-full bg-slate-700"></div>
+                        <div key={i} className="w-3 h-3 rounded-full bg-slate-200 dark:bg-slate-700"></div>
                       ))}
                    </div>
                 </div>
 
                 <div className="space-y-4">
-                   <label className="block text-slate-400 text-xs uppercase tracking-wider font-semibold">Invite New Member</label>
+                   <label className="block text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold">Invite New Member</label>
                    <div className="flex gap-2">
                       <input 
                         type="email" 
                         placeholder="colleague@example.com"
-                        className="flex-1 bg-slate-800 border border-slate-700 rounded-lg py-2 px-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
+                        className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg py-2 px-4 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
                       />
                       <button 
                         type="button"
@@ -330,14 +396,14 @@ const ProfilePage = () => {
             ) : (
               <div className="py-8 flex flex-col items-center text-center">
                 <div className="bg-blue-500/10 p-4 rounded-full mb-4">
-                   <Lock size={32} className="text-blue-400 opacity-50" />
+                   <Lock size={32} className="text-blue-600 dark:text-blue-400 opacity-50" />
                 </div>
-                <h4 className="text-white font-bold mb-2">Team Access Restricted</h4>
-                <p className="text-slate-400 text-sm max-w-xs mb-6">
+                <h4 className="text-slate-900 dark:text-white font-bold mb-2">Team Access Restricted</h4>
+                <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs mb-6">
                   Upgrade to the Business Class tier to add up to 3 sub-users to your account.
                 </p>
                 <button 
-                  type="button"
+                  type="button" 
                   onClick={() => setShowPricing(true)}
                   className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-blue-900/20"
                 >

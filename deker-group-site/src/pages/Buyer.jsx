@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import LeadGenWizard from '../components/LeadGenWizard';
 import LocalLogicWidget from '../components/LocalLogicWidget';
+import SEO from '../components/SEO';
 
 const BUYER_QUESTIONS = [
   {
@@ -19,7 +20,7 @@ const BUYER_QUESTIONS = [
     key: 'location',
     text: "Which area are you most interested in?",
     type: 'options',
-    options: ['Norfolk', 'Virginia Beach', 'Chesapeake', 'Portsmouth', 'Not Sure']
+    options: ['Norfolk', 'Virginia Beach', 'Chesapeake', 'Portsmouth', 'Hampton', 'Suffolk', 'Not Sure']
   },
   {
     key: 'email',
@@ -41,6 +42,21 @@ export default function Buyer() {
 
   return (
     <div className="pt-20">
+      <SEO 
+        title="Homes for Sale in Hampton Roads | Buyer Concierge" 
+        description="Search luxury listings and off-market properties in Norfolk and Virginia Beach. Get expert buyer representation and exclusive access to the best deals."
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Buyer Concierge & Relocation",
+          "provider": {
+            "@type": "RealEstateAgent",
+            "name": "De'Shaun Austin | NextHome Mission to Serve"
+          },
+          "areaServed": "Hampton Roads, VA",
+          "description": "Personalized home search and expert representation for homebuyers."
+        }}
+      />
       {/* Hero Section */}
       <section className="relative py-24 bg-midnight overflow-hidden min-h-[80vh] flex items-center">
         <div className="absolute inset-0 z-0">

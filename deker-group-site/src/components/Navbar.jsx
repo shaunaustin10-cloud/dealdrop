@@ -23,12 +23,12 @@ export default function Navbar() {
           <Link to="/buy" className="hover:text-primary transition-colors">Buy</Link>
           <Link to="/sell" className="hover:text-primary transition-colors">Sell</Link>
           <Link to="/#inventory" className="hover:text-primary transition-colors">Search</Link>
-          <a href="#" className="hover:text-primary transition-colors">About</a>
-          <a href="#" className="hover:text-primary transition-colors">Contact</a>
+          <Link to="/about" className="hover:text-primary transition-colors">About</Link>
+          <Link to="/contact" className="hover:text-primary transition-colors">Contact</Link>
         </div>
 
         <a 
-          href="http://localhost:5173" 
+          href="https://reidealdrop.com" 
           className="flex items-center gap-2 px-6 py-3 rounded-none text-[10px] font-bold uppercase tracking-widest transition-all duration-300 border bg-midnight text-white border-midnight hover:bg-primary hover:border-primary"
         >
           <TrendingUp size={14} />

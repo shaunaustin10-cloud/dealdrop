@@ -3,7 +3,7 @@ import { collection, getDocs, query, orderBy, limit, doc, updateDoc, deleteDoc }
 import { db } from '../firebaseConfig';
 import { Search, MapPin, Calendar, Clock, ExternalLink, Copy, CheckCircle, Trash2, Filter } from 'lucide-react';
 
-const appId = import.meta.env.VITE_APP_ID || 'default-app-id';
+const appId = import.meta.env.VITE_APP_ID || 'dealdrop-prod';
 
 const ForeclosureLeads = () => {
   const [leads, setLeads] = useState([]);

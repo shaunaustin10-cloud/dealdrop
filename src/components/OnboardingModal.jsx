@@ -79,11 +79,14 @@ const OnboardingModal = () => {
         {/* Step 1: Welcome */}
         {step === 1 && (
             <div className="p-8 relative z-10 text-center animate-in fade-in zoom-in duration-300">
-               <div className="w-16 h-16 bg-emerald-500 rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/30">
-                 <LayoutGrid size={32} className="text-white" />
+               <div className="mb-6 flex flex-col items-center">
+                  <div className="bg-slate-100 dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm mb-3">
+                     <LayoutGrid className="text-primary" size={24} />
+                  </div>
+                  <h3 className="font-serif text-xl text-slate-900 dark:text-white tracking-tight">REI <span className="text-primary italic">Deal Drop</span></h3>
                </div>
                
-               <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Welcome to Deal Drop!</h2>
+               <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Welcome to <span className="text-primary italic">Deal Drop</span>!</h2>
                <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-sm mx-auto">
                  Your new command center for analyzing and closing real estate deals faster than ever.
                </p>

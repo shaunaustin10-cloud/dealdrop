@@ -110,9 +110,61 @@ exports.getPropertyData = onCall({ secrets: ["RENTCAST_API_KEY"] }, async (reque
 });
 
 /**
+ * Fetch live MLS listings from RentCast.
+ */
+exports.getMLSListings = onCall({ secrets: ["RENTCAST_API_KEY"] }, async (request) => {
+  const { city, state, limit: limitCount = 10, searchType = 'sale', latitude, longitude, radius } = request.data;
+  
+  const apiKey = process.env.RENTCAST_API_KEY; 
+  if (!apiKey) {
+    logger.error("RentCast API Key is missing.");
+    throw new HttpsError('internal', 'Server configuration error.');
+  }
+
+  try {
+    const headers = { 'X-Api-Key': apiKey, 'accept': 'application/json' };
+    const url = new URL(`${BASE_URL}/listings/${searchType}`);
+    
+    if (latitude && longitude) {
+        url.searchParams.append('latitude', latitude.toString());
+        url.searchParams.append('longitude', longitude.toString());
+        url.searchParams.append('radius', (radius || 10).toString());
+    } else {
+        if (city) url.searchParams.append('city', city);
+        if (state) url.searchParams.append('state', state);
+    }
+    
+    url.searchParams.append('status', 'Active');
+    url.searchParams.append('limit', limitCount.toString());
+
+    logger.info(`Fetching ${searchType} listings. Lat/Lng: ${latitude}, ${longitude}. City: ${city}`);
+
+    const response = await fetch(url, { headers });
+    const data = await response.json();
+
+    if (!response.ok) {
+        logger.error(`RentCast API responded with status ${response.status}`, data);
+        return { success: false, status: response.status, message: data.message };
+    }
+
+    return {
+      success: true,
+      listings: data
+    };
+
+  } catch (error) {
+    logger.error("RentCast Listings API Request Failed", error);
+    throw new HttpsError('internal', 'Failed to fetch listings from provider.');
+  }
+});
+
+/**
  * Secure Proxy for Google Geocoding API.
  */
-exports.getGeocode = onCall({ secrets: ["GOOGLE_MAPS_API_KEY"] }, async (request) => {
+exports.getGeocode = onCall({ 
+  secrets: ["GOOGLE_MAPS_API_KEY"],
+  cors: true // Explicitly enable CORS
+}, async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'The function must be called while authenticated.');
   }
@@ -131,16 +183,29 @@ exports.getGeocode = onCall({ secrets: ["GOOGLE_MAPS_API_KEY"] }, async (request
   try {
     const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
     const response = await fetch(url);
+    
+    if (!response.ok) {
+        logger.error(`Geocoding API responded with status ${response.status}`);
+        return { error: 'API_FETCH_FAILED', status: response.status };
+    }
+
     const data = await response.json();
 
     if (data.status === 'OK' && data.results.length > 0) {
       const { lat, lng } = data.results[0].geometry.location;
-      return { lat, lng };
+      return { lat, lng, status: 'OK' };
     } else {
-      return null;
+      logger.warn(`Geocoding failed for address: ${address}. Status: ${data.status}`);
+      return { 
+          lat: null, 
+          lng: null, 
+          status: data.status,
+          error_message: data.error_message 
+      };
     }
   } catch (error) {
     logger.error("Geocoding API Request Failed", error);
-    throw new HttpsError('internal', 'Failed to fetch geocode data.');
+    // Don't throw internal error here, return a structured error so the client can handle it gracefully
+    return { error: 'INTERNAL_ERROR', message: error.message };
   }
 });

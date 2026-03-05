@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import { useNavigate, Link } from 'react-router-dom';
-import { LayoutGrid, ArrowRight, User, Mail, Lock } from 'lucide-react';
+import { LayoutGrid, ArrowRight, User, Mail, Lock, Sun, Moon } from 'lucide-react';
 import { createUserProfile } from '../services/userService'; 
+import { useTheme } from '../context/ThemeContext';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -14,6 +15,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('');
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   const handleGoogleSignIn = async () => {
     setError('');
@@ -74,14 +76,22 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-midnight text-slate-200 flex items-center justify-center p-4">
-      <div className="max-w-md w-full p-8 bg-midnight border border-slate-800 rounded-2xl shadow-2xl">
-        <div className="flex justify-center mb-6">
-           <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <LayoutGrid className="text-white" size={24} />
-           </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-midnight text-slate-900 dark:text-slate-200 flex items-center justify-center p-4 relative">
+      <button
+        onClick={toggleTheme}
+        className="absolute top-6 right-6 p-3 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-primary transition-all shadow-sm"
+        aria-label="Toggle Theme"
+      >
+        {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+      </button>
+
+      <div className="max-w-md w-full p-8 bg-white dark:bg-midnight border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xl">
+        <div className="flex flex-col items-center justify-center mb-6">
+            <div className="bg-slate-100 dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm mb-4">
+               <LayoutGrid className="text-primary" size={28} />
+            </div>
+            <h1 className="text-3xl font-serif font-bold text-center text-slate-900 dark:text-white mb-2">Join <span className="text-primary italic">Deal Drop</span></h1>
         </div>
-        <h1 className="text-3xl font-bold text-center text-white mb-2">Join Dealdrop</h1>
         <p className="text-slate-400 text-center mb-8">Analyze. Validate. Close.</p>
 
         <form onSubmit={handleRegister} className="space-y-5">
