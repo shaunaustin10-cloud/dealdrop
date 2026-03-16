@@ -5,6 +5,7 @@ import { TidewaterScraper } from './sites/tidewater_scraper.js';
 import { GlasserScraper } from './sites/glasser_scraper.js';
 import { BrockAndScottScraper } from './sites/brock_scott_scraper.js';
 import { OrlansScraper } from './sites/orlans_scraper.js';
+import { VAPilotScraper } from './sites/va_pilot_scraper.js';
 import fs from 'fs';
 
 async function main() {
@@ -16,6 +17,7 @@ async function main() {
         new GlasserScraper(),
         new BrockAndScottScraper(),
         new OrlansScraper(),
+        new VAPilotScraper(),
     ];
 
     let allSales = [];
@@ -85,6 +87,9 @@ async function main() {
     console.log("Results saved to:");
     console.log(" - scrapers/foreclosures.json");
     console.log(" - scrapers/foreclosures.csv (Perfect for Google Sheets)");
+
+    console.log("\nStarting Google Sheets upload...");
+    import('./upload_to_sheets.js');
 
     // Auto-trigger upload if requested (optional)
     console.log("\nStarting Firestore upload...");
