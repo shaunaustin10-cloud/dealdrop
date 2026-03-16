@@ -10,14 +10,30 @@ async function main() {
     try {
         let sa;
         if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-            sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+            try {
+                sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+            } catch (e) {
+                console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT env var:", e.message);
+                return;
+            }
             if (sa.private_key) {
                 sa.private_key = sa.private_key.replace(/\\n/g, '\n');
             }
         } else if (fs.existsSync(SERVICE_ACCOUNT_FILE)) {
-            const raw = fs.readFileSync(SERVICE_ACCOUNT_FILE, 'utf8');
-            sa = JSON.parse(raw);
-            if (sa.private_key) {
+            // Using a workaround to parse the malformed local file so the script doesn't crash
+            try {
+                const raw = fs.readFileSync(SERVICE_ACCOUNT_FILE, 'utf8');
+                // The local file has a syntax error around position 900 where a literal \y exists.
+                // It also has literal newlines in the private key.
+                const cleanRaw = raw.replace(/\\\\y/g, 'y').replace(/\n(?!( *\"|\}))/g, '\\n');
+                // Let's use a more robust fallback
+                sa = JSON.parse(raw.replace(/\\y/g, 'y')); // Fix the specific escaping bug
+            } catch (e) {
+                console.error("Failed to parse local service-account.json:", e.message);
+                console.log("Since FIREBASE_SERVICE_ACCOUNT is not set, we cannot proceed.");
+                return;
+            }
+            if (sa && sa.private_key) {
                 sa.private_key = sa.private_key.replace(/\\n/g, '\n');
             }
         } else {
