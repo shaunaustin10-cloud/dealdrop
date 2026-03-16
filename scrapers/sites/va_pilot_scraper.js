@@ -34,39 +34,47 @@ export class VAPilotScraper extends BaseScraper {
                 // Usually the address is in the first few lines
                 const lines = description.split('\n').map(l => l.trim()).filter(l => l.length > 0);
                 
-                // Common pattern: 
-                // Line 0: TRUSTEE'S SALE
-                // Line 1: 123 Main St
-                // Line 2: Norfolk, VA 23501
-                
-                let address = '';
-                if (lines.length > 1) {
-                    // Start from the first line that isn't just "TRUSTEE'S SALE"
+                let address = title;
+
+                // Attempt to get a better address from the description if the title is generic
+                if (lines.length > 1 && title.toUpperCase().includes("TRUSTEE")) {
                     let startLine = 0;
-                    if (lines[0].toUpperCase().includes("TRUSTEE'S SALE") && lines.length > 1) {
+                    if (lines[0].toUpperCase().includes("TRUSTEE") && lines.length > 1) {
                         startLine = 1;
                     }
                     
                     address = lines[startLine];
                     
-                    // If the current address line doesn't have city/state/zip, and there's a next line, 
-                    // and that next line DOES have city/state/zip, combine them.
                     if (!address.includes(', VA') && !address.match(/\d{5}/) && lines.length > startLine + 1) {
                         if (lines[startLine + 1].includes(', VA') || lines[startLine + 1].match(/\d{5}/)) {
                             address += ' ' + lines[startLine + 1];
                         }
                     }
-                } else {
-                    address = title;
                 }
 
-                // Final cleanup: if it still doesn't look like an address, search all lines
-                if (!address.includes(', VA') && !address.match(/\d{5}/)) {
-                    const addressLine = lines.find(l => l.includes(', VA') || l.match(/\d{5}/));
-                    if (addressLine) {
-                        address = addressLine;
+                // Clean up the address string to remove common legal boilerplate
+                address = address
+                    .replace(/NOTICE OF SUBSTITUTE TRUSTEE['’]?S? SALE/ig, '')
+                    .replace(/TRUSTEE['’]?S? SALE/ig, '')
+                    .replace(/Real property at/ig, '')
+                    .replace(/In execution of a.*?recorded in.*?Virginia/ig, '')
+                    .replace(/In execution of a certain Deed of Trust.*?more particularly described as follows:/ig, '')
+                    .replace(/\(Parcel ID:.*?\)/ig, '')
+                    .replace(/AND BEING KNOWN, NUMBERED AND DESIGNATED AS LOT.*/ig, '')
+                    .replace(/ALL THAT CERTAIN LOT.*/ig, '')
+                    .replace(/THE LAND HEREINAFTER REFERRED TO.*/ig, '')
+                    .trim();
+
+                // If the regex replacement wiped it out or left it too long/messy, fallback to a regex match for a standard address
+                if (address.length > 150 || address.length < 5) {
+                    const addressMatch = description.match(/\d+\s+[A-Za-z0-9\s.,]+(?:VA|Virginia)\s*\d{5}/i);
+                    if (addressMatch) {
+                        address = addressMatch[0];
                     }
                 }
+
+                // Final cleanup
+                address = address.replace(/^[,-\s]+/, '').replace(/[,-\s]+$/, '').trim();
 
                 // Only add if it looks like a trustee's sale or auction
                 const searchStr = (title + ' ' + description).toUpperCase();
