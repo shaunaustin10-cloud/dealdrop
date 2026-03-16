@@ -4,7 +4,7 @@ import path from 'path';
 
 // Load service account credentials
 const SERVICE_ACCOUNT_FILE = './service-account.json';
-const SPREADSHEET_ID = '1jmlsK5efaLoULwoxP6NeGqcPoLm4LOvrGgBIc0o85fQ';
+const SPREADSHEET_ID = '12ga1oPmzmXq4wbz-Ytm_9exbG12sJhNI-CNUaJtLphA';
 
 async function main() {
     try {
