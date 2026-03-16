@@ -14,20 +14,44 @@ async function initializeApp() {
         return;
     }
 
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+        console.log("Using Service Account from Environment Variable...");
+        try {
+            const sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+            if (sa.private_key) {
+                sa.private_key = sa.private_key.replace(/\\n/g, '\n');
+            }
+            admin.initializeApp({
+                credential: admin.credential.cert(sa),
+                projectId: sa.project_id || 'web-app-30504'
+            });
+            return;
+        } catch (e) {
+            console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT env var:", e.message);
+        }
+    }
+
     const saPath = path.join(__dirname, 'service-account.json');
     if (fs.existsSync(saPath)) {
         console.log("Using service-account.json file...");
         try {
             // Direct object construction to bypass path parsing issues
             const raw = fs.readFileSync(saPath, 'utf8');
-            const sa = JSON.parse(raw);
+            let sa;
+            try {
+                sa = JSON.parse(raw);
+            } catch (err) {
+                // Try with workaround for local file malformations
+                sa = JSON.parse(raw.replace(/\\y/g, 'y').replace(/\n(?!( *\"|\}))/g, '\\n'));
+            }
+            
             // Fix private key formatting for Node 18+ / OpenSSL 3.0
             if (sa.private_key) {
                 sa.private_key = sa.private_key.replace(/\\n/g, '\n');
             }
             admin.initializeApp({
                 credential: admin.credential.cert(sa),
-                projectId: sa.project_id
+                projectId: sa.project_id || 'web-app-30504'
             });
         } catch (e) {
              console.error("Failed to parse service-account.json:", e.message);
