@@ -29,6 +29,7 @@ let firestoreSettings = {
 
 // Pre-configure Firestore settings for Proxy/Codespaces support if needed
 // This avoids using connectFirestoreEmulator which forces SSL=false
+/*
 if (isDev) {
     const host = window.location.hostname;
     // If we are NOT on localhost (e.g. Codespaces), we need to use the Proxy (same origin)
@@ -45,6 +46,7 @@ if (isDev) {
         };
     }
 }
+*/
 
 const db = initializeFirestore(app, firestoreSettings);
 

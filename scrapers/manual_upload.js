@@ -22,7 +22,7 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
-const appId = 'web-app-30504';
+const appId = 'default-app-id';
 
 async function uploadLeads() {
     const leads = JSON.parse(fs.readFileSync('./foreclosures.json', 'utf8'));

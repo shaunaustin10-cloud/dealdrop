@@ -63,7 +63,7 @@ async function initializeApp() {
     }
 }
 
-const appId = 'web-app-30504';
+const appId = 'default-app-id';
 
 async function uploadLeads() {
     await initializeApp();
@@ -120,7 +120,7 @@ async function uploadLeads() {
     console.log(`✅ ${totalProcessed} leads uploaded successfully!`);
 }
 
-uploadLeads().catch(err => {
+await uploadLeads().catch(err => {
     console.error("Upload Error:", err);
     process.exit(1);
 });
