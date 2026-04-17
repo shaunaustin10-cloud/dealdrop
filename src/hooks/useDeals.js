@@ -21,7 +21,7 @@ import { db } from '../firebaseConfig';
 import { calculateDealScore } from '../utils/calculateDealScore';
 import { useAuth } from '../context/AuthContext';
 
-const appId = 'default-app-id';
+const appId = 'web-app-30504';
 
 export const useFetchDeals = (isPublic = false, sortBy = 'createdAt') => {
   const { user, logout } = useAuth();
