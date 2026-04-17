@@ -36,7 +36,7 @@ export default function MainApp() {
         return;
       }
       try {
-        const appId = 'web-app-30504';
+        const appId = 'default-app-id';
         const docRef = doc(db, 'artifacts', appId, 'profiles', user.uid);
         const snap = await getDoc(docRef);
         if (snap.exists() && snap.data().role === 'admin') {

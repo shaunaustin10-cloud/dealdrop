@@ -5,7 +5,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 import { Navigate } from 'react-router-dom';
 
-const appId = 'web-app-30504';
+const appId = 'default-app-id';
 const AuthContext = createContext(null);
 
 export const useAuth = () => useContext(AuthContext);
