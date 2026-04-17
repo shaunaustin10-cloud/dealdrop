@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 350" width="850" height="350">
+    <!-- The "Spotless Stall" Concept - Literal & Professional -->
+    <g transform="translate(60, 80)">
+        <!-- Left Parking Line -->
+        <rect x="0" y="0" width="20" height="150" rx="4" fill="#0F172A" />
+        
+        <!-- Right Parking Line -->
+        <rect x="150" y="0" width="20" height="150" rx="4" fill="#0F172A" />
+        
+        <!-- The Giant Success Checkmark -->
+        <path d="M 40 80 L 80 120 L 180 20" stroke="#10B981" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        
+        <!-- The "Clean" Sparkle detail -->
+        <path d="M 185 0 L 195 20 L 215 30 L 195 40 L 185 60 L 175 40 L 155 30 L 175 20 Z" fill="#34D399" />
+    </g>
+
+    <text x="320" y="215" style="font-family: 'Arial Black', sans-serif; font-weight: 900; font-size: 115px; fill: #0F172A; letter-spacing: -4px;">Lot</text>
+    <text x="505" y="215" style="font-family: 'Arial Black', sans-serif; font-weight: 900; font-size: 115px; fill: #10B981; letter-spacing: -4px;">Clear</text>
+    
+    <text x="325" y="260" style="font-family: 'Arial', sans-serif; font-weight: bold; font-size: 24px; fill: #64748B; letter-spacing: 4px;">CLEAN LOTS. DAILY PROOF.</text>
+</svg>

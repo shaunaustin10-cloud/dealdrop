@@ -14,6 +14,7 @@ import SEO from '../components/SEO';
 import MLSListings from '../components/MLSListings';
 import MarketPulse from '../components/MarketPulse';
 import LifestyleQuiz from '../components/LifestyleQuiz';
+import ShowcasePillars from '../components/ShowcasePillars';
 import { db } from '../firebaseConfig';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
@@ -58,8 +59,8 @@ export default function Home() {
         <div className="relative z-10 h-full flex flex-col justify-end pb-32 px-6 md:px-12 max-w-7xl mx-auto">
           <div className="max-w-4xl">
             <h1 className="font-serif text-6xl md:text-[80px] lg:text-[100px] text-white leading-[0.9] mb-12 animate-luxury-in opacity-0" style={{ animationDelay: '0.3s' }}>
-               Experience <br/>
-               <span className="italic text-white font-light">Excellence.</span>
+               Our Mission <br/>
+               <span className="italic text-white font-light">To Serve.</span>
             </h1>
 
             {/* Luxury CTAs */}
@@ -89,32 +90,63 @@ export default function Home() {
       {/* Market Pulse - Data Driven Authority */}
       <MarketPulse />
 
-      {/* The Agent - Split Layout */}
+      {/* STRATEGIC PLACEMENT: Featured Listings / Current Offerings */}
+      {/* Best Practice: Show actual product immediately after establishing market authority */}
+      <section id="inventory" className="bg-sand py-32 px-6">
+         <div className="max-w-[1400px] mx-auto text-center">
+            <div className="max-w-2xl mx-auto mb-20">
+               <span className="font-luxury-caps text-luxury-gold mb-4 block">Exclusive Portfolio</span>
+               <h2 className="font-serif text-5xl text-midnight mb-6 italic">Featured <span className="not-italic">Opportunities</span></h2>
+               <p className="text-slate-light font-light leading-relaxed">
+                  Explore our hand-selected current offerings. Direct access to the region's most sought-after inventory.
+               </p>
+            </div>
+
+            <MLSListings />
+         </div>
+      </section>
+
+      {/* New Construction & Renovations Showcase */}
+      <ShowcasePillars />
+
+      {/* Comprehensive Solutions - Service Driven */}
       <section className="py-32 bg-cream">
-         <div className="max-w-[1400px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+         <div className="max-w-[1400px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
             <div className="relative order-2 lg:order-1">
-               <div className="aspect-[4/5] max-w-sm mx-auto lg:mx-0 overflow-hidden relative z-10">
-                  <img src="/images/headshot.jpg" alt="De'Shaun Austin" className="w-full h-full object-cover transition-all duration-700" />
+               <div className="aspect-[4/5] max-w-sm mx-auto lg:mx-0 overflow-hidden relative z-10 shadow-2xl rounded-2xl">
+                  <img src="/images/investor-modern.jpg" alt="Boutique Real Estate Services" className="w-full h-full object-cover transition-all duration-700" />
                </div>
-               <div className="absolute top-12 -left-12 w-full h-full border border-midnight/10 -z-0 hidden lg:block"></div>
+               <div className="absolute top-12 -left-12 w-full h-full border border-midnight/10 -z-0 hidden lg:block rounded-2xl"></div>
             </div>
             
             <div className="order-1 lg:order-2 lg:pl-12">
-               <span className="font-luxury-caps text-luxury-gold mb-6 block">The Partner You Deserve</span>
+               <span className="font-luxury-caps text-luxury-gold mb-6 block">Beyond the Transaction</span>
                <h2 className="font-serif text-5xl md:text-6xl text-midnight mb-8 leading-[1.1]">
-                  De'Shaun Austin <br/> <span className="italic font-light text-slate-400">Mission to Serve.</span>
+                  Comprehensive <br/> <span className="italic font-light text-slate-400">Home Solutions.</span>
                </h2>
-               <div className="space-y-6 text-slate-600 font-light text-lg leading-relaxed mb-12">
-                  <p>
-                     Real estate is more than transactions; it's about the life you build within the walls. I bring a personalized, boutique approach to every client, backed by the powerful engine of NextHome.
-                  </p>
-                  <p>
-                     Whether you are a first-time buyer or a seasoned investor, my mission is to serve your unique goals with transparency and expertise.
-                  </p>
+               <div className="space-y-8 text-slate-600 font-light text-lg leading-relaxed mb-12">
+                  <div className="flex gap-6">
+                    <div className="w-12 h-12 bg-midnight text-white flex-shrink-0 flex items-center justify-center rounded-xl">
+                      <Zap size={24} />
+                    </div>
+                    <div>
+                      <h4 className="font-serif text-2xl text-midnight mb-2">Mortgage Assistance</h4>
+                      <p className="text-base text-slate-500">Struggling with your current mortgage? We provide expert guidance and strategic solutions to help you navigate complex financial challenges and save your home.</p>
+                      <Link to="/mortgage-assistance" className="inline-block mt-4 text-primary font-luxury-caps text-[10px] tracking-widest uppercase hover:underline">Learn More</Link>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-6">
+                    <div className="w-12 h-12 bg-luxury-gold text-white flex-shrink-0 flex items-center justify-center rounded-xl">
+                      <Briefcase size={24} />
+                    </div>
+                    <div>
+                      <h4 className="font-serif text-2xl text-midnight mb-2">Boutique Representation</h4>
+                      <p className="text-base text-slate-500">Whether you are buying your first new build or selling a custom renovation, we offer a high-touch, personalized approach backed by the power of NextHome.</p>
+                      <Link to="/contact" className="inline-block mt-4 text-luxury-gold font-luxury-caps text-[10px] tracking-widest uppercase hover:underline">Work With Us</Link>
+                    </div>
+                  </div>
                </div>
-               <Link to="/contact" className="inline-block bg-midnight text-white px-10 py-4 font-luxury-caps text-[11px] tracking-widest hover:bg-luxury-gold transition-colors uppercase">
-                  Work With De'Shaun
-               </Link>
             </div>
          </div>
       </section>
@@ -218,21 +250,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
-
-      {/* Current Offerings - Direct Map Link */}
-      <section id="inventory" className="bg-sand py-32 px-6">
-         <div className="max-w-[1400px] mx-auto text-center">
-            <div className="max-w-2xl mx-auto mb-20">
-               <span className="font-luxury-caps text-luxury-gold mb-4 block">Exclusive Portfolio</span>
-               <h2 className="font-serif text-5xl text-midnight mb-6 italic">Current <span className="not-italic">Offerings</span></h2>
-               <p className="text-slate-light font-light leading-relaxed">
-                  Explore our curated selection of properties. Direct access to the region's most sought-after inventory.
-               </p>
-            </div>
-
-            <MLSListings />
-         </div>
       </section>
     </>
   );

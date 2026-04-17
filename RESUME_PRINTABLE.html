@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>De'Shaun Austin Resume</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #475569;
+            --accent: #2563eb;
+            --text: #334155;
+            --bg: #ffffff;
+        }
+
+        @media print {
+            body { padding: 0 !important; }
+            .no-print { display: none; }
+            @page { margin: 0.5in; }
+        }
+
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.5;
+            color: var(--text);
+            background: #f8fafc;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .resume-container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--bg);
+            padding: 50px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border-radius: 4px;
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 30px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 38px;
+            color: var(--primary);
+            margin: 0 0 10px 0;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .contact-info {
+            font-size: 13px;
+            color: var(--secondary);
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            color: var(--primary);
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 8px;
+            margin: 30px 0 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .summary {
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        .competencies-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .competency-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .competency-item::before {
+            content: "•";
+            color: var(--accent);
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-top: 20px;
+        }
+
+        .company {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        .location {
+            font-weight: 400;
+            color: var(--secondary);
+            font-size: 13px;
+        }
+
+        .role-date {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .role {
+            font-style: italic;
+            color: var(--secondary);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .date {
+            font-size: 13px;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        ul {
+            margin: 0 0 15px 0;
+            padding-left: 18px;
+        }
+
+        li {
+            font-size: 13.5px;
+            margin-bottom: 6px;
+        }
+
+        .education-item {
+            margin-bottom: 15px;
+        }
+
+        .skills-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .skill-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .skill-label {
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .skill-list {
+            font-size: 13px;
+            color: var(--secondary);
+        }
+
+        .btn-print {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            transition: all 0.2s;
+            z-index: 1000;
+        }
+
+        .btn-print:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <button class="btn-print no-print" onclick="window.print()">Save as PDF</button>
+
+    <div class="resume-container">
+        <header>
+            <h1>De’Shaun Austin</h1>
+            <div class="subtitle">Business Development Executive | Real Estate & Insurance Strategist</div>
+            <div class="contact-info">
+                <span>Norfolk, VA</span>
+                <span>(980) 201-1198</span>
+                <span>shaunaustin10@gmail.com</span>
+            </div>
+        </header>
+
+        <h2>Executive Summary</h2>
+        <div class="summary">
+            Dynamic and high-performing Business Development Executive with over a decade of experience across insurance, real estate investment, and luxury sales. Proven expert in identifying market gaps, cultivating strategic partnerships, and driving revenue growth through data-backed analysis. Founder of an AI-driven real estate marketplace, demonstrating a unique ability to merge technological innovation with traditional sales excellence to deliver high-value client solutions.
+        </div>
+
+        <h2>Core Competencies</h2>
+        <div class="competencies-grid">
+            <div class="competency-item">Strategic Growth & Revenue Optimization</div>
+            <div class="competency-item">Contract Management & High-Stakes Closing</div>
+            <div class="competency-item">Risk Assessment & Portfolio Management</div>
+            <div class="competency-item">Property Acquisition & Asset Evaluation</div>
+            <div class="competency-item">Salesforce CRM (Expert) & Pipeline Management</div>
+            <div class="competency-item">Strategic Planning & Marketplace Operations</div>
+        </div>
+
+        <h2>Professional Experience</h2>
+
+        <div class="job-header">
+            <span class="company">Evertree Insurance</span>
+            <span class="location">Norfolk, VA</span>
+        </div>
+        <div class="role-date">
+            <span class="role">Business Development Executive</span>
+            <span class="date">August 2025 – Present</span>
+        </div>
+        <ul>
+            <li>Spearhead business development initiatives to identify and secure new market opportunities, focusing on high-growth insurance sectors.</li>
+            <li>Establish and nurture strategic referral partnerships with mortgage lenders, real estate brokers, and financial planners to expand the firm's footprint.</li>
+            <li>Consult with individual and commercial clients to design comprehensive risk management portfolios that protect assets and minimize liability.</li>
+            <li><strong>Utilize Salesforce CRM</strong> to manage high-volume pipelines, track partnership performance, and optimize lead conversion rates.</li>
+            <li>Analyze regional market data to refine sales strategies and maintain a competitive edge in property, casualty, and life insurance markets.</li>
+        </ul>
+
+        <div class="job-header">
+            <span class="company">REI Deal Drop</span>
+            <span class="location">Norfolk, VA</span>
+        </div>
+        <div class="role-date">
+            <span class="role">Founder / Strategic Lead</span>
+            <span class="date">September 2025 – Present</span>
+        </div>
+        <ul>
+            <li>Architected and launched an AI-powered real estate marketplace that utilizes advanced underwriting engines (Gemini 2.0) to vet off-market investment opportunities.</li>
+            <li>Developed a "VIP First Look" tier and a proprietary "Deal Score" metric to provide unprecedented transparency and speed for institutional and private investors.</li>
+            <li>Manage the end-to-end product vision, including technology stack selection (Firebase/Vite), marketplace operations, and go-to-market strategy.</li>
+            <li>Drive user acquisition through strategic outreach to high-volume wholesalers and professional real estate investment groups.</li>
+        </ul>
+
+        <div class="job-header">
+            <span class="company">Comparion Insurance Agency</span>
+            <span class="location">Norfolk, VA</span>
+        </div>
+        <div class="role-date">
+            <span class="role">Property & Casualty and Life Insurance Agent</span>
+            <span class="date">November 2024 – August 2025</span>
+        </div>
+        <ul>
+            <li>Exceeded monthly premium goals through targeted prospecting and the implementation of a strategic, relationship-based outreach model.</li>
+            <li>Leveraged expertise in the real estate sector to generate high-quality leads, focusing on cross-selling life and property solutions.</li>
+            <li>Optimized client coverage by utilizing advanced comparative rating tools, ensuring competitive pricing without compromising on protection.</li>
+        </ul>
+
+        <div class="job-header">
+            <span class="company">New Western</span>
+            <span class="location">Norfolk, VA</span>
+        </div>
+        <div class="role-date">
+            <span class="role">Property Acquisition Agent</span>
+            <span class="date">January 2023 – November 2024</span>
+        </div>
+        <ul>
+            <li>Negotiated acquisition contracts for off-market properties, securing inventory at an average of 15% below market value for investment partners.</li>
+            <li>Directed the due diligence process for high-volume property pipelines, ensuring accurate valuations through rigorous market analysis and inspection coordination.</li>
+            <li>Reduced average transaction timelines by 30% through the optimization of closing workflows with legal and escrow partners.</li>
+        </ul>
+
+        <div class="job-header">
+            <span class="company">SelectQuote Insurance Services</span>
+            <span class="location">Remote</span>
+        </div>
+        <div class="role-date">
+            <span class="role">Medicare Health Insurance Agent</span>
+            <span class="date">October 2021 – February 2024</span>
+        </div>
+        <ul>
+            <li>Advised a national client base on complex Medicare Advantage and Supplement plans, consistently achieving top-tier sales performance metrics.</li>
+        </ul>
+
+        <div class="job-header">
+            <span class="company">Hendrick BMW</span>
+            <span class="location">Charlotte, NC</span>
+        </div>
+        <div class="role-date">
+            <span class="role">Sales Advisor</span>
+            <span class="date">November 2017 – October 2021</span>
+        </div>
+        <ul>
+            <li>Managed luxury automotive acquisitions for a high-net-worth clientele, maintaining a "Top Producer" ranking through exceptional service and product expertise.</li>
+        </ul>
+
+        <h2>Education</h2>
+        <div class="education-item">
+            <div class="job-header">
+                <span class="company">Old Dominion University</span>
+                <span class="location">Norfolk, VA</span>
+            </div>
+            <div class="role-date">
+                <span class="role">Bachelor of Science in Sports Management</span>
+                <span class="date">2010 – 2014</span>
+            </div>
+        </div>
+
+        <h2>Technical Skills</h2>
+        <div class="skills-section">
+            <div class="skill-group">
+                <div class="skill-label">CRM & Software</div>
+                <div class="skill-list">Salesforce (Expert), HubSpot, Firebase, Vite</div>
+            </div>
+            <div class="skill-group">
+                <div class="skill-label">Analysis & Strategy</div>
+                <div class="skill-list">RentCast, Advanced Data Modeling (Excel), AI Underwriting Workflows</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,159 @@
+Category,Y/N,Repair Type,Qty,Unit,Unit Cost,Total
+Roof *,,Roof (rip and replace) - architectural shingle,1500,psf,$5.50,$8250.00
+Roof *,,Rollover (add a layer of shingles) - architectural shingle,,psf,$2.50,$0.00
+Roof *,,Roof Sheathing - plywood 1/2" remove & install,,psf,$2.00,$0.00
+Roof *,,Roof repair/patch (hard),,ea,$900.00,$0.00
+Roof *,,Roof repair/patch (easy),,ea,$600.00,$0.00
+Roof *,,Premium for 3 layer tear off,,psf,$0.35,$0.00
+Roof *,,Premium for steep pitched roof,,psf,$0.20,$0.00
+Roof *,,Fascia - demo & install new,,lf,$3.25,$0.00
+Roof *,,Soffit - demo & install new,,lf,$2.00,$0.00
+Gutters,,Gutters & downspouts - demo & install new (Flat Cost),,sf,$4.00,$0.00
+Gutters,,Gutters & downspouts - demo & install new (linear foot),,lf,$6.00,$0.00
+Finish,,Demo existing finishing material,,psf,$0.75,$0.00
+Finish,,Stucco,,psf,$3.00,$0.00
+Finish,,Wood siding,,psf,$5.00,$0.00
+Finish,,Vinyl siding,,psf,$3.00,$0.00
+Finish,,Hardyboard,,psf,$4.00,$0.00
+Finish,,Plywood panel siding,,psf,$2.50,$0.00
+Finish,,"Exterior Finishes for Bungalow - Columns, etc.",,ls,$2000.00,$0.00
+Finish,,Power wash exterior finish,,psf,$0.25,$0.00
+Masonry,,"Fireplace/chimney, brick/stone - replace existing",,ls,$5000.00,$0.00
+Masonry,,Concrete block,,sf,$6.00,$0.00
+Masonry,,Stone,,sf,$18.00,$0.00
+Masonry,,Brick / Cutting out brick to put windows for lower level,,sf,$11.50,$0.00
+Masonry,,Tuckpoint brick,,sf,$3.50,$0.00
+Masonry,,Power wash exterior masonry,,sf,$0.25,$0.00
+Painting,,Painting both exterior & interior (whole property),1500,psf,$3.50,$5250.00
+Painting,,Painting Ext only,,psf,$1.60,$0.00
+Painting,,Paint trim only,,lf,$1.65,$0.00
+Painting,,Sand & refinish deck or paint deck,,sf,$1.75,$0.00
+Painting,,Paint fence,,sf,$1.00,$0.00
+Painting,,Paint detached garage,,sf,$1.00,$0.00
+Windows,,"Windows, vinyl, average size",,ea,$400.00,$0.00
+Windows,,"Windows, wood, restore existing wood (historical)",,ea,$450.00,$0.00
+Windows,,"Window, large bay window - remove & replace",,ea,$600.00,$0.00
+Garage,,"Garage Door Only - 1 Car - 9'x7' door, manual",,ea,$775.00,$0.00
+Garage,,"Garage Door Only - 2 Car - 16' door, manual",,ea,$1000.00,$0.00
+Garage,,Garage Door Opener Installed,,ea,$225.00,$0.00
+Garage,,Reroof detached garage (rip & replace),,sf,$4.00,$0.00
+Garage,,Build new detached garage,,sf,$30.00,$0.00
+Landscaping,,Full landscaping makeover large lot (sod inc.),,ls,$5000.00,$0.00
+Landscaping,,Full landscaping makeover medium lot (sod inc.),,ls,$2500.00,$0.00
+Landscaping,,Full landscaping makeover small lot sod inc.),,ls,$1500.00,$0.00
+Landscaping,,Clean up landscaping & yard only,2,ls,$500.00,$1000.00
+Landscaping,,Tree removal (per tree),,ea,$500.00,$0.00
+Landscaping,,Tree Planting (per tree),,ea,$130.00,$0.00
+Concrete/Asphalt,,Demo existing concrete or asphalt,,sf,$2.00,$0.00
+Concrete/Asphalt,,Concrete installed for driveway/patio/sidewalk,,sf,$5.00,$0.00
+Concrete/Asphalt,,Asphalt installed in driveway,,sf,$3.00,$0.00
+Concrete/Asphalt,,Gravel installed for driveway/sidewalk,,sf,$2.00,$0.00
+Decks,,New deck 15'x15' (add permit if 30 off ground),,ea,$9000.00,$0.00
+Decks,,Side Porch,,ea,$5000.00,$0.00
+Decks,,New deck - treated lumber,,sf,$15.00,$0.00
+Decks,,New deck - cedar material,,sf,$19.00,$0.00
+Decks,,Decking material replacement only,,sf,$7.00,$0.00
+Decks,,Sand & refinish deck only,,sf,$2.00,$0.00
+Decks,,New railings - wood,,lf,$20.00,$0.00
+Decks,,New railings - metal,,lf,$40.00,$0.00
+Pergola,,New pergola canopy 15'x15',,ea,$2500.00,$0.00
+Pergola,,New pergola canopy 10'x10',,ea,$2000.00,$0.00
+Fence,,Wood fencing,,lf,$13.00,$0.00
+Fence,,Wrought iron fencing,,lf,$30.00,$0.00
+Fence,,Chain-link fence,,lf,$6.00,$0.00
+Pool *,,Pool Completely Redone ($10k to $15k),,ea,$10000.00,$0.00
+Pool *,,Pool (redo plaster only),,ea,$4500.00,$0.00
+Septic *,,Septic (all new system),,ea,$15000.00,$0.00
+Septic *,,Septic (new tank only),,ea,$6000.00,$0.00
+Septic *,,Septic (replace leach field only),,ea,$4000.00,$0.00
+Painting,,Interior painting only,,sf,$1.50,$0.00
+Painting,,Add extra wall prep (damaged walls),,sf,$0.50,$0.00
+Hardwood,,Hardwood flooring - solid wood,,sf,$6.00,$0.00
+Hardwood,,Engineered hardwood flooring,,sf,$4.00,$0.00
+Hardwood,,Laminate hardwood flooring,1500,sf,$3.50,$5250.00
+Hardwood,,Sand & refinish existing hardwood flooring,,sf,$3.00,$0.00
+Carpet / Vinyl,,Carpet,,sf,$1.75,$0.00
+Carpet / Vinyl,,Vinyl or linoleum flooring,,sf,$3.00,$0.00
+Tiling,,Ceramic floor tile - in kitchen,,sf,$6.50,$0.00
+Tiling,,Backsplash wall tile - in kitchen,,sf,$10.00,$0.00
+Tiling,,Ceramic floor tile - other areas of house,,sf,$6.50,$0.00
+Kitchen,,High end kitchen ($500+ ARV),,ea,$11000.00,$0.00
+Kitchen,,Median kitchen ($200-$500 ARV),,ea,$8000.00,$0.00
+Kitchen,,Low end kitchen (under $200ARV),1,ea,$7000.00,$7000.00
+Kitchen,,Low end kitchen - refinish existing cabinets,,ea,$4500.00,$0.00
+Kitchen,,Kitchen extra custom items,,ea,$500.00,$0.00
+Kitchen - (By Item),,Cabinets,,lf,$250.00,$0.00
+Kitchen - (By Item),,Countertops,,sf,$45.00,$0.00
+Kitchen - (By Item),,Sink,,ea,$300.00,$0.00
+Kitchen - (By Item),,Sink Faucet,,ea,$150.00,$0.00
+Kitchen - (By Item),,Garbage Disposal,,ea,$250.00,$0.00
+Kitchen - (By Item),,Refrigerator,,ea,$1000.00,$0.00
+Kitchen - (By Item),,Range,,ea,$500.00,$0.00
+Kitchen - (By Item),,Range Hood,,ea,$400.00,$0.00
+Kitchen - (By Item),,Dishwasher,,ea,$500.00,$0.00
+Kitchen - (By Item),,Microwave,,ea,$250.00,$0.00
+Bathroom - (Grouped),,Large master bath - replace everything,,ea,$10000.00,$0.00
+Bathroom - (Grouped),,Full bath - replace everything,1,ea,$4500.00,$4500.00
+Bathroom - (Grouped),,Half bath - replace everything,,ea,$2500.00,$0.00
+Bathroom - (Grouped),,Add half bath,,ea,$5000.00,$0.00
+Bathroom - (By Item),,Single Vanity cabinet,,ea,$300.00,$0.00
+Bathroom - (By Item),,Double Vanity Cabinet,,ea,$500.00,$0.00
+Bathroom - (By Item),,Vanity countertop - granite or other hard surface( 2x for double),,ea,$150.00,$0.00
+Bathroom - (By Item),,Vanity mirror,,ea,$75.00,$0.00
+Bathroom - (By Item),,Sink,,ea,$125.00,$0.00
+Bathroom - (By Item),,Sink Faucet,,ea,$150.00,$0.00
+Bathroom - (By Item),,Toilet,,ea,$200.00,$0.00
+Bathroom - (By Item),,Bathtub - fiberglass,,ea,$450.00,$0.00
+Bathroom - (By Item),,Glass Door,,ea,$1000.00,$0.00
+Bathroom - (By Item),,Bathtub & shower tile surround,,ea,$700.00,$0.00
+Bathroom - (By Item),,Showerhead & faucet kit,,ea,$210.00,$0.00
+Bathroom - (By Item),,Bathroom towel bar kit,,ea,$75.00,$0.00
+Framing,,"New construction framing- (includes walls, floors & roof)",,sf,$20.00,$0.00
+Framing,,Replacing or sistering ceiling joist *Conservative,,sf,$4.00,$0.00
+Framing,,Installing Floor Beams in Basement,,ea,$1500.00,$0.00
+Framing,,Subfloor put in (3/4 plywood),,sf,$2.50,$0.00
+Insulation,,Wall insulation,,sf,$1.25,$0.00
+Insulation,,Floor insulation,,sf,$1.25,$0.00
+Insulation,,"Attic insulation, blown-in",,sf,$0.80,$0.00
+Walls,,"Drywall, tape & skimcoat walls/ceilings in gutted house",,sf,$3.00,$0.00
+Walls,,"Drywall, tape, & skimcoat a wall (1/2 thick)",500,sf,$2.50,$1250.00
+Walls,,Skimcoating/texturing walls and ceilings only,,sf,$1.00,$0.00
+Walls,,"Patchwork section of a wall - (drywall, tape, & finish)",,ea,$500.00,$0.00
+Walls,,Remove popcorn ceilings,,sf,$1.00,$0.00
+Doors & Trim,,"New interior doors, closet doors, hardware, & trim (3000 sq ft house)",,ea,$3000.00,$0.00
+Doors & Trim,,"New interior doors, closet doors, hardware, & trim (1500 sq ft house)",1,ea,$1500.00,$1500.00
+Doors & Trim,,Interior door - prehung hollow-core door,,ea,$150.00,$0.00
+Doors & Trim,,Interior sliding closet door,,ea,$150.00,$0.00
+Doors & Trim,,Exterior front door - single door w/ hardware & dead bolt,,ea,$300.00,$0.00
+Doors & Trim,,Exterior french patio door - double door,,ea,$700.00,$0.00
+Doors & Trim,,Exterior sliding glass door - double door,,ea,$850.00,$0.00
+Doors & Trim,,Crown molding,,lf,$3.75,$0.00
+Doors & Trim,,New baseboard trim,,lf,$2.00,$0.00
+Foundation *,,Foundation (Light - 5k Med - 10k Heavy - 15-30k),1,lf,$6000.00,$6000.00
+HVAC,,"Gas fired forced hot air heating system, ac system, & ductwork",,ea,$10000.00,$0.00
+HVAC,,Gas fired forced hot air heating system & ductwork,,ea,$7000.00,$0.00
+HVAC,,Gas fired forced hot air unit only,,ea,$1700.00,$0.00
+HVAC,,Air conditioning unit only,,ea,$4000.00,$0.00
+HVAC,,Replace forced air ductwork only,,ea,$2300.00,$0.00
+HVAC,,Replace boiler & hot water baseboard system,,ea,$6500.00,$0.00
+HVAC,,Replace boiler unit only,,ea,$3000.00,$0.00
+HVAC,,Wall heater (install new or remove & replace),,ea,$600.00,$0.00
+HVAC,,Service heating & cooling system only,,ea,$500.00,$0.00
+Plumbing,,"New plumbing system in entire house (1,500 sq. ft 3/2 house)",,ea,$8000.00,$0.00
+Plumbing,,Replace tankless hot water heater,,ea,$1500.00,$0.00
+Plumbing,,Replace gas hot water heater - 40 gallon,,ea,$1100.00,$0.00
+Electrical,,"Rewire entire house, new panel, & lighting fixtures (1,500 sqft)",,ea,$7000.00,$0.00
+Electrical,,Basic electrical work for house & lighting fixtures (1500 sq. ft),,ea,$3000.00,$0.00
+Electrical,,Lighting Updates,,ea,$1500.00,$0.00
+Electrical,,Replace all lighting fixtures only (1500 sq. ft. house),1,ea,$1000.00,$1000.00
+Demo & Dumpsters,,Demolition work (cost to fill one 40 yd dumpster),,ea,$300.00,$0.00
+Demo & Dumpsters,,Dumpster rental (40 yard),,ea,$400.00,$0.00
+Termites/Abatement,,Termite fumigation & treatment,,ls,$1000.00,$0.00
+Termites/Abatement,,Mold removal & abatement - minimum,,ls,$3000.00,$0.00
+Termites/Abatement,,Asbestos removal & abatement - minimum,,ls,$4500.00,$0.00
+Extra,,Open up Wall (Small Wall Non-structural),,ea,$1000.00,$0.00
+Extra,,Exterior Front Porch Finishes,,ea,$4500.00,$0.00
+Extra,,Plumbing Fittings,,ea,$1000.00,$0.00
+Extra,,Fascia/Soffits (750sqft),,ea,$2000.00,$0.00
+Contingency,,Misc Contingency Cost (10-20% depending on unknowns),12,%,$41000.00,$4920.00
+Grand Total,,,,,,$45920.00

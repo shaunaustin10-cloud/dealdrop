@@ -120,7 +120,7 @@ async function uploadLeads() {
     console.log(`✅ ${totalProcessed} leads uploaded successfully!`);
 }
 
-await uploadLeads().catch(err => {
+uploadLeads().catch(err => {
     console.error("Upload Error:", err);
     process.exit(1);
 });

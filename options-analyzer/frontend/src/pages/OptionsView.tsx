@@ -1,33 +1,61 @@
 import React, { useState, useEffect } from 'react';
-import { getMarketPulse, getScanStatus } from '../services/apiService';
-import { TrendingUp, Zap, MessageSquare, Newspaper, ExternalLink, RefreshCw, BarChart2, Search, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { getMarketPulse } from '../services/apiService';
+import { Newspaper, RefreshCw, ArrowUpRight, Info, MoreHorizontal } from 'lucide-react';
+import { InteractiveChart } from '../components/InteractiveChart';
 
-const OptionsView: React.FC = () => {
+// GENERATE MOCK CHART DATA
+const generateMockData = (points = 100) => {
+    const data = [];
+    let price = 150;
+    const now = new Date();
+    for (let i = points; i >= 0; i--) {
+        const time = new Date(now.getTime() - i * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        price = price + (Math.random() - 0.45) * 5; // Slight upward bias
+        data.push({ time, value: parseFloat(price.toFixed(2)) });
+    }
+    return data;
+};
+
+interface OptionsViewProps {
+  darkMode?: boolean;
+}
+
+const OptionsView: React.FC<OptionsViewProps> = ({ darkMode = false }) => {
   const [marketPulse, setMarketPulse] = useState<any>(null);
   const [pulseLoading, setPulseLoading] = useState(false);
-  const [scanStatus, setScanStatus] = useState<any>({ active: false, currentTask: '' });
+  const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
+  const [chartData, setChartData] = useState(generateMockData(100));
+
+  // Calculator State
+  const [calcPrice, setCalcPrice] = useState<number>(2.50);
+  const [calcContracts, setCalcContracts] = useState<number>(10);
+  const [calcStopLossPct, setCalcStopLossPct] = useState<number>(10);
+
+  const totalInvestment = calcPrice * calcContracts * 100;
+  const stopPrice = Math.max(0, calcPrice * (1 - calcStopLossPct / 100));
+  const maxLossAmount = totalInvestment * (calcStopLossPct / 100);
 
   useEffect(() => {
     fetchPulse();
     const pulseInterval = setInterval(fetchPulse, 60000); 
-    const statusInterval = setInterval(async () => {
-        try {
-            const status = await getScanStatus();
-            setScanStatus(status);
-        } catch (e) {}
-    }, 3000);
-
-    return () => {
-        clearInterval(pulseInterval);
-        clearInterval(statusInterval);
-    };
+    return () => clearInterval(pulseInterval);
   }, []);
+
+  // When a new ticker is selected, "load" new chart data
+  useEffect(() => {
+    if (selectedTicker) {
+        setChartData(generateMockData(Math.floor(Math.random() * 50) + 50));
+    }
+  }, [selectedTicker]);
 
   const fetchPulse = async () => {
     setPulseLoading(true);
     try {
       const res = await getMarketPulse();
       setMarketPulse(res);
+      if (!selectedTicker && res.unusual?.length > 0) {
+          setSelectedTicker(res.unusual[0].ticker);
+      }
     } catch (err) {
       console.error("Pulse error:", err);
     } finally {
@@ -35,146 +63,251 @@ const OptionsView: React.FC = () => {
     }
   };
 
+  // MOCK CHART SPARKLINE
+  const Sparkline = ({ color = "#00c805" }) => (
+    <svg viewBox="0 0 100 30" className="w-full h-12">
+        <path 
+            d="M0 25 L10 20 L20 22 L30 15 L40 18 L50 10 L60 12 L70 5 L80 8 L90 2 L100 4" 
+            fill="none" 
+            stroke={color} 
+            strokeWidth="2" 
+            strokeLinecap="round"
+        />
+    </svg>
+  );
+
   return (
-    <div className="flex flex-col gap-10">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
       
-      {/* ALPHA SEARCH & OVERVIEW */}
-      <div className="flex flex-col lg:flex-row gap-8 items-end">
-        <div className="flex-1 space-y-4">
-            <h2 className="text-4xl font-extrabold tracking-tight text-base-text">Market Aggregator</h2>
-            <p className="text-sm font-medium text-base-muted uppercase tracking-widest">Global Options Flow • Institutional Momentum • Social Sentiment</p>
-            <div className="relative max-w-xl group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-base-muted group-focus-within:text-brand transition-colors w-5 h-5" />
-                <input
-                    type="text"
-                    className="w-full bg-base-white border border-base-border rounded-xl pl-12 pr-4 py-4 focus:ring-4 focus:ring-brand/5 focus:border-brand outline-none text-base font-semibold transition-all text-base-text shadow-sm"
-                    placeholder="Identify Specific Alpha (e.g. NVDA, TSLA)..."
-                />
+      {/* LEFT COLUMN: MAIN CONTENT */}
+      <div className="lg:col-span-8 space-y-12">
+        
+        {/* MAIN CHART AREA */}
+        <section className="space-y-6">
+            <div className="flex justify-between items-end">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight mb-1">{selectedTicker || 'Market Overview'}</h1>
+                    <div className="flex items-center gap-2">
+                        <span className="text-2xl font-bold">${chartData[chartData.length - 1]?.value.toFixed(2) || '0.00'}</span>
+                        <span className="text-[#00c805] font-bold text-sm">+2.45 (1.34%)</span>
+                        <div className="h-4 w-4 bg-[#00c805]/10 rounded-full flex items-center justify-center">
+                            <ArrowUpRight size={12} className="text-[#00c805]" />
+                        </div>
+                    </div>
+                </div>
+                <div className="flex gap-2">
+                    {['1D', '1W', '1M', '3M', '1Y', 'ALL'].map(t => (
+                        <button key={t} className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${t === '1D' ? 'bg-[#00c805]/10 text-[#00c805]' : `hover:bg-gray-100 ${darkMode ? 'text-gray-400 hover:text-white hover:bg-gray-800' : 'text-gray-500'}`}`}>{t}</button>
+                    ))}
+                </div>
             </div>
-        </div>
-        <div className="flex gap-4">
-            <div className="bg-base-white border border-base-border px-6 py-4 rounded-xl shadow-sm">
-                <div className="text-[10px] font-bold text-base-muted uppercase tracking-widest mb-1">Active Scan</div>
-                <div className="text-lg font-black text-base-text tabular-nums">{marketPulse?.atgl?.length || 0} Assets</div>
+
+            {/* REAL INTERACTIVE CHART */}
+            <div className="h-[300px] w-full">
+                <InteractiveChart data={chartData} color="#00c805" darkMode={darkMode} />
             </div>
-            <div className="bg-base-white border border-base-border px-6 py-4 rounded-xl shadow-sm">
-                <div className="text-[10px] font-bold text-base-muted uppercase tracking-widest mb-1">Unusual Vol</div>
-                <div className="text-lg font-black text-brand tabular-nums">{marketPulse?.unusual?.length || 0} Entries</div>
+        </section>
+
+        {/* STATS GRID */}
+        <section className={`border-t pt-10 grid grid-cols-2 sm:grid-cols-4 gap-8 ${darkMode ? 'border-gray-800' : 'border-gray-100'}`}>
+            <div>
+                <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Volume</div>
+                <div className="text-sm font-bold">1.2M</div>
             </div>
-        </div>
+            <div>
+                <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Avg Vol</div>
+                <div className="text-sm font-bold">850K</div>
+            </div>
+            <div>
+                <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Market Cap</div>
+                <div className="text-sm font-bold">2.4T</div>
+            </div>
+            <div>
+                <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">P/E Ratio</div>
+                <div className="text-sm font-bold">32.4</div>
+            </div>
+        </section>
+
+        {/* TRADE RISK CALCULATOR */}
+        <section className={`border-t pt-10 space-y-6 ${darkMode ? 'border-gray-800' : 'border-gray-100'}`}>
+            <h3 className="text-xl font-bold flex items-center gap-2">
+                Trade Risk Calculator
+            </h3>
+            <div className={`rounded-2xl p-6 border grid grid-cols-1 md:grid-cols-3 gap-6 ${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-50 border-gray-100'}`}>
+                <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Contract Price ($)</label>
+                    <input 
+                        type="number" 
+                        value={calcPrice}
+                        onChange={(e) => setCalcPrice(Number(e.target.value))}
+                        className={`w-full border rounded-xl px-4 py-3 font-bold text-lg focus:outline-none focus:border-[#00c805] focus:ring-1 focus:ring-[#00c805] ${darkMode ? 'bg-[#000000] border-gray-700 text-white' : 'bg-white border-gray-200 text-[#1a1a1a]'}`}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider"># of Contracts</label>
+                    <input 
+                        type="number" 
+                        value={calcContracts}
+                        onChange={(e) => setCalcContracts(Number(e.target.value))}
+                        className={`w-full border rounded-xl px-4 py-3 font-bold text-lg focus:outline-none focus:border-[#00c805] focus:ring-1 focus:ring-[#00c805] ${darkMode ? 'bg-[#000000] border-gray-700 text-white' : 'bg-white border-gray-200 text-[#1a1a1a]'}`}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Max Risk %</label>
+                    <div className="relative">
+                        <input 
+                            type="number" 
+                            value={calcStopLossPct}
+                            onChange={(e) => setCalcStopLossPct(Number(e.target.value))}
+                            className={`w-full border rounded-xl pl-4 pr-8 py-3 font-bold text-lg focus:outline-none focus:border-[#FF5000] focus:ring-1 focus:ring-[#FF5000] ${darkMode ? 'bg-[#000000] border-gray-700 text-white' : 'bg-white border-gray-200 text-[#1a1a1a]'}`}
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-gray-500">%</span>
+                    </div>
+                </div>
+
+                <div className={`md:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
+                    <div>
+                        <div className="text-xs font-medium text-gray-500">Total Investment</div>
+                        <div className="text-xl font-bold">${totalInvestment.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                    </div>
+                    <div>
+                        <div className="text-xs font-medium text-gray-500">Set Stop Price At</div>
+                        <div className="text-xl font-bold text-[#FF5000]">${stopPrice.toFixed(2)}</div>
+                    </div>
+                    <div>
+                        <div className="text-xs font-medium text-gray-500">Max Cash At Risk</div>
+                        <div className="text-xl font-bold text-[#FF5000]">-${maxLossAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                    </div>
+                </div>
+
+                {/* PROFIT TARGETS (TRIMMING STRATEGY) */}
+                <div className={`md:col-span-3 pt-6 border-t ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
+                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Profit Targets (Trimming Strategy)</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div className={`p-4 rounded-xl border flex flex-col items-center justify-center text-center ${darkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-100'}`}>
+                            <div className="text-[10px] font-bold text-[#00c805] uppercase tracking-wider mb-1">Target 1</div>
+                            <div className="text-lg font-bold">${(calcPrice * 1.10).toFixed(2)}</div>
+                            <div className="text-[10px] font-medium text-gray-500 mt-1">+10% Gain</div>
+                        </div>
+                        <div className={`p-4 rounded-xl border flex flex-col items-center justify-center text-center ${darkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-100'}`}>
+                            <div className="text-[10px] font-bold text-[#00c805] uppercase tracking-wider mb-1">Target 2</div>
+                            <div className="text-lg font-bold">${(calcPrice * 1.20).toFixed(2)}</div>
+                            <div className="text-[10px] font-medium text-gray-500 mt-1">+20% Gain</div>
+                        </div>
+                        <div className={`p-4 rounded-xl border flex flex-col items-center justify-center text-center ${darkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-100'}`}>
+                            <div className="text-[10px] font-bold text-[#00c805] uppercase tracking-wider mb-1">Target 3</div>
+                            <div className="text-lg font-bold">${(calcPrice * 1.50).toFixed(2)}</div>
+                            <div className="text-[10px] font-medium text-gray-500 mt-1">+50% Gain</div>
+                        </div>
+                        <div className={`p-4 rounded-xl border flex flex-col items-center justify-center text-center relative overflow-hidden ${darkMode ? 'bg-[#00c805]/10 border-[#00c805]/30' : 'bg-[#00c805]/5 border-[#00c805]/20'}`}>
+                            <div className="absolute top-0 left-0 w-full h-1 bg-[#00c805]"></div>
+                            <div className="text-[10px] font-bold text-[#00c805] uppercase tracking-wider mb-1">Runners</div>
+                            <div className="text-lg font-bold text-[#00c805]">${(calcPrice * 2.00).toFixed(2)}</div>
+                            <div className="text-[10px] font-medium text-[#00c805] mt-1">+100% (Double)</div>
+                        </div>
+                    </div>
+                    {calcContracts >= 3 && (
+                        <div className={`mt-4 text-[11px] font-medium p-3 rounded-lg flex items-start gap-2 ${darkMode ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600'}`}>
+                            <Info size={14} className="min-w-[14px] mt-0.5" />
+                            <span><strong>Trimming Suggestion:</strong> Since you have {calcContracts} contracts, sell {Math.max(1, Math.floor(calcContracts * 0.5))} at Target 1 ($ {(calcPrice * 1.10).toFixed(2)}), sell {Math.max(1, Math.floor(calcContracts * 0.3))} at Target 2 ($ {(calcPrice * 1.20).toFixed(2)}), and leave {calcContracts - Math.max(1, Math.floor(calcContracts * 0.5)) - Math.max(1, Math.floor(calcContracts * 0.3))} as "Runners" for the bigger moves.</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </section>
+
+        {/* NEWS FEED */}
+        <section className={`border-t pt-10 space-y-6 ${darkMode ? 'border-gray-800' : 'border-gray-100'}`}>
+            <h3 className="text-xl font-bold flex items-center gap-2">
+                News
+                <Info size={14} className="text-gray-500" />
+            </h3>
+            <div className="space-y-6">
+                {marketPulse?.news?.map((n: any, i: number) => (
+                    <a key={i} href={n.link} target="_blank" className="flex gap-6 group">
+                        <div className="flex-1 space-y-1">
+                            <div className="text-[10px] font-bold text-[#00c805] uppercase">{selectedTicker || 'Market'} News</div>
+                            <h4 className="text-sm font-bold leading-snug group-hover:underline decoration-[#00c805]">{n.title}</h4>
+                            <div className="text-xs text-gray-500 font-medium">1h ago • Bloomberg</div>
+                        </div>
+                        <div className={`w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+                            <Newspaper className={darkMode ? 'text-gray-700' : 'text-gray-200'} size={24} />
+                        </div>
+                    </a>
+                ))}
+            </div>
+        </section>
       </div>
 
-      <div className="grid grid-cols-12 gap-8">
+      {/* RIGHT COLUMN: WATCHLIST & FLOW */}
+      <div className="lg:col-span-4 space-y-8">
         
-        {/* MAIN ANALYSIS BLOCK */}
-        <div className="col-span-12 lg:col-span-8 space-y-8">
-            
-            {/* UNUSUAL FLOW TABLE */}
-            <div className="bg-base-white border border-base-border rounded-2xl shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-base-border flex justify-between items-center bg-base-light/50">
-                    <div className="flex items-center gap-2">
-                        <Zap className="w-4 h-4 text-warning" />
-                        <span className="text-[11px] font-bold text-base-text uppercase tracking-wider">Unusual Options Activity</span>
+        {/* WATCHLIST (ATGL) */}
+        <div className={`border rounded-2xl shadow-sm overflow-hidden sticky top-24 ${darkMode ? 'bg-[#000000] border-gray-800' : 'bg-white border-gray-100'}`}>
+            <div className={`px-6 py-5 border-b flex justify-between items-center ${darkMode ? 'border-gray-800' : 'border-gray-50'}`}>
+                <span className="font-bold text-sm tracking-tight">ATGL Watchlist</span>
+                <MoreHorizontal size={16} className="text-gray-500 cursor-pointer" />
+            </div>
+            <div className={`divide-y ${darkMode ? 'divide-gray-800' : 'divide-gray-50'}`}>
+                {marketPulse?.atgl?.length > 0 ? marketPulse?.atgl?.map((item: any, i: number) => (
+                    <div 
+                        key={i} 
+                        onClick={() => setSelectedTicker(item.ticker)}
+                        className={`px-6 py-4 flex justify-between items-center cursor-pointer transition-colors ${selectedTicker === item.ticker ? 'bg-[#00c805]/10' : darkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-50'}`}
+                    >
+                        <div>
+                            <div className="font-bold text-sm tracking-tight">{item.ticker}</div>
+                            <div className={`mt-1 inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-full ${
+                                item.status === 'In Green Zone' 
+                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                                    : item.status === 'Approaching'
+                                    ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                    : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                            }`}>
+                                {item.status || 'Trend List'}
+                            </div>
+                        </div>
+                        <div className="w-16">
+                            <Sparkline />
+                        </div>
+                        <div className="text-right">
+                            <div className="text-sm font-bold">${item.price ? item.price.toFixed(2) : '---'}</div>
+                            <div className={`text-[10px] font-bold ${item.changePercent >= 0 ? 'text-[#00c805]' : 'text-red-500'}`}>
+                                {item.changePercent ? `${item.changePercent > 0 ? '+' : ''}${item.changePercent.toFixed(2)}%` : '---'}
+                            </div>
+                        </div>
                     </div>
-                    <RefreshCw className={`w-3.5 h-3.5 text-base-muted cursor-pointer ${pulseLoading ? 'animate-spin' : ''}`} onClick={fetchPulse} />
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="text-[10px] font-bold text-base-muted uppercase tracking-[0.2em] border-b border-base-border bg-base-light/30">
-                                <th className="px-6 py-3 font-semibold">Contract</th>
-                                <th className="px-6 py-3 font-semibold">Strike</th>
-                                <th className="px-6 py-3 font-semibold">Ratio</th>
-                                <th className="px-6 py-3 font-semibold">Volume</th>
-                                <th className="px-6 py-3 font-semibold text-right">Momentum</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-base-border">
-                            {marketPulse?.unusual?.map((item: any, i: number) => (
-                                <tr key={i} className="hover:bg-base-light/50 transition-colors group cursor-pointer">
-                                    <td className="px-6 py-5">
-                                        <div className="flex flex-col">
-                                            <span className="text-base font-bold text-base-text uppercase tracking-tight group-hover:text-brand transition-colors">{item.ticker}</span>
-                                            <span className={`text-[9px] font-bold uppercase tracking-widest ${item.type === 'CALL' ? 'text-success' : 'text-danger'}`}>{item.type}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-5 font-bold text-base-text tabular-nums text-base">${item.strike}</td>
-                                    <td className="px-6 py-5">
-                                        <div className="px-2 py-1 bg-brand-light text-brand text-[10px] font-bold rounded-md border border-brand/10 w-fit">{item.ratio}x</div>
-                                    </td>
-                                    <td className="px-6 py-5 font-semibold text-base-muted tabular-nums text-sm">{item.vol.toLocaleString()}</td>
-                                    <td className="px-6 py-5 text-right">
-                                        <ArrowUpRight className="w-4 h-4 text-success ml-auto" />
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {/* MOMENTUM TICKER GRID (ATGL) */}
-            <div className="space-y-4">
-                <div className="flex items-center gap-2 px-1">
-                    <TrendingUp className="w-4 h-4 text-success" />
-                    <span className="text-[11px] font-bold text-base-text uppercase tracking-wider">High Relative Strength (ATGL)</span>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                    {marketPulse?.atgl?.map((ticker: string, idx: number) => (
-                        <div key={idx} className="bg-base-white border border-base-border p-4 rounded-xl shadow-sm hover:border-brand transition-colors group cursor-pointer">
-                            <div className="flex justify-between items-center">
-                                <span className="text-base font-bold text-base-text uppercase tracking-tight group-hover:text-brand">{ticker}</span>
-                                <div className="w-1.5 h-1.5 bg-success rounded-full"></div>
-                            </div>
-                            <div className="mt-2 text-[9px] font-bold text-base-muted uppercase tracking-widest">Prime Trend</div>
-                        </div>
-                    ))}
-                </div>
+                )) : (
+                    <div className="p-8 text-center text-sm text-gray-500">
+                        Scanning ATGL data...
+                    </div>
+                )}
             </div>
         </div>
 
-        {/* SIDEBAR INTELLIGENCE */}
-        <div className="col-span-12 lg:col-span-4 space-y-8">
-            
-            {/* SOCIAL PULSE */}
-            <div className="bg-base-white border border-base-border rounded-2xl shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-base-border bg-base-light/50 flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-brand" />
-                    <span className="text-[11px] font-bold text-base-text uppercase tracking-wider">Social Intelligence</span>
-                </div>
-                <div className="p-2 space-y-1">
-                    {marketPulse?.social?.map((item: any, idx: number) => (
-                        <div key={idx} className="p-4 hover:bg-base-light rounded-xl transition-colors flex justify-between items-center group cursor-pointer">
-                            <div className="flex flex-col">
-                                <span className="text-sm font-bold text-base-text group-hover:text-brand">{item.ticker}</span>
-                                <span className="text-[10px] font-medium text-base-muted">{item.mentionCount} Mentions • {item.source}</span>
-                            </div>
-                            <span className={`text-[10px] font-bold px-2 py-1 rounded-md ${item.sentiment === 'Bullish' ? 'bg-success/10 text-success' : 'bg-base-light text-base-muted'}`}>{item.sentiment}</span>
+        {/* UNUSUAL FLOW CARDS */}
+        <div className="space-y-4">
+            <div className="px-2 flex justify-between items-center">
+                <span className="font-bold text-sm text-gray-500 uppercase tracking-widest">Whale Flow</span>
+                <RefreshCw className={`w-3.5 h-3.5 text-gray-500 cursor-pointer ${pulseLoading ? 'animate-spin' : ''}`} onClick={fetchPulse} />
+            </div>
+            {marketPulse?.unusual?.slice(0, 5).map((item: any, i: number) => (
+                <div key={i} className={`border p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer ${darkMode ? 'bg-[#000000] border-gray-800' : 'bg-white border-gray-100'}`}>
+                    <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${item.type === 'CALL' ? 'bg-[#00c805]' : 'bg-[#FF5000]'}`}></div>
+                            <span className="font-bold text-sm tracking-tight">{item.ticker} {item.strike}{item.type[0]}</span>
                         </div>
-                    ))}
+                        <span className={`text-[10px] font-bold px-2 py-1 rounded ${darkMode ? 'bg-gray-900 text-gray-400' : 'bg-gray-50 text-gray-500'}`}>{item.ratio}x Vol</span>
+                    </div>
+                    <div className="flex justify-between items-end">
+                        <div className="text-xs text-gray-500 font-medium">Exp {item.exp}</div>
+                        <div className="text-xs font-bold">{item.vol.toLocaleString()} Contracts</div>
+                    </div>
                 </div>
-            </div>
-
-            {/* NEWS FEED */}
-            <div className="bg-base-white border border-base-border rounded-2xl shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-base-border bg-base-light/50 flex items-center gap-2">
-                    <Newspaper className="w-4 h-4 text-base-text" />
-                    <span className="text-[11px] font-bold text-base-text uppercase tracking-wider">Financial News</span>
-                </div>
-                <div className="p-2 space-y-1">
-                    {marketPulse?.news?.map((news: any, idx: number) => (
-                        <a key={idx} href={news.link} target="_blank" rel="noopener noreferrer" className="block p-4 hover:bg-base-light rounded-xl transition-colors group">
-                            <h4 className="text-xs font-bold text-base-text leading-tight group-hover:text-brand line-clamp-2 uppercase tracking-tight">{news.title}</h4>
-                            <div className="flex justify-between items-center mt-3">
-                                <span className="text-[9px] font-bold text-base-muted uppercase tracking-widest">{new Date(news.pubDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                                <ExternalLink size={10} className="text-base-border group-hover:text-brand" />
-                            </div>
-                        </a>
-                    ))}
-                </div>
-            </div>
-
+            ))}
         </div>
+
       </div>
     </div>
   );

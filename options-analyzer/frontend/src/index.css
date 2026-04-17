@@ -4,15 +4,9 @@
 
 @layer base {
   body {
-    @apply antialiased;
+    @apply antialiased transition-colors duration-200 bg-white text-[#1a1a1a];
   }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  html.dark body {
+    @apply bg-[#000000] text-white;
+  }
 }

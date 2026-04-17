@@ -1,0 +1,56 @@
+Starting Options & Sports Aggregator...
+Backend starting on port 3001 (PID: 103964)...
+Frontend starting on port 3000 (PID: 103965)...
+
+> backend@1.0.0 dev
+> nodemon src/index.ts
+
+
+> frontend@0.0.0 dev
+> vite
+
+[33m[nodemon] 3.1.14[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): src/**/*[39m
+[33m[nodemon] watching extensions: ts,json[39m
+[32m[nodemon] starting `ts-node src/index.ts`[39m
+
+  VITE v8.0.0-beta.16  ready in 536 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: http://10.0.12.55:3000/
+[dotenv@17.3.1] injecting env (5) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+Aggregator Server running on port 3001
+SCHWAB_REDIRECT_URI: https://127.0.0.1:3000/callback
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 3:28:22 PM - Found 9 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 3:33:22 PM - Found 8 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 3:38:22 PM - Found 8 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 3:43:23 PM - Found 9 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 3:48:23 PM - Found 9 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 3:53:23 PM - Found 7 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 3:58:23 PM - Found 9 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 4:03:23 PM - Found 10 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 4:08:23 PM - Found 9 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 4:13:23 PM - Found 9 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 4:18:23 PM - Found 10 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 4:23:23 PM - Found 9 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 4:28:23 PM - Found 9 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 4:33:23 PM - Found 10 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 4:38:23 PM - Found 9 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 4:43:23 PM - Found 10 Flow matches in ATGL list.

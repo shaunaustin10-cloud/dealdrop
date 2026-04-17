@@ -1,0 +1,50 @@
+
+> backend@1.0.0 dev
+> nodemon src/index.ts
+
+[33m[nodemon] 3.1.14[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): src/**/*[39m
+[33m[nodemon] watching extensions: ts,json[39m
+[32m[nodemon] starting `ts-node src/index.ts`[39m
+[32m[nodemon] restarting child process[39m
+[32m[nodemon] starting `ts-node src/index.ts`[39m
+[dotenv@17.3.1] injecting env (5) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+Aggregator Server running on port 3001
+SCHWAB_REDIRECT_URI: https://redesigned-space-parakeet-5gp959w7p55jh4v56-3000.app.github.dev/callback
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 12:30:20 PM - Found 10 Flow matches in ATGL list.
+[12:30:48 PM] HEAD /api/market/pulse
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 12:35:20 PM - Found 8 Flow matches in ATGL list.
+[12:36:37 PM] GET /api/market/pulse
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `ts-node src/index.ts`[39m
+[dotenv@17.3.1] injecting env (5) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+Aggregator Server running on port 3001
+SCHWAB_REDIRECT_URI: https://redesigned-space-parakeet-5gp959w7p55jh4v56-3000.app.github.dev/callback
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 12:42:26 PM - Found 9 Flow matches in ATGL list.
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `ts-node src/index.ts`[39m
+[dotenv@17.3.1] injecting env (5) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+Aggregator Server running on port 3001
+SCHWAB_REDIRECT_URI: https://redesigned-space-parakeet-5gp959w7p55jh4v56-3000.app.github.dev/callback
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 12:42:32 PM - Found 10 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 12:47:32 PM - Found 10 Flow matches in ATGL list.
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 12:52:32 PM - Found 10 Flow matches in ATGL list.
+[12:56:11 PM] GET /api/market/pulse
+[12:56:11 PM] GET /api/schwab/status
+[12:56:11 PM] GET /api/market/pulse
+[12:56:11 PM] GET /api/schwab/status
+[12:56:13 PM] GET /api/schwab/login-url
+[12:57:04 PM] GET /api/schwab/login-url
+[ATGL] Found 85 tickers.
+[SCAN COMPLETE] 12:57:32 PM - Found 9 Flow matches in ATGL list.
+[1:01:55 PM] GET /api/schwab/login-url
+Killed
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m

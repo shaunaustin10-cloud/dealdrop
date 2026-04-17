@@ -1,0 +1,130 @@
+import 'dotenv/config';
+import admin from 'firebase-admin';
+import fs from 'fs';
+
+const raw = fs.readFileSync('scrapers/service-account.json', 'utf8');
+const sa = JSON.parse(raw);
+
+admin.initializeApp({
+    credential: admin.credential.cert(sa),
+    projectId: sa.project_id || 'web-app-30504'
+});
+
+const db = admin.firestore();
+
+const deals = [
+  {
+    address: "123 Maple Ave, Indianapolis, IN 46202",
+    price: 145000,
+    arv: 235000,
+    rehab: 45000,
+    rent: 1650,
+    sqft: 1850,
+    bedrooms: 3,
+    bathrooms: 2,
+    dealScore: 88,
+    status: "Available",
+    imageUrls: ["https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=1200"],
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    publishedAt: admin.firestore.FieldValue.serverTimestamp(),
+    adminVerificationStatus: "approved",
+    aiAnalysis: {
+        gemini: {
+            summary: "Strong BRRRR candidate in rapid-appreciating Fountain Square. Mechanicals updated 2020.",
+            strengths: ["New Roof", "Walking distance to cultural trail"],
+            risks: ["Foundation settling - minor"]
+        }
+    }
+  },
+  {
+    address: "890 Elm St, Cincinnati, OH 45202",
+    price: 85000,
+    arv: 175000,
+    rehab: 55000,
+    rent: 1400,
+    sqft: 1400,
+    bedrooms: 2,
+    bathrooms: 1,
+    dealScore: 92,
+    status: "Available",
+    imageUrls: ["https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&q=80&w=1200"],
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    publishedAt: admin.firestore.FieldValue.serverTimestamp(),
+    adminVerificationStatus: "approved",
+    aiAnalysis: {
+        gemini: {
+            summary: "Deep discount flip. Needs cosmetic overhaul but bones are good.",
+            strengths: ["Priced at 48% of ARV", "Corner Lot"],
+            risks: ["Complete rewire needed"]
+        }
+    }
+  },
+  {
+    address: "4501 Broadway, Indianapolis, IN 46205",
+    price: 210000,
+    arv: 315000,
+    rehab: 35000,
+    rent: 2100,
+    sqft: 2200,
+    bedrooms: 4,
+    bathrooms: 2.5,
+    dealScore: 78,
+    status: "Available",
+    imageUrls: ["https://images.unsplash.com/photo-1600596542815-2250c385e311?auto=format&fit=crop&q=80&w=1200"],
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    publishedAt: admin.firestore.FieldValue.serverTimestamp(),
+    adminVerificationStatus: "approved",
+    aiAnalysis: {
+        gemini: {
+            summary: "Turnkey rental or light flip. Currently tenant occupied at $1200 (under market).",
+            strengths: ["Cash flow day 1", "Meridian-Kessler adjacent"],
+            risks: ["Tenant eviction potential"]
+        }
+    }
+  },
+   {
+    address: "7720 S Rural St, Indianapolis, IN 46227",
+    price: 195000,
+    arv: 265000,
+    rehab: 20000,
+    rent: 1850,
+    sqft: 1650,
+    bedrooms: 3,
+    bathrooms: 2,
+    dealScore: 72, 
+    status: "New Lead",
+    imageUrls: ["https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?auto=format&fit=crop&q=80&w=1200"],
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    publishedAt: admin.firestore.FieldValue.serverTimestamp(),
+    adminVerificationStatus: "pending",
+    aiAnalysis: {
+        gemini: {
+            summary: "Solid suburban ranch. Good school district.",
+            strengths: ["Attached Garage", "Quarter acre lot"],
+            risks: ["Outdated HVAC"]
+        }
+    }
+  }
+];
+
+async function seed() {
+    const appId = process.env.VITE_APP_ID || process.env.VITE_FIREBASE_APP_ID || '1:743890283978:web:5f27064ff3fad333e33333';
+    console.log(`Seeding deals to LIVE production for App ID: ${appId}`);
+    
+    const dealsRef = db.collection('artifacts').doc(appId).collection('deals');
+    const publicDealsRef = db.collection('artifacts').doc(appId).collection('publicDeals');
+    
+    for (const deal of deals) {
+        const docRef = await dealsRef.add(deal);
+        if (deal.adminVerificationStatus === 'approved') {
+             await publicDealsRef.doc(docRef.id).set({
+                 ...deal,
+                 originalId: docRef.id
+             });
+        }
+        console.log(`Added: ${deal.address}`);
+    }
+    console.log("Seeding complete.");
+}
+
+seed().catch(console.error);

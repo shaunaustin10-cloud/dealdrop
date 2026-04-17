@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Target, TrendingUp, Activity, BarChart2, Calendar, Clock, ChevronRight } from 'lucide-react';
+import { Target, TrendingUp, Activity, Calendar, Clock, ChevronRight } from 'lucide-react';
 import axios from 'axios';
 
 const SportsView: React.FC = () => {

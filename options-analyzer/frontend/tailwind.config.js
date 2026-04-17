@@ -8,22 +8,28 @@ export default {
     extend: {
       colors: {
         'base-white': '#FFFFFF',
-        'base-light': '#F9FAFB',
-        'base-border': '#E5E7EB',
-        'base-text': '#111827',
-        'base-muted': '#6B7280',
-        'brand': '#4F46E5', // Indigo 600
-        'brand-light': '#EEF2FF',
-        'success': '#10B981',
-        'warning': '#F59E0B',
-        'danger': '#EF4444',
+        'base-light': '#F7F7F7',
+        'base-border': '#EAEAEA',
+        'base-text': '#000000',
+        'base-muted': '#8A8A8A',
+        'brand': '#00c805', // Robinhood Green
+        'brand-light': '#E6F9E6',
+        'success': '#00c805',
+        'warning': '#FFB000',
+        'danger': '#FF5000', // Robinhood Red
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        // Fallbacks for standard sleek UI, mimicking RH's 'Capsule' font vibe
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'sans-serif'],
       },
       boxShadow: {
-        'panel': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+        'panel': '0 4px 12px rgba(0, 0, 0, 0.03)',
+        'modal': '0 8px 30px rgba(0, 0, 0, 0.08)',
+        'card': '0 2px 8px rgba(0, 0, 0, 0.04)',
+      },
+      borderRadius: {
+        'xl': '12px',
+        '2xl': '16px',
       }
     },
   },

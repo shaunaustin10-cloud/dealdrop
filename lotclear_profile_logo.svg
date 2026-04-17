@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+    <!-- Profile Version - The Spotless Stall -->
+    <rect width="500" height="500" fill="white" />
+    
+    <g transform="translate(145, 60) scale(0.9)">
+        <rect x="0" y="0" width="20" height="150" rx="4" fill="#0F172A" />
+        <rect x="150" y="0" width="20" height="150" rx="4" fill="#0F172A" />
+        <path d="M 40 80 L 80 120 L 180 20" stroke="#10B981" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        <path d="M 185 0 L 195 20 L 215 30 L 195 40 L 185 60 L 175 40 L 155 30 L 175 20 Z" fill="#34D399" />
+    </g>
+
+    <g transform="translate(250, 320)">
+        <text text-anchor="middle" style="font-family: 'Arial Black', sans-serif; font-weight: 900; font-size: 85px; fill: #0F172A; letter-spacing: -2px;">Lot</text>
+        <text y="80" text-anchor="middle" style="font-family: 'Arial Black', sans-serif; font-weight: 900; font-size: 85px; fill: #10B981; letter-spacing: -2px;">Clear</text>
+    </g>
+    
+    <text x="250" y="460" text-anchor="middle" style="font-family: 'Arial', sans-serif; font-weight: bold; font-size: 18px; fill: #64748B; letter-spacing: 4px;">CLEAN LOTS. DAILY PROOF.</text>
+</svg>

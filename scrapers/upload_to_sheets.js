@@ -139,6 +139,40 @@ async function main() {
 
         console.log('✅ Successfully updated Google Sheets!');
 
+        // Optional: Send new leads to a Make.com or Zapier webhook
+        const webhookUrl = process.env.WEBHOOK_URL;
+        if (webhookUrl) {
+            console.log(`Triggering webhook at ${webhookUrl}...`);
+            // Format the rows nicely into objects for the webhook
+            const payload = {
+                event: 'new_leads',
+                count: rowsToAppend.length - (!hasHeader ? 1 : 0),
+                leads: rowsToAppend.filter(row => row[0] !== 'Source').map(row => ({
+                    source: row[0],
+                    address: row[1],
+                    auctionDate: row[2],
+                    jurisdiction: row[3],
+                    status: row[4],
+                    deposit: row[5]
+                }))
+            };
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (response.ok) {
+                    console.log('✅ Webhook triggered successfully!');
+                } else {
+                    console.error('⚠️ Webhook returned error status:', response.status);
+                }
+            } catch (err) {
+                console.error('⚠️ Failed to trigger webhook:', err.message);
+            }
+        }
+
     } catch (error) {
         console.error('Error updating Google Sheets:', error.message);
         if (error.response && error.response.data) {
@@ -147,4 +181,4 @@ async function main() {
     }
 }
 
-main();
+await main();

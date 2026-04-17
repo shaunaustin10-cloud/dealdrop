@@ -9,6 +9,8 @@ import Contact from './pages/Contact';
 
 import Buyer from './pages/Buyer';
 import Seller from './pages/Seller';
+import MortgageAssistance from './pages/MortgageAssistance';
+import CuratedCollection from './pages/CuratedCollection';
 
 export default function App() {
   return (
@@ -22,6 +24,8 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/buy" element={<Buyer />} />
           <Route path="/sell" element={<Seller />} />
+          <Route path="/mortgage-assistance" element={<MortgageAssistance />} />
+          <Route path="/collection/:type" element={<CuratedCollection />} />
         </Routes>
         <Footer />
       </div>

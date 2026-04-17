@@ -89,11 +89,11 @@ async function main() {
     console.log(" - scrapers/foreclosures.csv (Perfect for Google Sheets)");
 
     console.log("\nStarting Google Sheets upload...");
-    import('./upload_to_sheets.js');
+    await import('./upload_to_sheets.js');
 
     // Auto-trigger upload if requested (optional)
     console.log("\nStarting Firestore upload...");
-    import('./upload_to_firestore.js');
+    await import('./upload_to_firestore.js');
 }
 
 main();
